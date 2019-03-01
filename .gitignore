@@ -2,3 +2,4 @@
 /projector
 *.lock
 package-lock.json
+.env

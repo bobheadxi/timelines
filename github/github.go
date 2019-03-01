@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -18,29 +19,54 @@ type Client struct {
 	l *zap.SugaredLogger
 }
 
-// NewClient instantiates a new github client
-func NewClient(ctx context.Context, l *zap.SugaredLogger, token string) (*Client, error) {
+func newClient(l *zap.SugaredLogger, auth oauth2.TokenSource) (*Client, error) {
 	var tc *http.Client
-	if token != "" {
-		l.Infow("loading oauth client")
-		ts := oauth2.StaticTokenSource(&oauth2.Token{
-			AccessToken: token,
-		})
-		tc = oauth2.NewClient(oauth2.NoContext, ts)
+	if auth != nil {
+		l.Info("loading credentials")
+		token, err := auth.Token()
+		if err != nil {
+			l.Errorw("failed to load credentials", "error", err)
+			return nil, err
+		}
+		l.Infow("token generated", "token", token)
+		tc = oauth2.NewClient(oauth2.NoContext, oauth2.ReuseTokenSource(token, auth))
 	} else {
 		l.Infow("using default client")
 		tc = http.DefaultClient
 	}
 
-	var gh = github.NewClient(tc)
-	lim, _, err := gh.RateLimits(ctx)
+	return &Client{
+		gh: github.NewClient(tc),
+		l:  l,
+	}, nil
+}
+
+// NewClient instantiates a new github client. This package offers several
+// implementations of auth, and different clients should be instantiated for
+// different purposes.
+//
+// * a "signing client" should use AppAuth and NewSigningClient, and only be
+//   used to create installation clients.
+// * a "installation client" should use InstallationAuth, and only be created
+//   from a SigningClient
+// * a "default client" should use nil auth, and be used for unauthenticated
+//   requests
+//
+func NewClient(ctx context.Context, l *zap.SugaredLogger, auth oauth2.TokenSource) (*Client, error) {
+	client, err := newClient(l, auth)
 	if err != nil {
+		return nil, err
+	}
+
+	lim, _, err := client.gh.RateLimits(ctx)
+	if err != nil {
+		l.Infow("could not authenticate against github", "error", err)
 		return nil, err
 	}
 	l.Infow("authenticated against github",
 		"rate_limits", lim)
 
-	return &Client{gh: gh}, nil
+	return client, nil
 }
 
 // IssueState denotes whether to get issues that are closed, open, or all
@@ -69,12 +95,19 @@ func (c *Client) GetIssues(
 	filter IssuesFilter,
 	issuesC chan<- *github.Issue,
 	prsC chan<- *github.Issue,
+	wait *sync.WaitGroup,
 ) error {
+	wait.Add(1)
+	defer wait.Done()
+
 	var (
 		l         = c.l.With("user", user, "repo", repo)
 		itemCount = 0
 	)
+
 	for page := filter.MinIssue/100 + 1; page != 0; {
+
+		// fetch items
 		items, resp, err := c.gh.Issues.ListByRepo(ctx, user, repo, &github.IssueListByRepoOptions{
 			Direction: "asc",
 			Sort:      "created",
@@ -89,17 +122,28 @@ func (c *Client) GetIssues(
 			return fmt.Errorf("failed to fetch issues for '%s/%s' on page '%d': %s",
 				user, repo, page, err)
 		}
-
 		itemCount += len(items)
 		l.Infow("items retrieved", "items", itemCount, "page", page)
+
+		// queue all items into output
 		for _, i := range items {
 			if !i.IsPullRequest() {
 				issuesC <- i
 			} else {
+				// set repository data to help fetch pull request details
+				if i.GetRepository() == nil || i.GetRepository().GetOwner() == nil {
+					i.Repository = &github.Repository{
+						Name: github.String(repo),
+						Owner: &github.User{
+							Login: github.String(user),
+						},
+					}
+				}
 				prsC <- i
 			}
 		}
 
+		// wait if required before making next request
 		page = resp.NextPage
 		if filter.Interval > 0 {
 			time.Sleep(filter.Interval)
@@ -116,8 +160,11 @@ func (c *Client) GetPullRequest(ctx context.Context, i *github.Issue) (*github.P
 	}
 
 	var repo = i.GetRepository()
+	if repo == nil || repo.GetOwner() == nil {
+		return nil, fmt.Errorf("repo or owner is not set in issue '%d'", i.GetNumber())
+	}
 	pr, _, err := c.gh.PullRequests.Get(ctx,
-		repo.GetOwner().GetName(),
+		repo.GetOwner().GetLogin(),
 		repo.GetName(),
 		i.GetNumber())
 	if err != nil {
