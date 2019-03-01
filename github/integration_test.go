@@ -12,7 +12,10 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestGitHubClient(t *testing.T) {
+func TestClient(t *testing.T) {
+	if testing.Short() {
+		t.Skip("-short enabled, skipping")
+	}
 	godotenv.Load("../.env")
 	var l = zaptest.NewLogger(t).Sugar()
 	var ctx = context.Background()
@@ -33,9 +36,9 @@ func TestGitHubClient(t *testing.T) {
 		wg      = &sync.WaitGroup{}
 	)
 
-	ic.GetIssues(ctx, "bobheadxi", "calories", IssuesFilter{
+	assert.NoError(t, ic.GetIssues(ctx, "bobheadxi", "calories", ItemFilter{
 		State: IssueStateAll,
-	}, issuesC, pullsC, wg)
+	}, issuesC, pullsC, wg))
 
 	unauth, err := NewClient(ctx, l, nil)
 	if !assert.NoError(t, err) {
@@ -71,4 +74,45 @@ func TestGitHubClient(t *testing.T) {
 			return
 		}
 	}
+}
+
+func TestSyncer(t *testing.T) {
+	if testing.Short() {
+		t.Skip("-short enabled, skipping")
+	}
+
+	godotenv.Load("../.env")
+	var l = zaptest.NewLogger(t).Sugar()
+	var ctx = context.Background()
+
+	signer, err := NewSigningClient(l, NewEnvAuth())
+	if !assert.NoError(t, err) {
+		t.Fatal()
+	}
+
+	ic, err := signer.GetInstallationClient(ctx, os.Getenv("GITHUB_TEST_INSTALLTION"))
+	if !assert.NoError(t, err) {
+		t.Fatal()
+	}
+
+	var wg = &sync.WaitGroup{}
+	var itemsC = make(chan *Item, 500)
+	var s = NewSyncer(l.Named("syncer"), ic, SyncOptions{
+		Repo: Repo{
+			Owner: "bobheadxi",
+			Name:  "calories",
+		},
+		Filter: ItemFilter{
+			State: IssueStateAll,
+		},
+		DetailsFetchWorkers: 3,
+		IndexC:              itemsC,
+	})
+
+	go assert.NoError(t, s.Sync(ctx, wg))
+	for i := range itemsC {
+		t.Logf("%+v", i)
+	}
+
+	wg.Wait()
 }

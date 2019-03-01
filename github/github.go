@@ -81,20 +81,20 @@ const (
 	IssueStateOpen IssueState = "open"
 )
 
-// IssuesFilter denotes options to filter issues by
-type IssuesFilter struct {
-	MinIssue int
-	State    IssueState
-	Interval time.Duration
+// ItemFilter denotes options to filter issues and PRs by
+type ItemFilter struct {
+	MinNumber int
+	State     IssueState
+	Interval  time.Duration
 }
 
 // GetIssues retrieves all issues for a project
 func (c *Client) GetIssues(
 	ctx context.Context,
 	user, repo string,
-	filter IssuesFilter,
+	filter ItemFilter,
 	issuesC chan<- *github.Issue,
-	prsC chan<- *github.Issue,
+	fetchDetailsC chan<- *github.Issue,
 	wait *sync.WaitGroup,
 ) error {
 	wait.Add(1)
@@ -105,7 +105,7 @@ func (c *Client) GetIssues(
 		itemCount = 0
 	)
 
-	for page := filter.MinIssue/100 + 1; page != 0; {
+	for page := filter.MinNumber/100 + 1; page != 0; {
 
 		// fetch items
 		items, resp, err := c.gh.Issues.ListByRepo(ctx, user, repo, &github.IssueListByRepoOptions{
@@ -139,7 +139,7 @@ func (c *Client) GetIssues(
 						},
 					}
 				}
-				prsC <- i
+				fetchDetailsC <- i
 			}
 		}
 

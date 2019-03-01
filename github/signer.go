@@ -39,7 +39,7 @@ func NewSigningClient(l *zap.SugaredLogger, auth oauth2.TokenSource) (*SigningCl
 
 // GetInstallationClient gets an installation-specific client
 func (c *SigningClient) GetInstallationClient(ctx context.Context, id string) (*Client, error) {
-	auth, err := NewInstallationAuth(ctx, c.c.gh, c.l, id)
+	auth, err := NewInstallationAuth(ctx, c.c.gh, c.l.Named("auth"), id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to authenticate installation: %s", err.Error())
 	}
