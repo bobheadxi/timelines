@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_DB: "projector_dev"
+      POSTGRES_USER: "bobheadxi"
+      POSTGRES_PASSWORD: "bobheadxi"
