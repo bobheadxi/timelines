@@ -1,5 +1,6 @@
 package github
 
+// Event denotes basic event metadata
 type Event struct {
 	GitHubEvent    string `json:"X-GitHub-Event"`
 	GitHubDelivery string `json:"X-GitHub-Delivery"`
