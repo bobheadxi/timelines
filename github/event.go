@@ -1,4 +1,4 @@
-package gh
+package github
 
 type Event struct {
 	GitHubEvent    string `json:"X-GitHub-Event"`
