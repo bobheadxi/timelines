@@ -5,7 +5,6 @@ import (
 	"os"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/joho/godotenv"
@@ -83,21 +82,26 @@ func TestSyncer(t *testing.T) {
 	}
 
 	godotenv.Load("../.env")
-	var l = zaptest.NewLogger(t).Sugar()
-	var ctx = context.Background()
 
-	signer, err := NewSigningClient(l, NewEnvAuth())
+	var (
+		ctx     = context.Background()
+		l       = zaptest.NewLogger(t).Sugar()
+		auth    = NewEnvAuth()
+		install = os.Getenv("GITHUB_TEST_INSTALLTION")
+	)
+
+	signer, err := NewSigningClient(l, auth)
 	if !assert.NoError(t, err) {
 		t.Fatal()
 	}
 
-	ic, err := signer.GetInstallationClient(ctx, os.Getenv("GITHUB_TEST_INSTALLTION"))
+	ic, err := signer.GetInstallationClient(ctx, install)
 	if !assert.NoError(t, err) {
 		t.Fatal()
 	}
 
 	var wg = &sync.WaitGroup{}
-	var s = NewSyncer(l.Named("syncer"), ic, SyncOptions{
+	var s = NewSyncer(l.Named("syncer").Named(install), ic, SyncOptions{
 		Repo: Repo{
 			Owner: "bobheadxi",
 			Name:  "calories",
@@ -109,6 +113,7 @@ func TestSyncer(t *testing.T) {
 		OutputBufferSize:    500,
 	})
 
+	// execute sync and wait
 	outC, errC := s.Sync(ctx, wg)
 	wg.Wait()
 	select {
@@ -117,10 +122,9 @@ func TestSyncer(t *testing.T) {
 	default:
 		break
 	}
-	go func() {
-		for i := range outC {
-			t.Logf("received #%d", i.Number)
-		}
-	}()
-	time.Sleep(10 * time.Second)
+
+	// process output
+	for i := range outC {
+		t.Logf("received #%d", i.Number)
+	}
 }

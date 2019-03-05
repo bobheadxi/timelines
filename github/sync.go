@@ -90,9 +90,11 @@ func (s *Syncer) Sync(ctx context.Context, wg *sync.WaitGroup) (<-chan *Item, <-
 	s.used = true
 
 	// execute sync
+	s.l.Info("executing sync")
 	var errC = s.sync(ctx, wg)
 	go func() {
 		wg.Wait()
+		s.l.Info("sync done, closing output")
 		close(s.outC)
 	}()
 	return s.outC, errC
@@ -118,7 +120,9 @@ func (s *Syncer) sync(ctx context.Context, wg *sync.WaitGroup) <-chan error {
 			wg); err != nil {
 			errC <- err
 		}
+		s.l.Infow("all issues loaded done, waiting")
 		wg.Wait()
+		s.l.Infow("sync done, closing error output")
 		close(errC)
 	}()
 
@@ -135,6 +139,7 @@ func (s *Syncer) handleIssues(ctx context.Context, wg *sync.WaitGroup) {
 			Data:   i,
 		}
 	}
+	s.l.Infow("all issues processed")
 	wg.Done()
 }
 
@@ -153,5 +158,6 @@ func (s *Syncer) fetchDetails(ctx context.Context, wg *sync.WaitGroup) {
 			}
 		}
 	}
+	s.l.Infow("all detail fetching processed")
 	wg.Done()
 }
