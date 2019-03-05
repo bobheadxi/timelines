@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/joho/godotenv"
@@ -96,7 +97,6 @@ func TestSyncer(t *testing.T) {
 	}
 
 	var wg = &sync.WaitGroup{}
-	var itemsC = make(chan *Item, 500)
 	var s = NewSyncer(l.Named("syncer"), ic, SyncOptions{
 		Repo: Repo{
 			Owner: "bobheadxi",
@@ -106,13 +106,21 @@ func TestSyncer(t *testing.T) {
 			State: IssueStateAll,
 		},
 		DetailsFetchWorkers: 3,
-		IndexC:              itemsC,
+		OutputBufferSize:    500,
 	})
 
-	go assert.NoError(t, s.Sync(ctx, wg))
-	for i := range itemsC {
-		t.Logf("%+v", i)
-	}
-
+	outC, errC := s.Sync(ctx, wg)
 	wg.Wait()
+	select {
+	case err := <-errC:
+		t.Errorf("sync errored: %s", err.Error())
+	default:
+		break
+	}
+	go func() {
+		for i := range outC {
+			t.Logf("received #%d", i.Number)
+		}
+	}()
+	time.Sleep(10 * time.Second)
 }

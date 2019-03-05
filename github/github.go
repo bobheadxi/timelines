@@ -98,7 +98,11 @@ func (c *Client) GetIssues(
 	wait *sync.WaitGroup,
 ) error {
 	wait.Add(1)
-	defer wait.Done()
+	defer func() {
+		close(issuesC)
+		close(fetchDetailsC)
+		wait.Done()
+	}()
 
 	var (
 		l         = c.l.With("user", user, "repo", repo)
