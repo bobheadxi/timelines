@@ -6,6 +6,3 @@ exec:
   filename: golang/projector/generated.go
 model:
   filename: golang/projector/models/models.go
-resolver:
-  filename: golang/projector/resolver.go
-  type: Resolver
