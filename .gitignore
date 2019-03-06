@@ -3,3 +3,5 @@
 *.lock
 package-lock.json
 .env
+
+tmp
