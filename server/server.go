@@ -14,7 +14,11 @@ type RunOpts struct {
 }
 
 // Run spins up the server
-func Run(l *zap.SugaredLogger, resolver *Resolver, opts RunOpts) error {
+func Run(
+	l *zap.SugaredLogger,
+	resolver projector.ResolverRoot,
+	opts RunOpts,
+) error {
 	// init server with diagnostic hooks
 	var srv = server.New(&server.Options{
 		// TODO
