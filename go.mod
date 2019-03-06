@@ -3,14 +3,13 @@ module github.com/bobheadxi/projector
 go 1.12
 
 require (
-	github.com/RoaringBitmap/roaring v0.4.16 // indirect
+	github.com/99designs/gqlgen v0.8.0
 	github.com/Smerity/govarint v0.0.0-20150407073650-7265e41f48f1 // indirect
 	github.com/blevesearch/bleve v0.7.0
 	github.com/blevesearch/blevex v0.0.0-20180227211930-4b158bb555a3 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.1 // indirect
 	github.com/blevesearch/segment v0.0.0-20160915185041-762005e7a34f // indirect
-	github.com/bobheadxi/hercules v0.0.0-20190306012827-a391f2a15b13 // indirect
-	github.com/boltdb/bolt v1.3.1 // indirect
+	github.com/bobheadxi/hercules v0.0.0-20190306012827-a391f2a15b13
 	github.com/couchbase/vellum v0.0.0-20190111184608-e91b68ff3efe // indirect
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
@@ -21,28 +20,25 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20150612182917-8dac2c3c4870 // indirect
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect
-	github.com/glycerine/goconvey v0.0.0-20180728074245-46e3a41ad493 // indirect
+	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/go-pg/pg v8.0.1+incompatible
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible
-	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/joho/godotenv v1.3.0
-	github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae // indirect
-	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20170806203942-52369c62f446 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190222223459-a17d461953aa // indirect
 	github.com/src-d/hercules v9.0.0+incompatible // indirect
 	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
-	github.com/stretchr/testify v1.2.2
+	github.com/stretchr/testify v1.3.0
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20181010114359-8752a9433481 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
+	github.com/vektah/gqlparser v1.1.1
 	github.com/willf/bitset v1.1.10 // indirect
-	go.uber.org/atomic v1.3.2 // indirect
-	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1
+	gocloud.dev v0.11.0
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	golang.org/x/sys v0.0.0-20190228124157-a34e9553db1e // indirect
 	gopkg.in/src-d/go-git.v4 v4.10.0

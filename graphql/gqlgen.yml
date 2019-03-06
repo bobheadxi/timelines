@@ -1,0 +1,11 @@
+# Refer to https://gqlgen.com/config/ for detailed .gqlgen.yml documentation.
+
+schema:
+ - "*.graphql"
+exec:
+  filename: golang/api/generated.go
+model:
+  filename: golang/api/models/models.go
+resolver:
+  filename: golang/api/resolver.go
+  type: Resolver
