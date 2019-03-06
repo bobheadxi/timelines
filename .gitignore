@@ -1,4 +1,5 @@
 /vendor
+node_modules
 /projector
 *.lock
 package-lock.json

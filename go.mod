@@ -29,7 +29,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/remyoudompheng/bigfft v0.0.0-20170806203942-52369c62f446 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190222223459-a17d461953aa // indirect
-	github.com/src-d/hercules v9.0.0+incompatible // indirect
+	github.com/src-d/hercules v9.0.1-0.20190306185501-c7c5cb6d76f1+incompatible // indirect
 	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/syndtr/goleveldb v1.0.0 // indirect
