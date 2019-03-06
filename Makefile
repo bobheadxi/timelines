@@ -14,4 +14,5 @@ clean:
 
 .PHONY: graphql
 graphql:
-	cd graphql && go run github.com/99designs/gqlgen generate
+	$(MAKE) -C graphql go
+	$(MAKE) -C graphql ts

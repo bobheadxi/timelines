@@ -1,8 +1,0 @@
-# Refer to https://gqlgen.com/config/ for detailed .gqlgen.yml documentation.
-
-schema:
- - "*.graphql"
-exec:
-  filename: golang/projector/generated.go
-model:
-  filename: golang/projector/models/models.go

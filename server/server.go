@@ -2,10 +2,11 @@ package server
 
 import (
 	"github.com/99designs/gqlgen/handler"
-	"github.com/bobheadxi/projector/graphql/golang/projector"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 	"gocloud.dev/server"
+
+	"github.com/bobheadxi/projector/graphql/go/projector"
 )
 
 // RunOpts denotes server options

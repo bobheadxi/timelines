@@ -1,6 +1,6 @@
 package server
 
-import "github.com/bobheadxi/projector/graphql/golang/projector"
+import "github.com/bobheadxi/projector/graphql/go/projector"
 
 // Resolver implements the Projector GraphQL API
 type Resolver struct{}
