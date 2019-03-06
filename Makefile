@@ -11,3 +11,7 @@ devenv:
 .PHONY: clean
 clean:
 	docker-compose -f dev/docker-compose.yml down
+
+.PHONY: graphql
+graphql:
+	cd graphql && go run github.com/99designs/gqlgen generate

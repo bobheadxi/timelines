@@ -3,9 +3,9 @@
 schema:
  - "*.graphql"
 exec:
-  filename: golang/api/generated.go
+  filename: golang/projector/generated.go
 model:
-  filename: golang/api/models/models.go
+  filename: golang/projector/models/models.go
 resolver:
-  filename: golang/api/resolver.go
+  filename: golang/projector/resolver.go
   type: Resolver

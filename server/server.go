@@ -2,11 +2,10 @@ package server
 
 import (
 	"github.com/99designs/gqlgen/handler"
+	"github.com/bobheadxi/projector/graphql/golang/projector"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 	"gocloud.dev/server"
-
-	"github.com/bobheadxi/projector/graphql/golang/api"
 )
 
 // RunOpts denotes server options
@@ -24,10 +23,12 @@ func Run(l *zap.SugaredLogger, resolver *Resolver, opts RunOpts) error {
 
 	// set up endpoints
 	var mux = chi.NewMux()
-	mux.Handle("/", handler.Playground("Projector API Playground", "/query"))
-	mux.Handle("/query", handler.GraphQL(api.NewExecutableSchema(api.Config{
-		Resolvers: resolver,
-	})))
+	mux.Route("/api", func(r chi.Router) {
+		r.Handle("/", handler.Playground("Projector API Playground", "/query"))
+		r.Handle("/query", handler.GraphQL(projector.NewExecutableSchema(projector.Config{
+			Resolvers: resolver,
+		})))
+	})
 
 	// let's go!
 	l.Infow("spinning up server",
