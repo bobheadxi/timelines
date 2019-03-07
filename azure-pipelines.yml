@@ -54,6 +54,11 @@ steps:
 - script: |
     docker-compose -f dev/docker-compose.yml up -d
     docker ps
-    go test ./... -coverprofile=coverage.txt -short ./...
+    go test -coverprofile=coverage.txt -covermode=atomic -race -short ./...
   workingDirectory: '$(modulePath)'
-  displayName: 'Run tests and report coverage'
+  displayName: 'Set up devenv and run tests'
+
+- script: bash <(curl -s https://codecov.io/bash)
+  workingDirectory: '$(modulePath)'
+  displayName: 'Report coverage'
+  condition: succeeded()
