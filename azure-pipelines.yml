@@ -14,6 +14,16 @@ variables:
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
 
 steps:
+- task: GoTool@0
+  inputs:
+    version: '1.12'
+
+- task: DockerInstaller@0
+  displayName: Docker Installer
+  inputs:
+    dockerVersion: 17.09.0-ce
+    releaseType: stable
+
 - script: |
     mkdir -p '$(GOBIN)'
     mkdir -p '$(GOPATH)/pkg'
@@ -42,6 +52,8 @@ steps:
   displayName: 'Build and run static analysis'
 
 - script: |
+    docker-compose -f dev/docker-compose.yml up -d
+    docker ps
     go test ./... -coverprofile=coverage.txt -short ./...
   workingDirectory: '$(modulePath)'
   displayName: 'Run tests and report coverage'
