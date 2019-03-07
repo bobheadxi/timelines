@@ -28,6 +28,20 @@ steps:
 - script: |
     go version
     go mod vendor
+    go get -u golang.org/x/lint/golint
     go build -v .
   workingDirectory: '$(modulePath)'
-  displayName: 'Get dependencies, then build'
+  displayName: 'Get dependencies'
+
+- script: |
+    go build -v
+    go fmt ./...
+    golint $(go list ./... | grep -v /vendor/)
+    go vet ./...
+  workingDirectory: '$(modulePath)'
+  displayName: 'Build and run static analysis'
+
+- script: |
+    go test ./... -coverprofile=coverage.txt -short ./...
+  workingDirectory: '$(modulePath)'
+  displayName: 'Run tests and report coverage'
