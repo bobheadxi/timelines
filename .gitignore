@@ -1,8 +1,16 @@
-/vendor
+# dependencies
+vendor
 node_modules
-/projector
-*.lock
+yarn.lock
 package-lock.json
-.env
 
+# artifacts
+/projector
+
+# testing
 tmp
+*.prof
+*.test
+
+# secrets
+.env
