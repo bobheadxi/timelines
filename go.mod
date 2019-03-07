@@ -10,6 +10,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/go-pg/pg v8.0.1+incompatible
+	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645 // indirect
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect

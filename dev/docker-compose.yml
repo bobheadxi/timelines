@@ -10,3 +10,9 @@ services:
       POSTGRES_DB: "projector_dev"
       POSTGRES_USER: "bobheadxi"
       POSTGRES_PASSWORD: "bobheadxi"
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
