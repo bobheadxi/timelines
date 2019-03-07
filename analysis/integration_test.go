@@ -30,9 +30,13 @@ func TestGitRepoAnalyser(t *testing.T) {
 
 	// print burndown
 	b, _ := json.Marshal(report.Burndown)
-	t.Log("burndown:", string(b))
+	t.Log("\n== burndown:", string(b))
 
 	// print churn
 	b, _ = json.Marshal(report.Churn)
-	t.Log("churn:", string(b))
+	t.Log("\n== churn:", string(b))
+
+	// print coupling
+	b, _ = json.Marshal(report.Coupling)
+	t.Log("\n== coupling:", string(b))
 }
