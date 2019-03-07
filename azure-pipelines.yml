@@ -59,7 +59,7 @@ steps:
   workingDirectory: '$(modulePath)'
   displayName: 'Set up devenv and run tests'
 
-- script: bash <(curl -s https://codecov.io/bash)
+- script: bash <(curl -s https://codecov.io/bash) -t $(CODECOV_TOKEN)
   workingDirectory: '$(modulePath)'
   displayName: 'Report coverage'
   condition: succeeded()
