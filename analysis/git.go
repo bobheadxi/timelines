@@ -5,6 +5,7 @@ import (
 	// TODO: explore gitbase
 	// gitbase "gopkg.in/src-d/gitbase.v0"
 
+	"go.uber.org/zap"
 	gogit "gopkg.in/src-d/go-git.v4"
 	hercules "gopkg.in/src-d/hercules.v9"
 	"gopkg.in/src-d/hercules.v9/leaves"
@@ -13,16 +14,27 @@ import (
 // GitRepoAnalyser executes pipelines on a repo
 type GitRepoAnalyser struct {
 	pipe *hercules.Pipeline
+	opts *GitRepoAnalyserOptions
+
+	l *zap.SugaredLogger
 }
 
+// GitRepoAnalyserOptions denotes options for the analyzer
+type GitRepoAnalyserOptions struct{}
+
 // NewGitAnalyser sets up a new pipeline for repo analysis
-func NewGitAnalyser(repo *gogit.Repository) *GitRepoAnalyser {
+func NewGitAnalyser(
+	l *zap.SugaredLogger,
+	repo *gogit.Repository,
+	opts GitRepoAnalyserOptions,
+) *GitRepoAnalyser {
 	var pipe = hercules.NewPipeline(repo)
 	pipe.PrintActions = false
 	pipe.DumpPlan = false
 
 	return &GitRepoAnalyser{
 		pipe: pipe,
+		opts: &opts,
 	}
 }
 

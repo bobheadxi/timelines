@@ -15,7 +15,7 @@ import (
 func TestGitRepoAnalyser(t *testing.T) {
 	// get repo
 	l := zaptest.NewLogger(t).Sugar()
-	m := git.NewManager(l, git.ManagerOpts{Workdir: "./tmp"})
+	m := git.NewManager(l.Named("git-manager"), git.ManagerOpts{Workdir: "./tmp"})
 	repo, err := m.Download(
 		context.Background(),
 		"https://github.com/bobheadxi/calories.git",
@@ -24,7 +24,7 @@ func TestGitRepoAnalyser(t *testing.T) {
 	defer os.RemoveAll("./tmp")
 
 	// execute analysis
-	a := NewGitAnalyser(repo.GitRepo())
+	a := NewGitAnalyser(l.Named("analysis"), repo.GitRepo(), GitRepoAnalyserOptions{})
 	report, err := a.Analyze()
 	assert.NoError(t, err)
 
