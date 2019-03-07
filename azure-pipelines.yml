@@ -54,7 +54,8 @@ steps:
 - script: |
     docker-compose -f dev/docker-compose.yml up -d
     docker ps
-    go test -coverprofile=coverage.txt -covermode=atomic -race -short ./...
+    # go test -coverprofile=coverage.txt -covermode=atomic -race -short ./...
+    go test -coverprofile=coverage.txt -covermode=atomic -short ./...
   workingDirectory: '$(modulePath)'
   displayName: 'Set up devenv and run tests'
 
