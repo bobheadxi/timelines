@@ -117,6 +117,12 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 				continue
 			}
 			w.l.Info("job dequeued", "job.id", job.ID)
+			w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+				GitHubSync: store.StateInProgress,
+				Analysis:   store.StateInProgress,
+			})
+
+			// spin up handlers and wait until completion
 			var wg sync.WaitGroup
 			wg.Add(1)
 			go w.githubSync(job, &wg)
@@ -183,5 +189,8 @@ func (w *worker) githubSync(job *store.RepoJob, wg *sync.WaitGroup) {
 		"items", count,
 		"duration", time.Since(start))
 	stopPipe <- true
+	w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+		GitHubSync: store.StateDone,
+	})
 	wg.Done()
 }
