@@ -70,23 +70,38 @@ func (r *RepoJobsClient) Queue(job *RepoJob) error {
 }
 
 // Dequeue grabs the next repo job
-func (r *RepoJobsClient) Dequeue() (*RepoJob, error) {
-	var pop = r.c.redis.BLPop(time.Second, queueRepoJobs)
-	data, err := pop.Result()
-	if err != nil {
-		return nil, err
-	} else if len(data) < 2 {
-		return nil, errors.New("nothing was popped from queue")
-	}
+func (r *RepoJobsClient) Dequeue() (<-chan *RepoJob, <-chan error) {
+	var (
+		jobC = make(chan *RepoJob, 1)
+		errC = make(chan error, 1)
+	)
 
-	var job = &RepoJob{}
-	if err := json.Unmarshal([]byte(data[1]), job); err != nil {
-		r.l.Errorw("failed to read data", "error", err)
-		return nil, err
-	}
-	r.l.Infow("job dequeued", "job.id", job.ID)
+	go func() {
+		defer close(errC)
+		defer close(jobC)
 
-	return job, nil
+		var pop = r.c.redis.BLPop(time.Second, queueRepoJobs)
+		data, err := pop.Result()
+		if err != nil {
+			errC <- err
+			return
+		} else if len(data) < 2 {
+			errC <- errors.New("nothing was popped from queue")
+			return
+		}
+
+		var job = &RepoJob{}
+		if err := json.Unmarshal([]byte(data[1]), job); err != nil {
+			r.l.Errorw("failed to read data", "error", err)
+			errC <- err
+			return
+		}
+
+		r.l.Infow("job dequeued", "job.id", job.ID)
+		jobC <- job
+	}()
+
+	return jobC, errC
 }
 
 // GetState retrieves the state of the given job ID

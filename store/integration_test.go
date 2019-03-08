@@ -24,10 +24,15 @@ func TestStore(t *testing.T) {
 	assert.NoError(t, err)
 
 	// get job
-	job, err := c.RepoJobs().Dequeue()
-	assert.NoError(t, err)
-	assert.Equal(t, id, job.ID)
-	assert.Equal(t, "bobheadxi", job.Owner)
+	jobC, errC := c.RepoJobs().Dequeue()
+	select {
+	case job := <-jobC:
+		assert.Equal(t, id, job.ID)
+		assert.Equal(t, "bobheadxi", job.Owner)
+	case err := <-errC:
+		assert.NoError(t, err)
+		t.Fail()
+	}
 
 	// get the job state
 	state, err := c.RepoJobs().GetState(id)
