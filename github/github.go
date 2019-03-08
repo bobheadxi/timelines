@@ -97,7 +97,6 @@ func (c *Client) GetIssues(
 	fetchDetailsC chan<- *github.Issue,
 	wait *sync.WaitGroup,
 ) error {
-	wait.Add(1)
 	defer func() {
 		close(issuesC)
 		close(fetchDetailsC)

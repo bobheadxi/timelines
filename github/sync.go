@@ -103,12 +103,15 @@ func (s *Syncer) Sync(ctx context.Context, wg *sync.WaitGroup) (<-chan *Item, <-
 func (s *Syncer) sync(ctx context.Context, wg *sync.WaitGroup) <-chan error {
 	// spin up workers
 	for i := 0; i < s.opts.DetailsFetchWorkers; i++ {
+		wg.Add(1)
 		go s.fetchDetails(ctx, wg)
 	}
+	wg.Add(1)
 	go s.handleIssues(ctx, wg)
 
 	// start sync
 	var errC = make(chan error)
+	wg.Add(1)
 	go func() {
 		if err := s.c.GetIssues(
 			ctx,
@@ -130,7 +133,6 @@ func (s *Syncer) sync(ctx context.Context, wg *sync.WaitGroup) <-chan error {
 }
 
 func (s *Syncer) handleIssues(ctx context.Context, wg *sync.WaitGroup) {
-	wg.Add(1)
 	for i := range s.issuesC {
 		s.outC <- &Item{
 			ID:     int(i.GetID()),
@@ -144,7 +146,6 @@ func (s *Syncer) handleIssues(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (s *Syncer) fetchDetails(ctx context.Context, wg *sync.WaitGroup) {
-	wg.Add(1)
 	for i := range s.fetchDetailsC {
 		if pr, err := s.c.GetPullRequest(ctx, i); err != nil {
 			s.l.Errorw("failed to get pull request",
