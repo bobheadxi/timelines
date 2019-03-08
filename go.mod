@@ -20,6 +20,7 @@ require (
 	github.com/moovweb/rubex v0.0.0-20160224233712-cb849acea614 // indirect
 	github.com/neurosnap/sentences v1.0.6 // indirect
 	github.com/sergi/go-diff v1.0.0
+	github.com/spf13/cobra v0.0.3
 	github.com/stretchr/testify v1.3.0
 	github.com/tensorflow/tensorflow v0.0.0-20180308082300-f73d7c90ed05 // indirect
 	github.com/toqueteos/trie v0.0.0-20150530104557-56fed4a05683 // indirect
