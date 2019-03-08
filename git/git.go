@@ -42,14 +42,20 @@ func (m *Manager) Download(ctx context.Context, remote string, opts DownloadOpts
 	if err != nil {
 		return nil, err
 	}
+	os.RemoveAll(repoDir)
 	l.Infow("cloning repository", "dir", repoDir)
 
+	// grab repo
 	gitrepo, err := gogit.PlainCloneContext(
 		ctx,
 		repoDir,
 		true,
 		&gogit.CloneOptions{
-			URL: remote,
+			URL:          remote,
+			SingleBranch: true,
+
+			// TODO: hmm incremental updates?
+			Depth: 0,
 
 			// TODO: private repos?
 			Auth: nil,
@@ -59,7 +65,6 @@ func (m *Manager) Download(ctx context.Context, remote string, opts DownloadOpts
 		return nil, err
 	}
 	l.Info("repo cloned")
-
 	return &Repository{
 		git: gitrepo,
 		dir: repoDir,
@@ -67,8 +72,25 @@ func (m *Manager) Download(ctx context.Context, remote string, opts DownloadOpts
 }
 
 // Load loads a downloaded repository
-func (m *Manager) Load(remote string) (*Repository, error) {
-	return nil, nil
+func (m *Manager) Load(ctx context.Context, remote string) (*Repository, error) {
+	repodir, err := m.repoDir(remote)
+	if err != nil {
+		return nil, err
+	}
+	gitrepo, err := gogit.PlainOpen(repodir)
+	if err != nil {
+		return nil, err
+	}
+	gitrepo.FetchContext(ctx, &gogit.FetchOptions{
+		Force: true,
+
+		// TODO: private repos
+		Auth: nil,
+	})
+	return &Repository{
+		dir: repodir,
+		git: gitrepo,
+	}, nil
 }
 
 func (m *Manager) repoDir(remote string) (string, error) {

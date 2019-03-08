@@ -2,9 +2,12 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/bobheadxi/projector/analysis"
 
 	"go.uber.org/zap"
 
@@ -124,16 +127,65 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 
 			// spin up handlers and wait until completion
 			var wg sync.WaitGroup
-			wg.Add(1)
-			go w.githubSync(job, &wg)
+			var ctx = context.Background() // TODO: enforce timeout?
+			wg.Add(2)
+			go w.githubSync(ctx, job, &wg)
+			go w.gitAnalysis(ctx, job, &wg)
 			wg.Wait()
 			w.l.Infow("job processed", "job.id", job.ID)
 		}
 	}
 }
 
-func (w *worker) githubSync(job *store.RepoJob, wg *sync.WaitGroup) {
-	var l = w.l.With("job.id", job.ID)
+func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	var (
+		l      = w.l.With("job.id", job.ID).Named("git_analysis")
+		start  = time.Now()
+		remote = fmt.Sprintf("https://github.com/%s/%s.git", job.Owner, job.Repo)
+	)
+
+	// load or download repo
+	repo, err := w.git.Load(ctx, remote)
+	if err != nil {
+		repo, err = w.git.Download(ctx, remote, git.DownloadOpts{})
+		if err != nil {
+			w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+				Analysis: store.StateError,
+			})
+			l.Errorw("repo does not exist and could not download", "error", err)
+			return
+		}
+	}
+
+	// set up and execute analysis
+	an := analysis.NewGitAnalyser(
+		l.Named("analyzer"),
+		repo.GitRepo(),
+		analysis.GitRepoAnalyserOptions{})
+	report, err := an.Analyze()
+	if err != nil {
+		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+			Analysis: store.StateError,
+		})
+		l.Errorw("analysis failed", "error", err)
+		return
+	}
+
+	// TODO dump in DB
+	l.Infow("analysis complete",
+		"duration", time.Since(start),
+		"report", report)
+	w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+		Analysis: store.StateDone,
+	})
+}
+
+func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	var l = w.l.With("job.id", job.ID).Named("github_sync")
 	var start = time.Now()
 
 	client, err := w.hub.GetInstallationClient(context.Background(), job.InstallationID)
@@ -181,6 +233,9 @@ func (w *worker) githubSync(job *store.RepoJob, wg *sync.WaitGroup) {
 
 			case <-stopPipe:
 				return
+
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()
@@ -193,5 +248,4 @@ func (w *worker) githubSync(job *store.RepoJob, wg *sync.WaitGroup) {
 		GitHubSync: store.StateDone,
 	})
 	l.Infow("state updated")
-	wg.Done()
 }
