@@ -7,6 +7,7 @@ import (
 	"gocloud.dev/server"
 
 	"github.com/bobheadxi/projector/graphql/go/projector"
+	"github.com/bobheadxi/projector/log"
 )
 
 // RunOpts denotes server options
@@ -17,21 +18,23 @@ type RunOpts struct {
 // Run spins up the server
 func Run(
 	l *zap.SugaredLogger,
-	resolver projector.ResolverRoot,
 	opts RunOpts,
 ) error {
 	// init server with diagnostic hooks
 	var srv = server.New(&server.Options{
 		// TODO
-		// RequestLogger: l.Named("requests"),
+		RequestLogger: log.NewRequestLogger(l.Named("requests")),
 	})
+
+	// init resolver
+	var res = newResolver()
 
 	// set up endpoints
 	var mux = chi.NewMux()
 	mux.Route("/api", func(r chi.Router) {
-		r.Handle("/", handler.Playground("Projector API Playground", "/query"))
+		r.Handle("/", handler.Playground("Projector API Playground", "/api/query"))
 		r.Handle("/query", handler.GraphQL(projector.NewExecutableSchema(projector.Config{
-			Resolvers: resolver,
+			Resolvers: res,
 		})))
 	})
 

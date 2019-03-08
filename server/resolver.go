@@ -2,19 +2,19 @@ package server
 
 import "github.com/bobheadxi/projector/graphql/go/projector"
 
-// Resolver implements the Projector GraphQL API
-type Resolver struct{}
+// resolver implements the Projector GraphQL API
+type resolver struct{}
 
-func NewResolver() *Resolver {
-	return &Resolver{}
+func newResolver() *resolver {
+	return &resolver{}
 }
 
-func (r *Resolver) Mutation() projector.MutationResolver {
+func (r *resolver) Mutation() projector.MutationResolver {
 	// TODO
 	return nil
 }
 
-func (r *Resolver) Query() projector.QueryResolver {
+func (r *resolver) Query() projector.QueryResolver {
 	// TODO
 	return nil
 }

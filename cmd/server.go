@@ -20,8 +20,7 @@ func newServerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			r := server.NewResolver()
-			return server.Run(l, r, server.RunOpts{
+			return server.Run(l, server.RunOpts{
 				Port: port,
 			})
 		},
