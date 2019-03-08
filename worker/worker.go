@@ -127,7 +127,7 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 			wg.Add(1)
 			go w.githubSync(job, &wg)
 			wg.Wait()
-			w.l.Info("job processed", "job.id", job.ID)
+			w.l.Infow("job processed", "job.id", job.ID)
 		}
 	}
 }
@@ -145,7 +145,7 @@ func (w *worker) githubSync(job *store.RepoJob, wg *sync.WaitGroup) {
 	}
 
 	var syncer = github.NewSyncer(
-		w.l.Named("github.sync").With("job.id", job.ID),
+		w.l.Named("github_sync").With("job.id", job.ID),
 		client,
 		github.SyncOptions{
 			Repo: github.Repo{
@@ -192,5 +192,6 @@ func (w *worker) githubSync(job *store.RepoJob, wg *sync.WaitGroup) {
 	w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 		GitHubSync: store.StateDone,
 	})
+	l.Infow("state updated")
 	wg.Done()
 }

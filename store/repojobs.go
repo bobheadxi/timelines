@@ -146,7 +146,7 @@ func (r *RepoJobsClient) SetState(jobID uuid.UUID, state *RepoJobState) error {
 	if int(state.GitHubSync) != 0 {
 		pipe.Set(
 			stateKeyRepoJobGitHubSync(jobKey),
-			int(state.Analysis),
+			int(state.GitHubSync),
 			time.Hour)
 	}
 
