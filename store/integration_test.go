@@ -59,4 +59,5 @@ func TestStore(t *testing.T) {
 	assert.NotNil(t, state)
 	t.Log(state)
 	assert.Equal(t, StateDone, state.Analysis)
+	assert.Equal(t, StateNoProgress, state.GitHubSync)
 }

@@ -1,7 +1,6 @@
 package store
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,8 +24,8 @@ type RepoJob struct {
 
 // RepoJobState denotes the state of a job
 type RepoJobState struct {
-	Analysis   State
-	GitHubSync State
+	Analysis   State `json:"analysis"`
+	GitHubSync State `json:"github_sync"`
 }
 
 // RepoJobsClient exposes an API for interacting with repo job entries
@@ -38,37 +37,33 @@ type RepoJobsClient struct {
 // Queue queues a repo for update
 func (r *RepoJobsClient) Queue(job *RepoJob) error {
 	var (
-		l    = r.l.With("job.id", job.ID)
-		b    bytes.Buffer
-		enc  = json.NewEncoder(&b)
-		pipe = r.c.redis.TxPipeline()
+		l = r.l.With("job.id", job.ID)
 	)
 
 	// push job into queue
-	if err := enc.Encode(job); err != nil {
+	b, err := json.Marshal(job)
+	if err != nil {
 		l.Errorw("failed to encode job",
 			"error", err)
 		return err
 	}
-	pipe.RPush(queueRepoJobs, b.String())
+	if err := r.c.redis.RPush(queueRepoJobs, string(b)).Err(); err != nil {
+		l.Errorw("failed to queue job",
+			"error", err)
+		return err
+	}
 
 	// set job state tracker
-	b.Reset()
-	if err := enc.Encode(&RepoJobState{}); err != nil {
-		l.Errorw("failed to encode job",
+	if err := r.SetState(job.ID, &RepoJobState{
+		Analysis:   StateNoProgress,
+		GitHubSync: StateNoProgress,
+	}); err != nil {
+		l.Errorw("failed to set default state for job",
 			"error", err)
-		return err
 	}
-	pipe.Set(stateKeyRepoJob(job.ID), b.String(), time.Hour)
 
 	// execute pipe
-	if _, err := pipe.Exec(); err != nil {
-		l.Errorw("failed to push job",
-			"error", err)
-		return err
-	}
 	l.Infow("job queued")
-
 	return nil
 }
 
@@ -113,42 +108,50 @@ func (r *RepoJobsClient) Dequeue() (<-chan *RepoJob, <-chan error) {
 // GetState retrieves the state of the given job ID
 func (r *RepoJobsClient) GetState(jobID uuid.UUID) (*RepoJobState, error) {
 	var (
-		l   = r.l.With("job.id", jobID)
-		get = r.c.redis.Get(stateKeyRepoJob(jobID))
+		l      = r.l.With("job.id", jobID)
+		jobKey = stateKeyRepoJob(jobID)
+		get    = r.c.redis.MGet(
+			stateKeyRepoJobAnalysis(jobKey),
+			stateKeyRepoJobGitHubSync(jobKey),
+		)
 	)
 
-	data, err := get.Bytes()
+	data, err := get.Result()
 	if err != nil {
+		l.Warnw("could not find job state", "error", err)
 		return nil, err
 	}
 
-	var state = &RepoJobState{}
-	if err := json.Unmarshal(data, state); err != nil {
-		l.Errorw("failed to read data", "error", err)
-		return nil, err
-	}
-
-	return state, nil
+	return &RepoJobState{
+		Analysis:   ParseState(data[0]),
+		GitHubSync: ParseState(data[1]),
+	}, nil
 }
 
 // SetState updates the state of the given job ID with the given state
 func (r *RepoJobsClient) SetState(jobID uuid.UUID, state *RepoJobState) error {
 	var (
-		l   = r.l.With("job.id", jobID)
-		b   bytes.Buffer
-		enc = json.NewEncoder(&b)
+		l      = r.l.With("job.id", jobID)
+		jobKey = stateKeyRepoJob(jobID)
+		pipe   = r.c.redis.TxPipeline()
 	)
 
-	// encode data
-	if err := enc.Encode(state); err != nil {
-		l.Errorw("failed to encode job",
-			"error", err)
-		return err
+	// set job state tracker
+	if int(state.Analysis) != 0 {
+		pipe.Set(
+			stateKeyRepoJobAnalysis(jobKey),
+			int(state.Analysis),
+			time.Hour)
+	}
+	if int(state.GitHubSync) != 0 {
+		pipe.Set(
+			stateKeyRepoJobGitHubSync(jobKey),
+			int(state.Analysis),
+			time.Hour)
 	}
 
-	// set job state tracker
-	var set = r.c.redis.Set(stateKeyRepoJob(jobID), b.String(), time.Hour)
-	if err := set.Err(); err != nil {
+	// execute pipe
+	if _, err := pipe.Exec(); err != nil {
 		l.Errorw("failed to update job",
 			"error", err)
 		return err
