@@ -4,28 +4,26 @@ import (
 	"testing"
 
 	"go.uber.org/zap/zaptest"
-)
 
-var devEnvOptions = Options{
-	Address:  "127.0.0.1:6379",
-	Password: "",
-}
+	"github.com/bobheadxi/projector/config"
+	"github.com/bobheadxi/projector/dev"
+)
 
 func TestNewClient(t *testing.T) {
 	type args struct {
-		opts Options
+		opts config.Store
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"missing params", args{Options{}}, true},
-		{"invalid authentication", args{Options{
+		{"missing params", args{config.Store{}}, true},
+		{"invalid authentication", args{config.Store{
 			Address:  "127.0.0.1:6379",
 			Password: "i_love_chicken_rice",
 		}}, true},
-		{"connect to devenv", args{devEnvOptions}, false},
+		{"connect to devenv", args{dev.StoreOptions}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

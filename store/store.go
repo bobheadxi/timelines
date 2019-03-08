@@ -1,10 +1,10 @@
 package store
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
 
+	"github.com/bobheadxi/projector/config"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 )
@@ -16,16 +16,8 @@ type Client struct {
 	l *zap.SugaredLogger
 }
 
-// Options denotes store client instantiation options
-type Options struct {
-	Address string
-
-	TLS      *tls.Config
-	Password string
-}
-
 // NewClient sets up a new client for the redis store
-func NewClient(l *zap.SugaredLogger, opts Options) (*Client, error) {
+func NewClient(l *zap.SugaredLogger, opts config.Store) (*Client, error) {
 	if opts.Address == "" {
 		return nil, errors.New("no address provided")
 	}

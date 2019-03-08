@@ -77,8 +77,8 @@ func NewSyncer(
 	}
 }
 
-// Sync pulls all issues from its configured repository and blocks until done.
-// It can only be called once.
+// Sync pulls all issues from its configured repository and pipes them to the
+// returned channels. It can only be called once.
 func (s *Syncer) Sync(ctx context.Context, wg *sync.WaitGroup) (<-chan *Item, <-chan error) {
 	// guard against reuse
 	if s.used {

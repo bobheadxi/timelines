@@ -10,8 +10,3 @@ type ReposDatabase struct {
 	db *Database
 	l  *zap.SugaredLogger
 }
-
-// NewReposDatabase instantaite a new ReposDatabase client
-func NewReposDatabase(l *zap.SugaredLogger, d *Database) *ReposDatabase {
-	return &ReposDatabase{db: d, l: l}
-}

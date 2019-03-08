@@ -1,12 +1,13 @@
 package db
 
 import (
-	"crypto/tls"
 	"time"
 
 	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
 	"go.uber.org/zap"
+
+	"github.com/bobheadxi/projector/config"
 )
 
 // Database is a low-level wrapper around the database driver
@@ -15,18 +16,8 @@ type Database struct {
 	pg *pg.DB
 }
 
-// Options denotes database instantiation options
-type Options struct {
-	Address  string
-	Database string
-
-	TLS      *tls.Config
-	User     string
-	Password string
-}
-
 // New instantiates a new database
-func New(l *zap.SugaredLogger, opts Options) (*Database, error) {
+func New(l *zap.SugaredLogger, opts config.Database) (*Database, error) {
 	var driver = pg.Connect(&pg.Options{
 		ApplicationName: "projector",
 
@@ -44,12 +35,18 @@ func New(l *zap.SugaredLogger, opts Options) (*Database, error) {
 	return db, db.init()
 }
 
+// Repos instantaite a new ReposDatabase client
+func (db *Database) Repos() *ReposDatabase {
+	return &ReposDatabase{db: db, l: db.l.Named("repos")}
+}
+
 // init runs any required initialization on the database
 func (db *Database) init() error {
 	var now = time.Now()
 	for model, opts := range map[interface{}]*orm.CreateTableOptions{
 		&Repository{}: &orm.CreateTableOptions{
 			FKConstraints: true,
+			IfNotExists:   true,
 		},
 	} {
 		if err := db.pg.CreateTable(model, opts); err != nil {

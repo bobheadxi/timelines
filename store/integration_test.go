@@ -1,25 +1,31 @@
 package store
 
 import (
+	"os"
 	"testing"
 
+	"github.com/bobheadxi/projector/dev"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
 )
 
 func TestStore(t *testing.T) {
+	godotenv.Load("../.env")
+
 	l := zaptest.NewLogger(t).Sugar()
-	c, err := NewClient(l, devEnvOptions)
+	c, err := NewClient(l, dev.StoreOptions)
 	assert.NoError(t, err)
 	defer c.redis.Del(queueRepoJobs, statesRepoJobs)
 
 	// add job
 	id, _ := uuid.NewUUID()
 	err = c.RepoJobs().Queue(&RepoJob{
-		ID:    id,
-		Owner: "bobheadxi",
-		Repo:  "calories",
+		ID:             id,
+		Owner:          "bobheadxi",
+		Repo:           "calories",
+		InstallationID: os.Getenv("GITHUB_TEST_INSTALLTION"),
 	})
 	assert.NoError(t, err)
 

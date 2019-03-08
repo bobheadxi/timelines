@@ -18,6 +18,7 @@ type RunOpts struct {
 // Run spins up the server
 func Run(
 	l *zap.SugaredLogger,
+	stop chan bool,
 	opts RunOpts,
 ) error {
 	// init server with diagnostic hooks

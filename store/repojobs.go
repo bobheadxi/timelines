@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
@@ -16,8 +18,9 @@ const repoJobsName = "repojobs"
 type RepoJob struct {
 	ID uuid.UUID
 
-	Owner string
-	Repo  string
+	Owner          string
+	Repo           string
+	InstallationID string
 }
 
 // RepoJobState denotes the state of a job
@@ -80,10 +83,13 @@ func (r *RepoJobsClient) Dequeue() (<-chan *RepoJob, <-chan error) {
 		defer close(errC)
 		defer close(jobC)
 
-		var pop = r.c.redis.BLPop(time.Second, queueRepoJobs)
+		var pop = r.c.redis.BLPop(time.Minute, queueRepoJobs)
 		data, err := pop.Result()
-		if err != nil {
-			errC <- err
+		if err == redis.Nil {
+			jobC <- nil // indicate nothing was found
+			return
+		} else if err != nil {
+			errC <- fmt.Errorf("error occured when popping from queue: %s", err.Error())
 			return
 		} else if len(data) < 2 {
 			errC <- errors.New("nothing was popped from queue")

@@ -18,7 +18,6 @@ func main() {
 	})
 	cmd.Initialize(root)
 	if err := root.Execute(); err != nil {
-		println(err)
 		os.Exit(1)
 	}
 }

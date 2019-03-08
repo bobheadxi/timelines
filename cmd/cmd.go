@@ -8,5 +8,6 @@ import (
 func Initialize(cmd *cobra.Command) {
 	cmd.AddCommand(
 		newServerCmd(),
-		newWorkerCmd())
+		newWorkerCmd(),
+		newDevCommand())
 }

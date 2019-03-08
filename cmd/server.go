@@ -20,9 +20,12 @@ func newServerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return server.Run(l, server.RunOpts{
-				Port: port,
-			})
+			return server.Run(
+				l.Named("server"),
+				newStopper(),
+				server.RunOpts{
+					Port: port,
+				})
 		},
 	}
 	flags := c.Flags()

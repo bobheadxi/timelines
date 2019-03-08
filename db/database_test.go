@@ -5,29 +5,25 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
-)
 
-var devEnvOptions = Options{
-	Address:  "127.0.0.1:5431",
-	Database: "projector_dev",
-	User:     "bobheadxi",
-	Password: "bobheadxi",
-}
+	"github.com/bobheadxi/projector/config"
+	"github.com/bobheadxi/projector/dev"
+)
 
 func TestNew(t *testing.T) {
 	type args struct {
-		opts Options
+		opts config.Database
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"missing params", args{Options{}}, true},
-		{"invalid authentication", args{Options{
+		{"missing params", args{config.Database{}}, true},
+		{"invalid authentication", args{config.Database{
 			Address: "127.0.0.1:5431",
 		}}, true},
-		{"connect to devenv", args{devEnvOptions}, false},
+		{"connect to devenv", args{dev.DatabaseOptions}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
