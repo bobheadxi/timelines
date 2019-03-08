@@ -64,9 +64,12 @@ func Run(
 	for {
 		select {
 		case err := <-errC:
+			w.l.Errorw("critical error encountered - stopping worker",
+				"error", err)
 			stop <- true
 			return err
 		case <-stop:
+			w.l.Info("stopping worker")
 			return nil
 		}
 	}
@@ -103,6 +106,7 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 		jobC, jobErrC := w.store.RepoJobs().Dequeue()
 		select {
 		case <-stop:
+			w.l.Info("stopping job processor")
 			return
 		case err := <-jobErrC:
 			w.l.Errorw("error received when dequeing",
@@ -112,60 +116,72 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 			if job == nil {
 				continue
 			}
-			var l = w.l.With("job.id", job.ID)
-			l.Info("job dequeued")
-
-			client, err := w.hub.GetInstallationClient(context.Background(), job.InstallationID)
-			if err != nil {
-				l.Errorw("failed to authenticate for installation",
-					"error", err,
-					"github.installation_id", job.InstallationID)
-				continue
-			}
-			var syncer = github.NewSyncer(
-				w.l.Named("github.sync").With("job.id", job.ID),
-				client,
-				github.SyncOptions{
-					Repo: github.Repo{
-						Owner: job.Owner,
-						Name:  job.Repo,
-					},
-					Filter: github.ItemFilter{
-						State:    github.IssueStateAll,
-						Interval: time.Second,
-					},
-					DetailsFetchWorkers: 3,
-					OutputBufferSize:    3,
-				})
-
+			w.l.Info("job dequeued", "job.id", job.ID)
 			var wg sync.WaitGroup
-			var stopPipe = make(chan bool)
-			itemsC, syncErrC := syncer.Sync(context.Background(), &wg)
-			var count int32
-			go func() {
-				for {
-					select {
-					case item := <-itemsC:
-						atomic.AddInt32(&count, 1)
-						l.Infow("item received",
-							"item", item)
-						// TODO: dump in database
-
-					case err := <-syncErrC:
-						if err != nil {
-							l.Errorw("error occured while syncing",
-								"error", err)
-						}
-
-					case <-stopPipe:
-						return
-					}
-				}
-			}()
+			wg.Add(1)
+			go w.githubSync(job, &wg)
 			wg.Wait()
-			l.Infow("job processed",
-				"items", count)
-			stopPipe <- true
+			w.l.Info("job processed", "job.id", job.ID)
 		}
 	}
+}
+
+func (w *worker) githubSync(job *store.RepoJob, wg *sync.WaitGroup) {
+	var l = w.l.With("job.id", job.ID)
+	var start = time.Now()
+
+	client, err := w.hub.GetInstallationClient(context.Background(), job.InstallationID)
+	if err != nil {
+		l.Errorw("failed to authenticate for installation",
+			"error", err,
+			"github.installation_id", job.InstallationID)
+		return
+	}
+
+	var syncer = github.NewSyncer(
+		w.l.Named("github.sync").With("job.id", job.ID),
+		client,
+		github.SyncOptions{
+			Repo: github.Repo{
+				Owner: job.Owner,
+				Name:  job.Repo,
+			},
+			Filter: github.ItemFilter{
+				State:    github.IssueStateAll,
+				Interval: time.Second,
+			},
+			DetailsFetchWorkers: 3,
+			OutputBufferSize:    3,
+		})
+
+	var syncWG sync.WaitGroup
+	var stopPipe = make(chan bool)
+	itemsC, syncErrC := syncer.Sync(context.Background(), &syncWG)
+	var count int32
+	go func() {
+		for {
+			select {
+			case item := <-itemsC:
+				atomic.AddInt32(&count, 1)
+				l.Infow("item received",
+					"item", item)
+				// TODO: dump in database
+
+			case err := <-syncErrC:
+				if err != nil {
+					l.Errorw("error occured while syncing",
+						"error", err)
+				}
+
+			case <-stopPipe:
+				return
+			}
+		}
+	}()
+	syncWG.Wait()
+	l.Infow("github sync complete",
+		"items", count,
+		"duration", time.Since(start))
+	stopPipe <- true
+	wg.Done()
 }
