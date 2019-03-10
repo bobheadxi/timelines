@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/bobheadxi/projector/github"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
 )
@@ -15,11 +17,35 @@ func TestManager(t *testing.T) {
 		l   = zaptest.NewLogger(t).Sugar()
 		m   = NewManager(l.Named("manager"), ManagerOpts{Workdir: "tmp"})
 	)
+
+	// try without auth
 	repo, err := m.Download(ctx, "https://github.com/bobheadxi/calories.git", DownloadOpts{})
 	assert.NoError(t, err)
-	defer os.RemoveAll(repo.Dir())
-
 	name, err := repo.Name()
 	assert.NoError(t, err)
 	assert.Equal(t, "bobheadxi/calories", name)
+	os.RemoveAll(repo.Dir())
+
+	// try with auth
+	if testing.Short() {
+		t.Log("skipping authenticated test")
+		return
+	}
+	godotenv.Load("../.env")
+	s, err := github.NewSigningClient(l, github.NewEnvAuth())
+	if !assert.NoError(t, err) {
+		t.Fatal()
+	}
+	ic, err := s.GetInstallationClient(ctx, os.Getenv("GITHUB_TEST_INSTALLTION"))
+	if !assert.NoError(t, err) {
+		t.Fatal()
+	}
+	repo, err = m.Download(ctx, "https://github.com/bobheadxi/calories.git", DownloadOpts{
+		AccessToken: ic.InstallationToken(),
+	})
+	assert.NoError(t, err)
+	name, err = repo.Name()
+	assert.NoError(t, err)
+	assert.Equal(t, "bobheadxi/calories", name)
+	os.RemoveAll(repo.Dir())
 }

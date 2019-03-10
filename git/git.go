@@ -2,8 +2,10 @@ package git
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.uber.org/zap"
 	gogit "gopkg.in/src-d/go-git.v4"
@@ -33,7 +35,9 @@ func NewManager(l *zap.SugaredLogger, opts ManagerOpts) *Manager {
 }
 
 // DownloadOpts denotes options for downloading a repo
-type DownloadOpts struct{}
+type DownloadOpts struct {
+	AccessToken string
+}
 
 // Download downloads the given repository
 func (m *Manager) Download(ctx context.Context, remote string, opts DownloadOpts) (*Repository, error) {
@@ -44,6 +48,13 @@ func (m *Manager) Download(ctx context.Context, remote string, opts DownloadOpts
 	}
 	os.RemoveAll(repoDir)
 	l.Infow("cloning repository", "dir", repoDir)
+
+	// set auth if provided
+	if opts.AccessToken != "" {
+		var bareRemote = strings.TrimPrefix(remote, "https://")
+		var authPrefix = fmt.Sprintf("https://x-access-token:%s@", opts.AccessToken)
+		remote = authPrefix + bareRemote
+	}
 
 	// grab repo
 	gitrepo, err := gogit.PlainCloneContext(

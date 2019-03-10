@@ -14,30 +14,35 @@ import (
 
 // Client handles GitHub sync and API requests
 type Client struct {
-	gh *github.Client
+	gh    *github.Client
+	token string
 
 	l *zap.SugaredLogger
 }
 
 func newClient(l *zap.SugaredLogger, auth oauth2.TokenSource) (*Client, error) {
-	var tc *http.Client
+	var (
+		tc    *http.Client
+		token string
+	)
 	if auth != nil {
 		l.Info("loading credentials")
-		token, err := auth.Token()
+		t, err := auth.Token()
 		if err != nil {
 			l.Errorw("failed to load credentials", "error", err)
 			return nil, err
 		}
-		l.Infow("token generated", "token", token)
-		tc = oauth2.NewClient(oauth2.NoContext, oauth2.ReuseTokenSource(token, auth))
+		token = t.AccessToken
+		tc = oauth2.NewClient(oauth2.NoContext, oauth2.ReuseTokenSource(t, auth))
 	} else {
 		l.Infow("using default client")
 		tc = http.DefaultClient
 	}
 
 	return &Client{
-		gh: github.NewClient(tc),
-		l:  l,
+		gh:    github.NewClient(tc),
+		token: token,
+		l:     l,
 	}, nil
 }
 
@@ -68,6 +73,9 @@ func NewClient(ctx context.Context, l *zap.SugaredLogger, auth oauth2.TokenSourc
 
 	return client, nil
 }
+
+// InstallationToken returns the token in use by the client, if there is one
+func (c *Client) InstallationToken() string { return c.token }
 
 // IssueState denotes whether to get issues that are closed, open, or all
 type IssueState string
