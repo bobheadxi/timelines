@@ -41,7 +41,6 @@ func NewGitAnalyser(
 // GitRepoReport is a container around different analysis results
 type GitRepoReport struct {
 	Burndown *BurndownResult
-	Churn    *ChurnAnalysisResult
 	Coupling *CouplingResult
 }
 
@@ -51,7 +50,6 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 	// set up pipe
 	var (
 		burnItem     = g.burndown()
-		churnItem    = g.churn()
 		couplingItem = g.coupling()
 	)
 
@@ -64,13 +62,11 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 	// collect results
 	var (
 		burndown = newBurndownResult(results[burnItem].(leaves.BurndownResult))
-		churn    = results[churnItem].(ChurnAnalysisResult)
 		coupling = newCouplingResult(results[couplingItem].(leaves.CouplesResult))
 	)
 
 	return &GitRepoReport{
 		Burndown: &burndown,
-		Churn:    &churn,
 		Coupling: &coupling,
 	}, nil
 }
@@ -94,10 +90,8 @@ func (g *GitRepoAnalyser) burndown() hercules.LeafPipelineItem {
 	}).(hercules.LeafPipelineItem)
 }
 
-func (g *GitRepoAnalyser) churn() hercules.LeafPipelineItem {
-	return g.pipe.DeployItem(&churnAnalysis{}).(hercules.LeafPipelineItem)
-}
-
 func (g *GitRepoAnalyser) coupling() hercules.LeafPipelineItem {
-	return g.pipe.DeployItem(&leaves.CouplesAnalysis{}).(hercules.LeafPipelineItem)
+	return g.pipe.DeployItem(&leaves.CouplesAnalysis{
+		PeopleNumber: 10,
+	}).(hercules.LeafPipelineItem)
 }
