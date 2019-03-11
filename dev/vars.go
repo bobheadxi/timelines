@@ -9,9 +9,9 @@ var (
 	}
 
 	DatabaseOptions = config.Database{
-		Address:  "127.0.0.1:5431",
-		Database: "projector_dev",
+		Host:     "127.0.0.1",
+		Port:     "5431",
+		Database: "projector-dev",
 		User:     "bobheadxi",
-		Password: "bobheadxi",
 	}
 )

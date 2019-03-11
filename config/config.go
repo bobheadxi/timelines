@@ -12,10 +12,13 @@ type Store struct {
 
 // Database denotes database instantiation options
 type Database struct {
-	Address  string
+	Host     string
+	Port     string
 	Database string
 
 	TLS      *tls.Config
 	User     string
 	Password string
+
+	Drop bool
 }

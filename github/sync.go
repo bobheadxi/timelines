@@ -9,25 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// ItemType denotes supported GitHub item types
-type ItemType string
-
-const (
-	// ItemTypeIssue is a GitHub issue
-	ItemTypeIssue ItemType = "issue"
-	// ItemTypePR is a GitHub pull request
-	ItemTypePR ItemType = "pull-request"
-)
-
-// Item is a GitHub item due for indexing
-// TODO: this needs to be better
-type Item struct {
-	ID     int
-	Number int
-	Type   ItemType
-	Data   interface{}
-}
-
 // SyncOptions denotes options for a syncer
 type SyncOptions struct {
 	Repo                Repo
@@ -134,12 +115,24 @@ func (s *Syncer) sync(ctx context.Context, wg *sync.WaitGroup) <-chan error {
 
 func (s *Syncer) handleIssues(ctx context.Context, wg *sync.WaitGroup) {
 	for i := range s.issuesC {
-		s.outC <- &Item{
-			ID:     int(i.GetID()),
-			Number: int(i.GetNumber()),
-			Type:   ItemTypeIssue,
-			Data:   i,
+		var item = &Item{
+			GitHubID: int(i.GetID()),
+			Number:   int(i.GetNumber()),
+			Type:     ItemTypeIssue,
+
+			Author: i.GetUser().GetName(),
+			Opened: i.GetCreatedAt(),
+			Closed: i.ClosedAt,
+
+			Title: i.GetTitle(),
+			Body:  i.GetBody(),
+
+			// TODO: flesh this out
+			Details: map[string]interface{}{},
 		}
+		item.WithReactions(i.Reactions)
+		item.WithLabels(i.Labels)
+		s.outC <- item
 	}
 	s.l.Infow("all issues processed")
 	wg.Done()
@@ -151,12 +144,32 @@ func (s *Syncer) fetchDetails(ctx context.Context, wg *sync.WaitGroup) {
 			s.l.Errorw("failed to get pull request",
 				"issue", i.GetNumber())
 		} else {
-			s.outC <- &Item{
-				ID:     int(pr.GetID()),
-				Number: int(pr.GetNumber()),
-				Type:   ItemTypePR,
-				Data:   pr,
+			var item = &Item{
+				GitHubID: int(pr.GetID()),
+				Number:   int(i.GetNumber()),
+				Type:     ItemTypePR,
+
+				Author: i.GetUser().GetName(),
+				Opened: i.GetCreatedAt(),
+				Closed: i.CreatedAt,
+
+				Title: i.GetTitle(),
+				Body:  i.GetBody(),
+
+				// TODO: flesh out PR stuff
+				Details: map[string]interface{}{
+					"commit":      pr.GetMergeCommitSHA(),
+					"comments":    pr.GetComments(),
+					"commits":     pr.GetCommits(),
+					"files":       pr.GetChangedFiles(),
+					"additions":   pr.GetAdditions(),
+					"deletions":   pr.GetDeletions(),
+					"mergability": pr.GetMergeableState(),
+				},
 			}
+			item.WithReactions(i.Reactions)
+			item.WithLabels(i.Labels)
+			s.outC <- item
 		}
 	}
 	s.l.Infow("all detail fetching processed")

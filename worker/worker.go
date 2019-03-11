@@ -7,10 +7,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/bobheadxi/projector/analysis"
-
 	"go.uber.org/zap"
 
+	"github.com/bobheadxi/projector/analysis"
 	"github.com/bobheadxi/projector/config"
 	"github.com/bobheadxi/projector/db"
 	"github.com/bobheadxi/projector/git"
@@ -36,7 +35,7 @@ func Run(
 		return err
 	}
 
-	database, err := db.New(l.Named("db"), opts.Database)
+	database, err := db.New(l.Named("db"), "projector.worker", opts.Database)
 	if err != nil {
 		return err
 	}
@@ -221,8 +220,11 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 			select {
 			case item := <-itemsC:
 				atomic.AddInt32(&count, 1)
+				if item == nil {
+					continue
+				}
 				l.Infow("item received",
-					"item", item)
+					"item", item.GitHubID)
 				// TODO: dump in database
 
 			case err := <-syncErrC:

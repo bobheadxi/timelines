@@ -1,10 +1,11 @@
 package db
 
 import (
-	"time"
+	"strconv"
 
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
+	// need https://github.com/jackc/pgx/issues/335
+	"github.com/bobheadxi/pgx"
+
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/projector/config"
@@ -13,26 +14,45 @@ import (
 // Database is a low-level wrapper around the database driver
 type Database struct {
 	l  *zap.SugaredLogger
-	pg *pg.DB
+	pg *pgx.ConnPool
 }
 
 // New instantiates a new database
-func New(l *zap.SugaredLogger, opts config.Database) (*Database, error) {
-	var driver = pg.Connect(&pg.Options{
-		ApplicationName: "projector",
-
-		Addr:     opts.Address,
+func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, error) {
+	port, _ := strconv.Atoi(opts.Port)
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{ConnConfig: pgx.ConnConfig{
+		Host:     opts.Host,
+		Port:     uint16(port),
 		Database: opts.Database,
 
-		TLSConfig: opts.TLS,
+		// authentication
 		User:      opts.User,
 		Password:  opts.Password,
-	})
+		TLSConfig: opts.TLS,
+
+		// misc metadata
+		RuntimeParams: map[string]string{
+			"application_name": name,
+		},
+
+		// TODO
+		// Logger:
+		// LogLevel:
+	}})
+	if err != nil {
+		return nil, err
+	}
+
+	// create struct
 	var db = &Database{
-		pg: driver,
+		pg: pool,
 		l:  l,
 	}
-	return db, db.init()
+
+	// set up statements and whatnot
+	db.Repos().init()
+
+	return db, nil
 }
 
 // Repos instantaite a new ReposDatabase client
@@ -40,23 +60,8 @@ func (db *Database) Repos() *ReposDatabase {
 	return &ReposDatabase{db: db, l: db.l.Named("repos")}
 }
 
-// init runs any required initialization on the database
-func (db *Database) init() error {
-	var now = time.Now()
-	for model, opts := range map[interface{}]*orm.CreateTableOptions{
-		&Repository{}: &orm.CreateTableOptions{
-			FKConstraints: true,
-			IfNotExists:   true,
-		},
-	} {
-		if err := db.pg.CreateTable(model, opts); err != nil {
-			db.l.Errorw("could not create table",
-				"error", err,
-				"model", model)
-			return err
-		}
-	}
-	db.l.Infow("table instantiated",
-		"duration", time.Since(now))
-	return nil
-}
+// Pool returns the underlying pgx connection pool
+func (db *Database) Pool() *pgx.ConnPool { return db.pg }
+
+// Close disconnects from the database
+func (db *Database) Close() { db.pg.Close() }

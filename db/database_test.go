@@ -21,14 +21,15 @@ func TestNew(t *testing.T) {
 	}{
 		{"missing params", args{config.Database{}}, true},
 		{"invalid authentication", args{config.Database{
-			Address: "127.0.0.1:5431",
+			Host: "127.0.0.1",
+			Port: "5431",
 		}}, true},
 		{"connect to devenv", args{dev.DatabaseOptions}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var l = zaptest.NewLogger(t).Sugar()
-			_, err := New(l, tt.args.opts)
+			_, err := New(l, tt.name, tt.args.opts)
 			assert.Equal(t, tt.wantErr, (err != nil))
 		})
 	}
