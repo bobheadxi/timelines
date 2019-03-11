@@ -17,16 +17,7 @@ func TestStore(t *testing.T) {
 	l := zaptest.NewLogger(t).Sugar()
 	c, err := NewClient(l, dev.StoreOptions)
 	assert.NoError(t, err)
-	defer func() {
-		jobs, _ := c.redis.Keys(queueRepoJobs + "*").Result()
-		states, _ := c.redis.Keys(statesRepoJobs + "*").Result()
-		keys := append(jobs, states...)
-		if len(keys) > 0 {
-			if err := c.redis.Del(keys...).Err(); err != nil {
-				l.Errorw("failed to clean up", "error", err)
-			}
-		}
-	}()
+	defer c.Reset()
 
 	// add job
 	id, _ := uuid.NewUUID()

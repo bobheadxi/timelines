@@ -48,5 +48,20 @@ func (c *Client) RepoJobs() *RepoJobsClient {
 	return &RepoJobsClient{c: c, l: c.l.Named(repoJobsName)}
 }
 
+// Reset drops all keys
+func (c *Client) Reset() {
+	var (
+		repoJobs, _   = c.redis.Keys(queueRepoJobs + "*").Result()
+		repoStates, _ = c.redis.Keys(statesRepoJobs + "*").Result()
+
+		keys = append(repoJobs, repoStates...)
+	)
+	if len(keys) > 0 {
+		if err := c.redis.Del(keys...).Err(); err != nil {
+			c.l.Errorw("failed to remove keys", "error", err)
+		}
+	}
+}
+
 // Close disconnects the client from Redis
 func (c *Client) Close() error { return c.redis.Close() }

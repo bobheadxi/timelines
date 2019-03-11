@@ -16,25 +16,48 @@ import (
 func newDevCommand() *cobra.Command {
 	d := &cobra.Command{
 		Use:              "dev",
-		Hidden:           true,
+		Hidden:           os.Getenv("MODE") != "development",
 		PersistentPreRun: func(*cobra.Command, []string) { godotenv.Load() },
 	}
-	d.AddCommand(newSeedCommand())
+	d.AddCommand(newRedisCommand(), newPGCommand())
 	return d
 }
 
-func newSeedCommand() *cobra.Command {
-	seed := &cobra.Command{
-		Use: "seed",
+func newPGCommand() *cobra.Command {
+	var pg = &cobra.Command{
+		Use: "pg",
 	}
-	seedRedis := &cobra.Command{
+	return pg
+}
+
+func newRedisCommand() *cobra.Command {
+	var redis = &cobra.Command{
 		Use: "redis",
+	}
+	var reset = &cobra.Command{
+		Use: "reset",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logger, err := zap.NewDevelopment()
 			if err != nil {
 				return err
 			}
-			var l = logger.Sugar().Named("dev.seed.redis")
+			var l = logger.Sugar().Named("dev.redis.reset")
+			c, err := store.NewClient(l, dev.StoreOptions)
+			if err != nil {
+				return err
+			}
+			c.Reset()
+			return nil
+		},
+	}
+	var seed = &cobra.Command{
+		Use: "seed",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			logger, err := zap.NewDevelopment()
+			if err != nil {
+				return err
+			}
+			var l = logger.Sugar().Named("dev.redis.seed")
 			c, err := store.NewClient(l, dev.StoreOptions)
 			if err != nil {
 				return err
@@ -55,6 +78,7 @@ func newSeedCommand() *cobra.Command {
 		},
 	}
 
-	seed.AddCommand(seedRedis)
-	return seed
+	redis.AddCommand(seed)
+	redis.AddCommand(reset)
+	return redis
 }
