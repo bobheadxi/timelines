@@ -2,13 +2,12 @@ package git
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"go.uber.org/zap"
 	gogit "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
 
 // Manager handles repo management
@@ -37,6 +36,7 @@ func NewManager(l *zap.SugaredLogger, opts ManagerOpts) *Manager {
 // DownloadOpts denotes options for downloading a repo
 type DownloadOpts struct {
 	AccessToken string
+	Depth       int
 }
 
 // Download downloads the given repository
@@ -47,16 +47,20 @@ func (m *Manager) Download(ctx context.Context, remote string, opts DownloadOpts
 		return nil, err
 	}
 	os.RemoveAll(repoDir)
-	l.Infow("cloning repository", "dir", repoDir)
 
 	// set auth if provided
+	var auth *http.BasicAuth
 	if opts.AccessToken != "" {
-		var bareRemote = strings.TrimPrefix(remote, "https://")
-		var authPrefix = fmt.Sprintf("https://x-access-token:%s@", opts.AccessToken)
-		remote = authPrefix + bareRemote
+		auth = &http.BasicAuth{
+			Username: "x-access-token",
+			Password: opts.AccessToken,
+		}
 	}
 
 	// grab repo
+	l.Infow("cloning repository",
+		"dir", repoDir,
+		"auth", opts.AccessToken != "")
 	gitrepo, err := gogit.PlainCloneContext(
 		ctx,
 		repoDir,
@@ -65,11 +69,8 @@ func (m *Manager) Download(ctx context.Context, remote string, opts DownloadOpts
 			URL:          remote,
 			SingleBranch: true,
 
-			// TODO: hmm incremental updates?
-			Depth: 0,
-
-			// TODO: private repos?
-			Auth: nil,
+			Depth: opts.Depth,
+			Auth:  auth,
 		})
 	if err != nil {
 		l.Errorw("failed to clone repo", "error", err)
@@ -82,7 +83,8 @@ func (m *Manager) Download(ctx context.Context, remote string, opts DownloadOpts
 	}, nil
 }
 
-// Load loads a downloaded repository
+// Load loads a downloaded repository - TODO: deprecate in favour of just using
+// Donwload(), to unify depth management
 func (m *Manager) Load(ctx context.Context, remote string) (*Repository, error) {
 	repodir, err := m.repoDir(remote)
 	if err != nil {
