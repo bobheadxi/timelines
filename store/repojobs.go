@@ -136,8 +136,14 @@ func (r *RepoJobsClient) SetState(jobID uuid.UUID, state *RepoJobState) error {
 		pipe   = r.c.redis.TxPipeline()
 	)
 
-	// set job state tracker
+	// set job state tracker - TODO: this is verbose
 	if state.Analysis != nil {
+		if state.Analysis.Meta == nil {
+			state.Analysis.Meta = make(map[string]interface{})
+		}
+		state.Analysis.Meta["updated"] = time.Now()
+
+		// add to pipeline
 		data, _ := json.Marshal(state.Analysis)
 		pipe.Set(
 			stateKeyRepoJobAnalysis(jobKey),
@@ -145,6 +151,12 @@ func (r *RepoJobsClient) SetState(jobID uuid.UUID, state *RepoJobState) error {
 			time.Hour)
 	}
 	if state.GitHubSync != nil {
+		if state.GitHubSync.Meta == nil {
+			state.GitHubSync.Meta = make(map[string]interface{})
+		}
+		state.GitHubSync.Meta["updated"] = time.Now()
+
+		// add to pipeline
 		data, _ := json.Marshal(state.GitHubSync)
 		pipe.Set(
 			stateKeyRepoJobGitHubSync(jobKey),
