@@ -11,6 +11,7 @@ package-lock.json
 tmp
 *.prof
 *.test
+test.*.json
 
 # secrets
 .env

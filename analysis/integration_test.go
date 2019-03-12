@@ -3,6 +3,7 @@ package analysis
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -29,10 +30,12 @@ func TestGitRepoAnalyser(t *testing.T) {
 	assert.NoError(t, err)
 
 	// print burndown
-	b, _ := json.Marshal(report.Burndown)
-	t.Log("\n== burndown:", string(b))
+	b, _ := json.MarshalIndent(report.Burndown, "", "  ")
+	os.Remove("test.burndown.json")
+	ioutil.WriteFile("test.burndown.json", b, os.ModePerm)
 
 	// print coupling
-	b, _ = json.Marshal(report.Coupling)
-	t.Log("\n== coupling:", string(b))
+	b, _ = json.MarshalIndent(report.Coupling, "", "  ")
+	os.Remove("test.coupling.json")
+	ioutil.WriteFile("test.coupling.json", b, os.ModePerm)
 }
