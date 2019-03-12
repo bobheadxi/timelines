@@ -2,7 +2,6 @@ package db_test
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -20,7 +19,7 @@ func TestDatabase(t *testing.T) {
 		ctx = context.Background()
 	)
 	godotenv.Load("../.env")
-	var installation = os.Getenv("GITHUB_TEST_INSTALLTION")
+	var installation = dev.GetTestInstallationID()
 	if installation == "" {
 		installation = "6969696969"
 	}

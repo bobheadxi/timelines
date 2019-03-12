@@ -39,8 +39,13 @@ type ReposDatabase struct {
 	l  *zap.SugaredLogger
 }
 
+const (
+	preparedStmtInsertGitHubItem = "insert_github_item"
+)
+
+// init sets up all prepared statements associated with repositories
 func (r *ReposDatabase) init() {
-	r.db.pg.Prepare("insert_github_item", `
+	r.db.pg.Prepare(preparedStmtInsertGitHubItem, `
 INSERT INTO
 	github_items
 VALUES
@@ -53,6 +58,7 @@ VALUES
 `)
 }
 
+// GetRepositoryID retrieves the ID associated with the given repository
 func (r *ReposDatabase) GetRepositoryID(ctx context.Context, owner, name string) (int, error) {
 	row := r.db.pg.QueryRowEx(ctx,
 		"SELECT id FROM repositories WHERE owner=$1 AND name=$2",
@@ -62,6 +68,7 @@ func (r *ReposDatabase) GetRepositoryID(ctx context.Context, owner, name string)
 	return id, row.Scan(&id)
 }
 
+// NewRepository creates a new repository entry
 func (r *ReposDatabase) NewRepository(ctx context.Context, installation, owner, name string) error {
 	if installation == "" {
 		return errors.New("installation required")
@@ -76,9 +83,13 @@ func (r *ReposDatabase) NewRepository(ctx context.Context, installation, owner, 
 		($1, $2, $3)
 	`, &pgx.QueryExOptions{},
 		installation, owner, name)
+	if err == nil {
+		r.l.Infow("created new entry for repo", "repo", owner+"/"+name)
+	}
 	return err
 }
 
+// DeleteRepository removes a repository and associated items
 func (r *ReposDatabase) DeleteRepository(ctx context.Context, id int) error {
 	res, err := r.db.pg.ExecEx(ctx, `
 	DELETE FROM 
@@ -98,21 +109,29 @@ func (r *ReposDatabase) InsertGitBurndownResult(ctx context.Context, burndown *a
 	// TODO
 }
 
+// InsertGitHubItems executes a batch insert on all given items
 func (r *ReposDatabase) InsertGitHubItems(ctx context.Context, repoID int, items []*github.Item) error {
 	var (
-		batch = r.db.pg.BeginBatch()
+		batch     = r.db.pg.BeginBatch()
+		itemCount int64
 	)
+
+	// queue all items for insertion
 	for _, i := range items {
-		batch.Queue("insert_github_item",
+		if i == nil {
+			break
+		}
+		itemCount++
+		batch.Queue(preparedStmtInsertGitHubItem,
 			[]interface{}{
 				repoID, i.GitHubID, i.Number, i.Type,
 				i.Author, i.Opened, i.Closed,
 				i.Title, i.Body,
 				i.Labels, i.Reactions, i.Details,
-			},
-			nil,
-			nil)
+			}, nil, nil)
 	}
+
+	// send and fetch execution results
 	if err := batch.Send(ctx, &pgx.TxOptions{}); err != nil {
 		return err
 	}
@@ -120,9 +139,11 @@ func (r *ReposDatabase) InsertGitHubItems(ctx context.Context, repoID int, items
 	if err != nil {
 		return err
 	}
-	if res.RowsAffected() != int64(len(items)) {
+
+	// if an incorrect number of rows is modified, throw an error
+	if res.RowsAffected() != itemCount {
 		return fmt.Errorf("expected %d rows to change, only changed %d rows",
-			len(items), res.RowsAffected())
+			itemCount, res.RowsAffected())
 	}
 	return nil
 }
