@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/projector/config"
+	"github.com/bobheadxi/projector/log"
 )
 
 // Database is a low-level wrapper around the database driver
@@ -36,8 +37,7 @@ func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, er
 		},
 
 		// TODO
-		// Logger:
-		// LogLevel:
+		Logger: log.NewDatabaseLogger(l),
 	}})
 	if err != nil {
 		return nil, err

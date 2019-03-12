@@ -16,7 +16,7 @@ require (
 	github.com/google/uuid v1.1.0
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
-	github.com/jackc/pgx v3.3.0+incompatible // indirect
+	github.com/jackc/pgx v3.3.0+incompatible
 	github.com/joho/godotenv v1.3.0
 	github.com/mcuadros/go-lookup v0.0.0-20171110082742-5650f26be767 // indirect
 	github.com/minio/highwayhash v0.0.0-20180501080913-85fc8a2dacad // indirect

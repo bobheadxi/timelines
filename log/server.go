@@ -10,6 +10,11 @@ type serverLogger struct {
 	loggers []requestlog.Logger
 }
 
+// NewRequestLogger wraps the given logger in gocloud's requestlog.Logger
+func NewRequestLogger(l *zap.SugaredLogger, loggers ...requestlog.Logger) requestlog.Logger {
+	return &serverLogger{l.Desugar(), loggers}
+}
+
 func (s *serverLogger) Log(e *requestlog.Entry) {
 	if e == nil {
 		return
@@ -32,9 +37,4 @@ func (s *serverLogger) Log(e *requestlog.Entry) {
 	for _, l := range s.loggers {
 		l.Log(e)
 	}
-}
-
-// NewRequestLogger wraps the given logger in a request logger
-func NewRequestLogger(l *zap.SugaredLogger, loggers ...requestlog.Logger) requestlog.Logger {
-	return &serverLogger{l.Desugar(), loggers}
 }
