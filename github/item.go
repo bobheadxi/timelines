@@ -35,6 +35,7 @@ type Item struct {
 	Details map[string]interface{}
 }
 
+// WithLabels attaches given labels as strings to Item
 func (i *Item) WithLabels(labels []github.Label) {
 	i.Labels = make([]string, len(labels))
 	for x, l := range labels {
@@ -42,6 +43,7 @@ func (i *Item) WithLabels(labels []github.Label) {
 	}
 }
 
+// WithReactions sets reactions after stripping out unecessary things
 func (i *Item) WithReactions(reacs *github.Reactions) {
 	if reacs == nil {
 		return

@@ -10,6 +10,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/bobheadxi/projector/dev"
 )
 
 func TestClient(t *testing.T) {
@@ -25,7 +27,7 @@ func TestClient(t *testing.T) {
 		t.Fatal()
 	}
 
-	ic, err := signer.GetInstallationClient(ctx, os.Getenv("GITHUB_TEST_INSTALLTION"))
+	ic, err := signer.GetInstallationClient(ctx, dev.GetTestInstallationID())
 	if !assert.NoError(t, err) {
 		t.Fatal()
 	}
