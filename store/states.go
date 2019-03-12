@@ -1,7 +1,7 @@
 package store
 
 import (
-	"strconv"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
@@ -9,6 +9,13 @@ import (
 const (
 	statesRepoJobs = "states:" + repoJobsName + ":"
 )
+
+// StateMeta wraps State for additional metadata
+type StateMeta struct {
+	State   State
+	Message string
+	Meta    map[string]interface{}
+}
 
 // State denotes the state of a job
 type State int
@@ -28,13 +35,16 @@ const (
 )
 
 // ParseState casts given interface to a State
-func ParseState(v interface{}) State {
+func ParseState(v interface{}) *StateMeta {
 	if v == nil {
-		return State(0)
+		return nil
 	}
-	s, _ := v.(string)
-	i, _ := strconv.Atoi(s)
-	return State(i)
+	var (
+		state = &StateMeta{}
+		data  = v.(string)
+	)
+	json.Unmarshal([]byte(data), state)
+	return state
 }
 
 func stateKeyRepoJob(jobID uuid.UUID) string         { return statesRepoJobs + jobID.String() }

@@ -3,6 +3,7 @@ package store
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/bobheadxi/projector/dev"
 	"github.com/google/uuid"
@@ -30,7 +31,7 @@ func TestStore(t *testing.T) {
 	assert.NoError(t, err)
 
 	// get job
-	jobC, errC := c.RepoJobs().Dequeue()
+	jobC, errC := c.RepoJobs().Dequeue(5 * time.Second)
 	select {
 	case job := <-jobC:
 		assert.Equal(t, id, job.ID)
@@ -45,11 +46,14 @@ func TestStore(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, state)
 	t.Log(state)
-	assert.Equal(t, StateNoProgress, state.Analysis)
+	assert.Equal(t, StateNoProgress, state.Analysis.State)
 
 	// update job state
 	err = c.RepoJobs().SetState(id, &RepoJobState{
-		Analysis: StateDone,
+		Analysis: &StateMeta{
+			State:   StateDone,
+			Message: "hello world",
+		},
 	})
 	assert.NoError(t, err)
 
@@ -58,6 +62,7 @@ func TestStore(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, state)
 	t.Log(state)
-	assert.Equal(t, StateDone, state.Analysis)
-	assert.Equal(t, StateNoProgress, state.GitHubSync)
+	assert.Equal(t, StateDone, state.Analysis.State)
+	assert.Equal(t, "hello world", state.Analysis.Message)
+	assert.Equal(t, StateNoProgress, state.GitHubSync.State)
 }

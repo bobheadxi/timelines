@@ -24,8 +24,8 @@ type RepoJob struct {
 
 // RepoJobState denotes the state of a job
 type RepoJobState struct {
-	Analysis   State `json:"analysis"`
-	GitHubSync State `json:"github_sync"`
+	Analysis   *StateMeta `json:"analysis"`
+	GitHubSync *StateMeta `json:"github_sync"`
 }
 
 // RepoJobsClient exposes an API for interacting with repo job entries
@@ -55,8 +55,8 @@ func (r *RepoJobsClient) Queue(job *RepoJob) error {
 
 	// set job state tracker
 	if err := r.SetState(job.ID, &RepoJobState{
-		Analysis:   StateNoProgress,
-		GitHubSync: StateNoProgress,
+		Analysis:   &StateMeta{State: StateNoProgress},
+		GitHubSync: &StateMeta{State: StateNoProgress},
 	}); err != nil {
 		l.Errorw("failed to set default state for job",
 			"error", err)
@@ -68,7 +68,7 @@ func (r *RepoJobsClient) Queue(job *RepoJob) error {
 }
 
 // Dequeue grabs the next repo job
-func (r *RepoJobsClient) Dequeue() (<-chan *RepoJob, <-chan error) {
+func (r *RepoJobsClient) Dequeue(timeout time.Duration) (<-chan *RepoJob, <-chan error) {
 	var (
 		jobC = make(chan *RepoJob, 1)
 		errC = make(chan error, 1)
@@ -78,7 +78,7 @@ func (r *RepoJobsClient) Dequeue() (<-chan *RepoJob, <-chan error) {
 		defer close(errC)
 		defer close(jobC)
 
-		var pop = r.c.redis.BLPop(time.Minute, queueRepoJobs)
+		var pop = r.c.redis.BLPop(timeout, queueRepoJobs)
 		data, err := pop.Result()
 		if err == redis.Nil {
 			jobC <- nil // indicate nothing was found
@@ -137,16 +137,18 @@ func (r *RepoJobsClient) SetState(jobID uuid.UUID, state *RepoJobState) error {
 	)
 
 	// set job state tracker
-	if int(state.Analysis) != 0 {
+	if state.Analysis != nil {
+		data, _ := json.Marshal(state.Analysis)
 		pipe.Set(
 			stateKeyRepoJobAnalysis(jobKey),
-			int(state.Analysis),
+			data,
 			time.Hour)
 	}
-	if int(state.GitHubSync) != 0 {
+	if state.GitHubSync != nil {
+		data, _ := json.Marshal(state.GitHubSync)
 		pipe.Set(
 			stateKeyRepoJobGitHubSync(jobKey),
-			int(state.GitHubSync),
+			data,
 			time.Hour)
 	}
 
