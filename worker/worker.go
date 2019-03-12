@@ -34,11 +34,13 @@ func Run(
 	if err != nil {
 		return err
 	}
+	defer store.Close()
 
 	database, err := db.New(l.Named("db"), "projector.worker", opts.Database)
 	if err != nil {
 		return err
 	}
+	defer database.Close()
 
 	hub, err := github.NewSigningClient(l.Named("github-signer"), github.NewEnvAuth())
 	if err != nil {
@@ -49,14 +51,21 @@ func Run(
 		Workdir: "./tmp",
 	})
 
-	var w = newWorker(
-		l,
-		store,
-		database,
-		hub,
-		repos)
+	// set up worker
+	var (
+		errC = make(chan error, 10)
+		w    = newWorker(
+			l,
+			store,
+			database,
+			hub,
+			repos,
+			errC)
+	)
+
+	// let's go!
+	defer close(errC)
 	l.Infow("spinning up worker")
-	var errC = make(chan error)
 	if opts.Workers == 0 {
 		opts.Workers = 1
 	}
@@ -84,6 +93,8 @@ type worker struct {
 	hub *github.SigningClient
 	git *git.Manager
 
+	errC chan<- error
+
 	l *zap.SugaredLogger
 }
 
@@ -93,19 +104,21 @@ func newWorker(
 	db *db.Database,
 	hub *github.SigningClient,
 	git *git.Manager,
+	errC chan<- error,
 ) *worker {
 	return &worker{
 		store,
 		db,
 		hub,
 		git,
+		errC,
 		l,
 	}
 }
 
 func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 	for {
-		jobC, jobErrC := w.store.RepoJobs().Dequeue()
+		jobC, jobErrC := w.store.RepoJobs().Dequeue(30 * time.Second)
 		select {
 		case <-stop:
 			w.l.Info("stopping job processor")
@@ -120,13 +133,20 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 			}
 			w.l.Info("job dequeued", "job.id", job.ID)
 			w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
-				GitHubSync: store.StateInProgress,
-				Analysis:   store.StateInProgress,
+				GitHubSync: &store.StateMeta{
+					State: store.StateInProgress,
+				},
+				Analysis: &store.StateMeta{
+					State: store.StateInProgress,
+				},
 			})
 
+			var (
+				wg  sync.WaitGroup
+				ctx = context.Background() // TODO: enforce timeout?
+			)
+
 			// spin up handlers and wait until completion
-			var wg sync.WaitGroup
-			var ctx = context.Background() // TODO: enforce timeout?
 			wg.Add(2)
 			go w.githubSync(ctx, job, &wg)
 			go w.gitAnalysis(ctx, job, &wg)
@@ -151,7 +171,10 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 		repo, err = w.git.Download(ctx, remote, git.DownloadOpts{})
 		if err != nil {
 			w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
-				Analysis: store.StateError,
+				Analysis: &store.StateMeta{
+					State:   store.StateError,
+					Message: err.Error(),
+				},
 			})
 			l.Errorw("repo does not exist and could not download", "error", err)
 			return
@@ -166,7 +189,10 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 	report, err := an.Analyze()
 	if err != nil {
 		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
-			Analysis: store.StateError,
+			Analysis: &store.StateMeta{
+				State:   store.StateError,
+				Message: err.Error(),
+			},
 		})
 		l.Errorw("analysis failed", "error", err)
 		return
@@ -177,17 +203,23 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 		"duration", time.Since(start),
 		"report", report)
 	w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
-		Analysis: store.StateDone,
+		Analysis: &store.StateMeta{
+			State: store.StateDone,
+		},
 	})
 }
 
 func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	var l = w.l.With("job.id", job.ID).Named("github_sync")
-	var start = time.Now()
+	var (
+		l     = w.l.With("job.id", job.ID).Named("github_sync")
+		start = time.Now()
+		repos = w.db.Repos()
+	)
 
-	client, err := w.hub.GetInstallationClient(context.Background(), job.InstallationID)
+	// set up client
+	client, err := w.hub.GetInstallationClient(ctx, job.InstallationID)
 	if err != nil {
 		l.Errorw("failed to authenticate for installation",
 			"error", err,
@@ -195,6 +227,19 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 		return
 	}
 
+	// check for entry in DB
+	repoID, err := repos.GetRepositoryID(ctx, job.Owner, job.Repo)
+	if err != nil || repoID == 0 {
+		// repo must exist at this point, since server must create it first
+		l.Errorw("could not find repository entry in database",
+			"error", err,
+			"repository", job.Owner+"/"+job.Repo)
+		w.errC <- fmt.Errorf("could not find ID for repository '%s/%s'", job.Owner, job.Repo)
+		return
+	}
+	l = l.With("db.id", repoID)
+
+	// init syncer
 	var syncer = github.NewSyncer(
 		w.l.Named("github_sync").With("job.id", job.ID),
 		client,
@@ -211,27 +256,72 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 			OutputBufferSize:    3,
 		})
 
-	var syncWG sync.WaitGroup
-	var stopPipe = make(chan bool)
-	itemsC, syncErrC := syncer.Sync(context.Background(), &syncWG)
-	var count int32
+	var (
+		syncWG     sync.WaitGroup
+		stopPipe   = make(chan bool)
+		itemCount  int32
+		errorCount int32
+		bufsize    = 30
+
+		itemsC, syncErrC = syncer.Sync(ctx, &syncWG)
+	)
 	go func() {
+		var (
+			cur int
+			buf = make([]*github.Item, bufsize)
+		)
+		defer func() {
+			// if the first item of buffer is non-nil, there are some number of items
+			// that needs to be dumped
+			if buf[0] != nil {
+				if err := repos.InsertGitHubItems(ctx, repoID, buf); err != nil {
+					l.Errorw("failed to clear github items", "error", err)
+					w.errC <- err
+					atomic.AddInt32(&errorCount, 1)
+					return
+				}
+				l.Infow("buffer cleared")
+			}
+		}()
 		for {
 			select {
 			case item := <-itemsC:
-				atomic.AddInt32(&count, 1)
+				atomic.AddInt32(&itemCount, 1)
 				if item == nil {
+					itemsC = nil
 					continue
 				}
-				l.Infow("item received",
-					"item", item.GitHubID)
-				// TODO: dump in database
+
+				// if we're at buffer limit, dump buffer
+				if cur >= bufsize {
+					var err = repos.InsertGitHubItems(ctx, repoID, buf)
+					// clear buffer straight away to prevent defer from double-inserting
+					cur = 0
+					buf = nil
+					buf = make([]*github.Item, bufsize)
+					if err != nil {
+						l.Errorw("failed to insert github items", "error", err)
+						w.errC <- err
+						atomic.AddInt32(&errorCount, 1)
+						return
+					}
+					l.Infow("buffer cleared")
+				}
+
+				// insert item into buffer
+				buf[cur] = item
+				cur++
 
 			case err := <-syncErrC:
 				if err != nil {
 					l.Errorw("error occured while syncing",
 						"error", err)
+					w.errC <- err
+					atomic.AddInt32(&errorCount, 1)
+				} else {
+					syncErrC = nil
 				}
+				return
 
 			case <-stopPipe:
 				return
@@ -241,13 +331,31 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 			}
 		}
 	}()
+
+	// wait until sync wraps up
 	syncWG.Wait()
 	l.Infow("github sync complete",
-		"items", count,
+		"items", itemCount,
 		"duration", time.Since(start))
 	stopPipe <- true
-	w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
-		GitHubSync: store.StateDone,
-	})
-	l.Infow("state updated")
+
+	// update job state
+	var state *store.RepoJobState
+	if errorCount > 0 {
+		state = &store.RepoJobState{
+			GitHubSync: &store.StateMeta{
+				State:   store.StateError,
+				Message: "an error was encountered during sync", // TODO: track actual error
+			},
+		}
+	} else {
+		state = &store.RepoJobState{
+			GitHubSync: &store.StateMeta{
+				State: store.StateDone,
+				Meta:  map[string]interface{}{"items": itemCount},
+			},
+		}
+	}
+	w.store.RepoJobs().SetState(job.ID, state)
+	l.Infow("state updated", "state", state)
 }
