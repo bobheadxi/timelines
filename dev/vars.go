@@ -1,6 +1,10 @@
 package dev
 
-import "github.com/bobheadxi/projector/config"
+import (
+	"os"
+
+	"github.com/bobheadxi/projector/config"
+)
 
 var (
 	StoreOptions = config.Store{
@@ -15,3 +19,6 @@ var (
 		User:     "bobheadxi",
 	}
 )
+
+// GetTestInstallationID returns $GITHUB_TEST_INSTALLTION
+func GetTestInstallationID() string { return os.Getenv("GITHUB_TEST_INSTALLTION") }
