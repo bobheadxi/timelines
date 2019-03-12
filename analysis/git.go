@@ -16,9 +16,12 @@ import (
 
 // GitRepoAnalyser executes pipelines on a repo
 type GitRepoAnalyser struct {
-	pipe  *hercules.Pipeline
-	opts  *GitRepoAnalyserOptions
+	pipe *hercules.Pipeline
+	opts *GitRepoAnalyserOptions
+
+	// repo metadata
 	first time.Time
+	size  int
 
 	l *zap.SugaredLogger
 }
@@ -40,19 +43,27 @@ func NewGitAnalyser(
 	history, _ := repo.Log(&gogit.LogOptions{
 		Order: gogit.LogOrderCommitterTime,
 	})
-	var first time.Time
+	var (
+		first time.Time
+		size  int
+	)
 	history.ForEach(func(obj *object.Commit) error {
 		// if no more parents, this is probably the first commit
 		if obj.NumParents() == 0 {
 			first = obj.Committer.When
 		}
+		size++
 		return nil
 	})
 
 	return &GitRepoAnalyser{
-		pipe:  pipe,
-		opts:  &opts,
+		pipe: pipe,
+		opts: &opts,
+
 		first: first,
+		size:  size,
+
+		l: l,
 	}
 }
 
@@ -94,21 +105,28 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 }
 
 func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, error) {
-	commits, err := g.pipe.Commits(false)
+	commits, err := g.pipe.Commits(true)
 	if err != nil {
 		return nil, err
 	}
-	g.pipe.Initialize(nil)
+	g.pipe.Initialize(map[string]interface{}{
+		leaves.ConfigBurndownTrackPeople: true,
+	})
 	return g.pipe.Run(commits)
 }
 
 func (g *GitRepoAnalyser) burndown() hercules.LeafPipelineItem {
 	return g.pipe.DeployItem(&leaves.BurndownAnalysis{
-		TrackFiles:  true,
+		TrackFiles: true,
+
+		// TODO: these is important to keep high (~30+) to account for largish (1k+)
+		// to massive (100k+) repositories, but for smaller or shorter projects
+		// (eg hackathons) this gives kind of useless data. will probably need some
+		// way to scale this automatically, based on the repo size.
 		Granularity: 30,
 		Sampling:    30,
 
-		PeopleNumber: 10, // TODO: this should scale with actual contributors
+		PeopleNumber: 10,
 	}).(hercules.LeafPipelineItem)
 }
 
