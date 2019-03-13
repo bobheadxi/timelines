@@ -128,7 +128,9 @@ func (s *Syncer) handleIssues(ctx context.Context, wg *sync.WaitGroup) {
 			Body:  i.GetBody(),
 
 			// TODO: flesh this out
-			Details: map[string]interface{}{},
+			Details: map[string]interface{}{
+				"comments": i.GetComments(),
+			},
 		}
 		item.WithReactions(i.Reactions)
 		item.WithLabels(i.Labels)
