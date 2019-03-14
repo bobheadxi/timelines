@@ -5,12 +5,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/bobheadxi/projector/cmd"
+	"github.com/bobheadxi/timelines/cmd"
 )
 
 func main() {
 	var root = &cobra.Command{
-		Use: "projector",
+		Use: "timelines",
 	}
 	root.SetHelpCommand(&cobra.Command{
 		Use:    "no-help",

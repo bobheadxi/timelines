@@ -1,20 +1,20 @@
 package server
 
-import "github.com/bobheadxi/projector/graphql/go/projector"
+import "github.com/bobheadxi/timelines/graphql/go/timelines"
 
-// resolver implements the Projector GraphQL API
+// resolver implements the timelines GraphQL API
 type resolver struct{}
 
 func newResolver() *resolver {
 	return &resolver{}
 }
 
-func (r *resolver) Mutation() projector.MutationResolver {
+func (r *resolver) Mutation() timelines.MutationResolver {
 	// TODO
 	return nil
 }
 
-func (r *resolver) Query() projector.QueryResolver {
+func (r *resolver) Query() timelines.QueryResolver {
 	// TODO
 	return nil
 }

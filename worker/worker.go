@@ -9,12 +9,12 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/bobheadxi/projector/analysis"
-	"github.com/bobheadxi/projector/config"
-	"github.com/bobheadxi/projector/db"
-	"github.com/bobheadxi/projector/git"
-	"github.com/bobheadxi/projector/github"
-	"github.com/bobheadxi/projector/store"
+	"github.com/bobheadxi/timelines/analysis"
+	"github.com/bobheadxi/timelines/config"
+	"github.com/bobheadxi/timelines/db"
+	"github.com/bobheadxi/timelines/git"
+	"github.com/bobheadxi/timelines/github"
+	"github.com/bobheadxi/timelines/store"
 )
 
 // RunOpts denotes worker options
@@ -36,7 +36,7 @@ func Run(
 	}
 	defer store.Close()
 
-	database, err := db.New(l.Named("db"), "projector.worker", opts.Database)
+	database, err := db.New(l.Named("db"), "timelines.worker", opts.Database)
 	if err != nil {
 		return err
 	}

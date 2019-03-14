@@ -9,8 +9,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/bobheadxi/projector/analysis"
-	"github.com/bobheadxi/projector/github"
+	"github.com/bobheadxi/timelines/analysis"
+	"github.com/bobheadxi/timelines/github"
 )
 
 // Repository represents a stored repository. TODO
@@ -142,7 +142,7 @@ func (r *ReposDatabase) InsertGitHubItems(ctx context.Context, repoID int, items
 	// if an incorrect number of rows is modified, throw an error
 	if res.RowsAffected() != itemCount {
 		// TODO: this check does terrible things sometimes
-		// https://github.com/bobheadxi/projector/issues/22
+		// https://github.com/bobheadxi/timelines/issues/22
 
 		// r.l.Infow("provided items", "items", items[29].Number)
 		// return fmt.Errorf("expected %d rows to change, only changed %d rows",

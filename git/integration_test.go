@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bobheadxi/projector/github"
+	"github.com/bobheadxi/timelines/github"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/bobheadxi/projector/git"
+	"github.com/bobheadxi/timelines/git"
 )
 
 func TestGitRepoAnalyser(t *testing.T) {

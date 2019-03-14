@@ -10,9 +10,9 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/bobheadxi/projector/db"
-	"github.com/bobheadxi/projector/dev"
-	"github.com/bobheadxi/projector/store"
+	"github.com/bobheadxi/timelines/db"
+	"github.com/bobheadxi/timelines/dev"
+	"github.com/bobheadxi/timelines/store"
 )
 
 func newDevCommand() *cobra.Command {

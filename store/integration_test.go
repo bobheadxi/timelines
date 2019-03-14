@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bobheadxi/projector/dev"
+	"github.com/bobheadxi/timelines/dev"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"

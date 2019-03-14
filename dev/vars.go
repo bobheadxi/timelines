@@ -3,7 +3,7 @@ package dev
 import (
 	"os"
 
-	"github.com/bobheadxi/projector/config"
+	"github.com/bobheadxi/timelines/config"
 )
 
 var (
@@ -15,7 +15,7 @@ var (
 	DatabaseOptions = config.Database{
 		Host:     "127.0.0.1",
 		Port:     "5431",
-		Database: "projector-dev",
+		Database: "timelines-dev",
 		User:     "bobheadxi",
 	}
 )

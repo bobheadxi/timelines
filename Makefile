@@ -32,8 +32,8 @@ devpg: pg-reset pg-init
 
 .PHONY: pg-reset
 pg-reset:
-	docker exec -i postgres psql -U bobheadxi projector-dev < db/sql/reset.sql
+	docker exec -i postgres psql -U bobheadxi timelines-dev < db/sql/reset.sql
 
 .PHONY: pg-init
 pg-init:
-	docker exec -i postgres psql -U bobheadxi projector-dev < db/sql/repos.sql
+	docker exec -i postgres psql -U bobheadxi timelines-dev < db/sql/repos.sql

@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/bobheadxi/projector/log"
-	"github.com/bobheadxi/projector/server"
+	"github.com/bobheadxi/timelines/log"
+	"github.com/bobheadxi/timelines/server"
 )
 
 func newServerCmd() *cobra.Command {

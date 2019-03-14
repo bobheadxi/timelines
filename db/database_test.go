@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/bobheadxi/projector/config"
-	"github.com/bobheadxi/projector/dev"
+	"github.com/bobheadxi/timelines/config"
+	"github.com/bobheadxi/timelines/dev"
 )
 
 func TestNew(t *testing.T) {

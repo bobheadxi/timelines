@@ -8,8 +8,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/bobheadxi/projector/config"
-	"github.com/bobheadxi/projector/log"
+	"github.com/bobheadxi/timelines/config"
+	"github.com/bobheadxi/timelines/log"
 )
 
 // Database is a low-level wrapper around the database driver

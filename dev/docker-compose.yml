@@ -9,7 +9,7 @@ services:
     volumes:
       - ./db/sql:/sql
     environment:
-      POSTGRES_DB: "projector-dev"
+      POSTGRES_DB: "timelines-dev"
       POSTGRES_USER: "bobheadxi"
 
   redis:

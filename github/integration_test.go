@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/bobheadxi/projector/dev"
+	"github.com/bobheadxi/timelines/dev"
 )
 
 func TestClient(t *testing.T) {

@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/bobheadxi/projector/db"
-	"github.com/bobheadxi/projector/dev"
-	"github.com/bobheadxi/projector/github"
+	"github.com/bobheadxi/timelines/db"
+	"github.com/bobheadxi/timelines/dev"
+	"github.com/bobheadxi/timelines/github"
 )
 
 func TestDatabase(t *testing.T) {

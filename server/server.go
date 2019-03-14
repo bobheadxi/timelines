@@ -6,8 +6,8 @@ import (
 	"go.uber.org/zap"
 	"gocloud.dev/server"
 
-	"github.com/bobheadxi/projector/graphql/go/projector"
-	"github.com/bobheadxi/projector/log"
+	"github.com/bobheadxi/timelines/graphql/go/timelines"
+	"github.com/bobheadxi/timelines/log"
 )
 
 // RunOpts denotes server options
@@ -33,8 +33,8 @@ func Run(
 	// set up endpoints
 	var mux = chi.NewMux()
 	mux.Route("/api", func(r chi.Router) {
-		r.Handle("/", handler.Playground("Projector API Playground", "/api/query"))
-		r.Handle("/query", handler.GraphQL(projector.NewExecutableSchema(projector.Config{
+		r.Handle("/", handler.Playground("timelines API Playground", "/api/query"))
+		r.Handle("/query", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
 			Resolvers: res,
 		})))
 	})

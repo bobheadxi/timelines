@@ -4,9 +4,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 
-	"github.com/bobheadxi/projector/dev"
-	"github.com/bobheadxi/projector/log"
-	"github.com/bobheadxi/projector/worker"
+	"github.com/bobheadxi/timelines/dev"
+	"github.com/bobheadxi/timelines/log"
+	"github.com/bobheadxi/timelines/worker"
 )
 
 func newWorkerCmd() *cobra.Command {

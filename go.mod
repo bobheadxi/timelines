@@ -1,4 +1,4 @@
-module github.com/bobheadxi/projector
+module github.com/bobheadxi/timelines
 
 go 1.12
 

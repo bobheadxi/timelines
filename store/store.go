@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/bobheadxi/projector/config"
+	"github.com/bobheadxi/timelines/config"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 )
