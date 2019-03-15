@@ -107,11 +107,11 @@ func (m *Manager) Load(ctx context.Context, remote string) (*Repository, error) 
 }
 
 func (m *Manager) repoDir(remote string) (string, error) {
-	repo, err := getRepoFromRemote(remote)
+	repo, host, err := getRepoFromRemote(remote)
 	if err != nil {
 		return "", err
 	}
-	var path = filepath.Join(m.opts.Workdir, repo)
+	var path = filepath.Join(m.opts.Workdir, string(host), repo)
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return "", err
 	}

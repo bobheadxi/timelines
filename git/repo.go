@@ -14,14 +14,22 @@ type Repository struct {
 
 // Name gets the repository name
 func (r *Repository) Name() (string, error) {
-	remote, err := r.git.Remote("origin")
+	remote, err := r.origin()
 	if err != nil {
 		return "", err
 	}
-	if len(remote.Config().URLs) < 1 {
-		return "", errors.New("no URLs configured for remote 'origin'")
+	name, _, err := getRepoFromRemote(remote)
+	return name, err
+}
+
+// Host gets the code host of this repository
+func (r *Repository) Host() (Host, error) {
+	remote, err := r.origin()
+	if err != nil {
+		return "", err
 	}
-	return getRepoFromRemote(remote.Config().URLs[0])
+	_, host, err := getRepoFromRemote(remote)
+	return host, err
 }
 
 // Dir gets where this repository is stored
@@ -29,3 +37,14 @@ func (r *Repository) Dir() string { return r.dir }
 
 // GitRepo returns the underlying go-git repository
 func (r *Repository) GitRepo() *gogit.Repository { return r.git }
+
+func (r *Repository) origin() (string, error) {
+	remote, err := r.git.Remote("origin")
+	if err != nil {
+		return "", err
+	}
+	if len(remote.Config().URLs) < 1 {
+		return "", errors.New("no URLs configured for remote 'origin'")
+	}
+	return remote.Config().URLs[0], nil
+}
