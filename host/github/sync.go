@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/go-github/github"
 	"go.uber.org/zap"
+
+	"github.com/bobheadxi/timelines/host"
 )
 
 // SyncOptions denotes options for a syncer
@@ -33,7 +35,7 @@ type Syncer struct {
 	issuesC       chan *github.Issue
 	fetchDetailsC chan *github.Issue
 
-	outC chan *Item
+	outC chan *host.Item
 
 	used bool
 }
@@ -54,13 +56,13 @@ func NewSyncer(
 		issuesC:       make(chan *github.Issue, opts.DetailsFetchWorkers),
 		fetchDetailsC: make(chan *github.Issue, opts.DetailsFetchWorkers),
 
-		outC: make(chan *Item, opts.OutputBufferSize),
+		outC: make(chan *host.Item, opts.OutputBufferSize),
 	}
 }
 
 // Sync pulls all issues from its configured repository and pipes them to the
 // returned channels. It can only be called once.
-func (s *Syncer) Sync(ctx context.Context, wg *sync.WaitGroup) (<-chan *Item, <-chan error) {
+func (s *Syncer) Sync(ctx context.Context, wg *sync.WaitGroup) (<-chan *host.Item, <-chan error) {
 	// guard against reuse
 	if s.used {
 		var errC = make(chan error, 1)
@@ -115,10 +117,10 @@ func (s *Syncer) sync(ctx context.Context, wg *sync.WaitGroup) <-chan error {
 
 func (s *Syncer) handleIssues(ctx context.Context, wg *sync.WaitGroup) {
 	for i := range s.issuesC {
-		var item = &Item{
+		var item = &host.Item{
 			GitHubID: int(i.GetID()),
 			Number:   int(i.GetNumber()),
-			Type:     ItemTypeIssue,
+			Type:     host.ItemTypeIssue,
 
 			Author: i.GetUser().GetName(),
 			Opened: i.GetCreatedAt(),
@@ -132,8 +134,8 @@ func (s *Syncer) handleIssues(ctx context.Context, wg *sync.WaitGroup) {
 				"comments": i.GetComments(),
 			},
 		}
-		item.WithReactions(i.Reactions)
-		item.WithLabels(i.Labels)
+		item.WithGitHubReactions(i.Reactions)
+		item.WithGitHubLabels(i.Labels)
 		s.outC <- item
 	}
 	s.l.Infow("all issues processed")
@@ -146,10 +148,10 @@ func (s *Syncer) fetchDetails(ctx context.Context, wg *sync.WaitGroup) {
 			s.l.Errorw("failed to get pull request",
 				"issue", i.GetNumber())
 		} else {
-			var item = &Item{
+			var item = &host.Item{
 				GitHubID: int(pr.GetID()),
 				Number:   int(i.GetNumber()),
-				Type:     ItemTypePR,
+				Type:     host.ItemTypePR,
 
 				Author: i.GetUser().GetName(),
 				Opened: i.GetCreatedAt(),
@@ -169,8 +171,8 @@ func (s *Syncer) fetchDetails(ctx context.Context, wg *sync.WaitGroup) {
 					"mergability": pr.GetMergeableState(),
 				},
 			}
-			item.WithReactions(i.Reactions)
-			item.WithLabels(i.Labels)
+			item.WithGitHubReactions(i.Reactions)
+			item.WithGitHubLabels(i.Labels)
 			s.outC <- item
 		}
 	}

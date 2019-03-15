@@ -10,7 +10,7 @@ import (
 
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/dev"
-	"github.com/bobheadxi/timelines/github"
+	"github.com/bobheadxi/timelines/host"
 )
 
 func TestDatabase(t *testing.T) {
@@ -39,11 +39,11 @@ func TestDatabase(t *testing.T) {
 	t.Log("bobheadxi/calories created as ID:", id)
 
 	// add an item
-	err = repos.InsertGitHubItems(ctx, id, []*github.Item{
-		&github.Item{
+	err = repos.InsertGitHubItems(ctx, id, []*host.Item{
+		&host.Item{
 			GitHubID: 1234,
 			Number:   25,
-			Type:     github.ItemTypeIssue,
+			Type:     host.ItemTypeIssue,
 			Details: map[string]interface{}{
 				"some_detail": 23847125,
 			},

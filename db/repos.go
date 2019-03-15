@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/analysis"
-	"github.com/bobheadxi/timelines/github"
+	"github.com/bobheadxi/timelines/host"
 )
 
 // Repository represents a stored repository. TODO
@@ -109,7 +109,7 @@ func (r *ReposDatabase) InsertGitBurndownResult(ctx context.Context, burndown *a
 }
 
 // InsertGitHubItems executes a batch insert on all given items
-func (r *ReposDatabase) InsertGitHubItems(ctx context.Context, repoID int, items []*github.Item) error {
+func (r *ReposDatabase) InsertGitHubItems(ctx context.Context, repoID int, items []*host.Item) error {
 	var (
 		batch     = r.db.pg.BeginBatch()
 		itemCount int64

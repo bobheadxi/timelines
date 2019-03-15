@@ -5,10 +5,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bobheadxi/timelines/github"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/bobheadxi/timelines/host/github"
 )
 
 func TestManager(t *testing.T) {

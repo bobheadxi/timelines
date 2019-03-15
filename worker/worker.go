@@ -13,7 +13,8 @@ import (
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/git"
-	"github.com/bobheadxi/timelines/github"
+	"github.com/bobheadxi/timelines/host"
+	"github.com/bobheadxi/timelines/host/github"
 	"github.com/bobheadxi/timelines/store"
 )
 
@@ -268,7 +269,7 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 	go func() {
 		var (
 			cur int
-			buf = make([]*github.Item, bufsize)
+			buf = make([]*host.Item, bufsize)
 		)
 		defer func() {
 			// if the first item of buffer is non-nil, there are some number of items
@@ -298,7 +299,7 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 					// clear buffer straight away to prevent defer from double-inserting
 					cur = 0
 					buf = nil
-					buf = make([]*github.Item, bufsize)
+					buf = make([]*host.Item, bufsize)
 					if err != nil {
 						l.Errorw("failed to insert github items", "error", err)
 						w.errC <- err

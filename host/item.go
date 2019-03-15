@@ -1,4 +1,4 @@
-package github
+package host
 
 import (
 	"time"
@@ -30,24 +30,32 @@ type Item struct {
 	Title     string
 	Body      string
 	Labels    []string
-	Reactions *github.Reactions
+	Reactions ItemReactions
 
 	Details map[string]interface{}
 }
 
-// WithLabels attaches given labels as strings to Item
-func (i *Item) WithLabels(labels []github.Label) {
+// ItemReactions denotes reactions to an item
+type ItemReactions struct {
+	Total    int
+	Positive int
+	Negative int
+}
+
+// WithGitHubLabels attaches given labels as strings to Item
+func (i *Item) WithGitHubLabels(labels []github.Label) {
 	i.Labels = make([]string, len(labels))
 	for x, l := range labels {
 		i.Labels[x] = l.GetName()
 	}
 }
 
-// WithReactions sets reactions after stripping out unecessary things
-func (i *Item) WithReactions(reacs *github.Reactions) {
-	if reacs == nil {
+// WithGitHubReactions sets reactions after stripping out unecessary things
+func (i *Item) WithGitHubReactions(r *github.Reactions) {
+	if r == nil {
 		return
 	}
-	reacs.URL = nil
-	i.Reactions = reacs
+	i.Reactions.Positive = r.GetHeart() + r.GetHooray() + r.GetLaugh() + r.GetPlusOne()
+	i.Reactions.Negative = r.GetConfused() + r.GetMinusOne()
+	i.Reactions.Total = r.GetTotalCount()
 }
