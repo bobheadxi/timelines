@@ -25,7 +25,8 @@ func TestGitRepoAnalyser(t *testing.T) {
 	defer os.RemoveAll("./tmp")
 
 	// execute analysis
-	a := NewGitAnalyser(l.Named("analysis"), repo.GitRepo(), GitRepoAnalyserOptions{})
+	a, err := NewGitAnalyser(l.Named("analysis"), repo.GitRepo(), GitRepoAnalyserOptions{})
+	assert.NoError(t, err)
 	report, err := a.Analyze()
 	assert.NoError(t, err)
 

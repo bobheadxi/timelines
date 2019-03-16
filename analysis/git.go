@@ -21,6 +21,7 @@ type GitRepoAnalyser struct {
 
 	// repo metadata
 	first time.Time
+	last  time.Time
 	size  int
 
 	l *zap.SugaredLogger
@@ -34,19 +35,27 @@ func NewGitAnalyser(
 	l *zap.SugaredLogger,
 	repo *gogit.Repository,
 	opts GitRepoAnalyserOptions,
-) *GitRepoAnalyser {
+) (*GitRepoAnalyser, error) {
 	var pipe = hercules.NewPipeline(repo)
 	pipe.PrintActions = false
 	pipe.DumpPlan = false
 
 	// get time of first commit, to calculate relative timeframes
-	history, _ := repo.Log(&gogit.LogOptions{
+	history, err := repo.Log(&gogit.LogOptions{
 		Order: gogit.LogOrderCommitterTime,
 	})
+	if err != nil {
+		return nil, err
+	}
 	var (
-		first time.Time
-		size  int
+		first, last time.Time
+		size        int
 	)
+	obj, err := history.Next()
+	if err != nil {
+		return nil, err
+	}
+	last = obj.Committer.When
 	history.ForEach(func(obj *object.Commit) error {
 		// if no more parents, this is probably the first commit
 		if obj.NumParents() == 0 {
@@ -61,10 +70,11 @@ func NewGitAnalyser(
 		opts: &opts,
 
 		first: first,
+		last:  last,
 		size:  size,
 
 		l: l,
-	}
+	}, nil
 }
 
 // GitRepoReport is a container around different analysis results

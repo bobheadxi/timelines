@@ -182,17 +182,29 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 		}
 	}
 
-	// set up and execute analysis
-	an := analysis.NewGitAnalyser(
+	// set up analysis
+	an, err := analysis.NewGitAnalyser(
 		l.Named("analyzer"),
 		repo.GitRepo(),
 		analysis.GitRepoAnalyserOptions{})
+	if err != nil {
+		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+			Analysis: &store.StateMeta{
+				State:   store.StateError,
+				Message: fmt.Sprintf("analysis.setup: %v", err),
+			},
+		})
+		l.Errorw("analysis failed", "error", err)
+		return
+	}
+
+	// execute
 	report, err := an.Analyze()
 	if err != nil {
 		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 			Analysis: &store.StateMeta{
 				State:   store.StateError,
-				Message: err.Error(),
+				Message: fmt.Sprintf("analysis.execute: %v", err),
 			},
 		})
 		l.Errorw("analysis failed", "error", err)
