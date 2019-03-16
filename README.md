@@ -1,10 +1,15 @@
-# timelines
+<p align="center">
+  <img src="/docs/banner.png" />
+</p>
 
-> Project insights about your projects
+<p align="center">
+  <a href="https://dev.azure.com/bobheadxi/bobheadxi/_build/latest?definitionId=5&branchName=master">
+    <img src="https://dev.azure.com/bobheadxi/bobheadxi/_apis/build/status/bobheadxi.timelines?branchName=master" alt="CI Status" />
+  </a>
 
-[![CI Status](https://dev.azure.com/bobheadxi/bobheadxi/_apis/build/status/bobheadxi.timelines?branchName=master)](https://dev.azure.com/bobheadxi/bobheadxi/_build/latest?definitionId=5&branchName=master)
-[![codecov](https://codecov.io/gh/bobheadxi/timelines/branch/master/graph/badge.svg?token=8ZR61AFnLu)](https://codecov.io/gh/bobheadxi/timelines)
+  <a href="https://codecov.io/gh/bobheadxi/timelines">
+    <img src="https://codecov.io/gh/bobheadxi/timelines/branch/master/graph/badge.svg?token=8ZR61AFnLu" alt="CI Status" />
+  </a>
+</p>
 
-timelines is a tool for learning more about activities surrounding your project.
-It aims to consolidate GitHub metadata (issues, pull requests, contributors)
-and Git repository insights for your viewing pleasure.
+<br />
