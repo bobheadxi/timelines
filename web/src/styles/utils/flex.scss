@@ -1,0 +1,64 @@
+//////////////////////////
+//   FLEXBOX CLASSES    //
+//////////////////////////
+
+.flex {
+  display: flex;
+
+  // inline-flex
+  &-inline     { display: inline-flex; }
+  &-inlinegrid { display: inline-grid; }
+
+  // alignment of child text elements
+  &-al {
+    &-center { text-align: center; };
+    &-left   { text-align: left; };
+  }
+
+  // flex-directions
+  &.dir {
+    &-col { flex-direction: column; }
+    &-row { flex-direction: row; }
+  }
+
+  // justify-content
+  &.jc {
+    &-start  { justify-content: flex-start; }
+    &-center { justify-content: center; }
+    &-end    { justify-content: flex-end; }
+    &-around { justify-content: space-around; }
+
+    &-between {
+      justify-content: space-between;
+
+      &-right-if-one {
+        :only-child {
+          align-self: flex-end;
+          margin-left: auto;
+        }
+      }
+    }
+  }
+
+  // flex-wrap
+  &.wrap { flex-wrap: wrap; }
+
+  // align-items
+  &.ai {
+    &-start  { align-items: flex-start; }
+    &-center { align-items: center; }
+    &-end    { align-items: flex-end; }
+  }
+
+  // algin-self
+  &.as {
+    &-end    { align-self: flex-end; }
+    &-center { align-self: center; }
+    &-start  { align-self: flex-start; }
+  }
+
+  // align-content
+  &.ac {
+    &-end { align-content: flex-end; }
+  }
+}

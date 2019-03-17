@@ -1,0 +1,61 @@
+/////////////////////////
+// ELEMENT DECORATIONS //
+/////////////////////////
+
+// opacity declarations
+.opacity {
+  &-0  { opacity: 0; }
+  &-20 { opacity: .2; }
+  &-40 { opacity: .4; }
+  &-60 { opacity: .6; }
+}
+
+// visibility declarations
+.display {
+  &-none { display: none; }
+}
+
+// overflow modes
+.overflow {
+  &-hidden { overflow: hidden; }
+}
+
+// border-radius
+.border {
+  &-m {
+    border-radius: 3px;
+  }
+}
+
+// Message / Highlight styling
+.highlight {
+  &-blue {
+      color: #059;
+      background-color: #BEF;
+  }
+
+  &-green {
+      color: #270;
+      background-color: #DFF2BF;
+  }
+
+  &-orange {
+      color: #9F6000;
+      background-color: #FEEFB3;
+  }
+
+  &-red {
+      color: #D8000C;
+      background-color: #FFBABA;
+  }
+}
+
+// Removes any focusing behaviour from style for pinpoint theme
+input:focus::-webkit-input-placeholder { color: transparent; }
+input:focus:-moz-placeholder { color: transparent; } /* FF 4-18 */
+input:focus::-moz-placeholder { color: transparent; } /* FF 19+ */
+input:focus:-ms-input-placeholder { color: transparent; } /* IE 10+ */
+
+input:focus, textarea:focus, button:focus {
+    outline: none;
+}

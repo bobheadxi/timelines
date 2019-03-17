@@ -1,0 +1,16 @@
+/////////////////////////
+//        FONTS        //
+/////////////////////////
+
+// todo - font faces
+
+/////////////////////////
+//    TEXT CLASSES     //
+/////////////////////////
+
+.text {
+  &-center { text-align: center; }
+  &-nowrap { white-space: nowrap; }
+}
+
+.underline { text-decoration: underline; }
