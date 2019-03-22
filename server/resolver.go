@@ -1,12 +1,17 @@
 package server
 
-import "github.com/bobheadxi/timelines/graphql/go/timelines"
+import (
+	"github.com/bobheadxi/timelines/graphql/go/timelines"
+	"go.uber.org/zap"
+)
 
 // resolver implements the timelines GraphQL API
-type resolver struct{}
+type resolver struct {
+	l *zap.SugaredLogger
+}
 
-func newResolver() *resolver {
-	return &resolver{}
+func newResolver(l *zap.SugaredLogger) *resolver {
+	return &resolver{l}
 }
 
 func (r *resolver) Mutation() timelines.MutationResolver {

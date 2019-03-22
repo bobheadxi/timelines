@@ -7,16 +7,18 @@ require (
 	github.com/Jeffail/tunny v0.0.0-20180304204616-59cfa8fcb19f // indirect
 	github.com/antchfx/xpath v0.0.0-20180922041825-3de91f3991a1 // indirect
 	github.com/bobheadxi/pgx v3.3.1-0.20190311064849-b663bd092aa8+incompatible
+	github.com/bobheadxi/res v0.0.0-20190302035355-d482a297f229
 	github.com/cespare/trie v0.0.0-20150610204604-3fe1a95cbba9 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v3.3.2+incompatible
+	github.com/go-chi/render v1.0.1
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.0
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
-	github.com/jackc/pgx v3.3.0+incompatible
+	github.com/jackc/pgx v3.3.0+incompatible // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/mcuadros/go-lookup v0.0.0-20171110082742-5650f26be767 // indirect
 	github.com/minio/highwayhash v0.0.0-20180501080913-85fc8a2dacad // indirect
