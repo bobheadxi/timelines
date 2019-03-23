@@ -3,9 +3,7 @@ package db
 import (
 	"strconv"
 
-	// need https://github.com/jackc/pgx/issues/335
-	"github.com/bobheadxi/pgx"
-
+	"github.com/jackc/pgx"
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/config"

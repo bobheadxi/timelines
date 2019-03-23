@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/bobheadxi/pgx"
+	"github.com/jackc/pgx"
 	"go.uber.org/zap"
 )
 
