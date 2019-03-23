@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
-import Nav from '../../components/Nav/Nav';
+import { Location } from 'history';
 
+import Nav from '../../components/Nav/Nav';
 
 import banner from '../../assets/banner.png';
 
-class Home extends Component {
+class Home extends Component<{
+  location: Location;
+}> {
   render() {
     return (
       <div >
-        <Nav noTitles={true} />
+        <Nav noTitles={true} location={location} />
         <div className="margin-sides-l">
           <header className="flex ai-center jc-center ">
             <img src={banner} alt="banner" height="100px" width="85%" />

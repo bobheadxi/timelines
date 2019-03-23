@@ -1,11 +1,30 @@
 import React, { Component } from 'react';
+import { match } from 'react-router-dom';
+import { Location } from 'history';
+
 import Nav from '../../components/Nav/Nav';
 
-class Timeline extends Component {
+interface ProjectQuery {
+  host: string;
+  owner: string;
+  name: string;
+}
+
+class Timeline extends Component<{
+  match: match<ProjectQuery>;
+  location: Location;
+}> {
   render() {
+    const { host, owner, name } = this.props.match.params;
+
     return (
       <div >
-        <Nav />
+        <Nav location={location} />
+
+        <div className="text-center title title-m pad-bot-m">
+          {`${host}/${owner}/${name}`}
+        </div>
+
         <div className="margin-sides-l">
           <div className="uk-child-width-1-2@s uk-grid-match " data-uk-grid>
             <div>

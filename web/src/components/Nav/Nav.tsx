@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
+import { Location } from 'history';
 
 class Nav extends Component<{
   noTitles?: Boolean;
+  location: any;
 }> {
   render() {
     return (
@@ -18,7 +20,7 @@ class Nav extends Component<{
         </div>
 
         <div className="uk-navbar-right">
-          {!this.props.noTitles
+          {!this.props.noTitles && location.pathname != "about"
             ? <div className="uk-navbar-item title title-m">
               <a href="/about" className="uk-link-heading">About</a>
             </div>

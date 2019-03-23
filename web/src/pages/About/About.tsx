@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
+import { Location } from 'history';
+
 import Nav from '../../components/Nav/Nav';
 
-class About extends Component {
+class About extends Component<{
+  location: Location;
+}> {
   render() {
     return (
       <div >
-        <Nav />
+        <Nav location={location} />
         <div className="margin-sides-l">
           <div className="uk-child-width-1-2@s uk-grid-match " data-uk-grid>
             <div>
