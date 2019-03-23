@@ -3,7 +3,13 @@
 /////////////////////////
 
 // Custom globals
-// TODO
+$global-emphasis-color: $primary;
+$global-color: $black;
+$global-link-color: $primary;
+$global-link-hover-color: $secondary;
+$global-muted-color: $grey;
+$global-primary-background: $primary;
+$global-secondary-background: $grey;
 
 // Defaults
 @import "uikit/src/scss/variables-theme.scss";

@@ -11,16 +11,16 @@ class Nav extends Component<{
 
         <div className="uk-navbar-left">
           {!this.props.noTitles 
-            ? <div className="uk-navbar-item">
-                <a href="/" className="uk-link-heading title title-m">Timelines</a>
+            ? <div className="uk-navbar-item title title-m">
+                <a href="/" className="uk-link-heading">Timelines</a>
               </div>
             : null}
         </div>
 
         <div className="uk-navbar-right">
           {!this.props.noTitles
-            ? <div className="uk-navbar-item">
-              <a href="/about" className="uk-link-heading title title-m">About</a>
+            ? <div className="uk-navbar-item title title-m">
+              <a href="/about" className="uk-link-heading">About</a>
             </div>
             : null}
         </div>
