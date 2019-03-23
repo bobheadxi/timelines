@@ -10,8 +10,8 @@ import (
 	"go.uber.org/zap"
 	gogit "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
-	hercules "gopkg.in/src-d/hercules.v9"
-	"gopkg.in/src-d/hercules.v9/leaves"
+	hercules "gopkg.in/src-d/hercules.v10"
+	"gopkg.in/src-d/hercules.v10/leaves"
 )
 
 // GitRepoAnalyser executes pipelines on a repo

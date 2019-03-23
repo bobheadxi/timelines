@@ -1,6 +1,6 @@
 package analysis
 
-import "gopkg.in/src-d/hercules.v9/leaves"
+import "gopkg.in/src-d/hercules.v10/leaves"
 
 // CouplingResult represents the coupling analysis result
 type CouplingResult struct {

@@ -657,8 +657,11 @@ gopkg.in/src-d/go-git-fixtures.v3 v3.1.1/go.mod h1:dLBcvytrw/TYZsNTWCnkNF2DSIlzW
 gopkg.in/src-d/go-git.v4 v4.8.1/go.mod h1:Vtut8izDyrM8BUVQnzJ+YvmNcem2J89EmfZYCkLokZk=
 gopkg.in/src-d/go-git.v4 v4.10.0 h1:NWjTJTQnk8UpIGlssuefyDZ6JruEjo5s88vm88uASbw=
 gopkg.in/src-d/go-git.v4 v4.10.0/go.mod h1:Vtut8izDyrM8BUVQnzJ+YvmNcem2J89EmfZYCkLokZk=
-gopkg.in/src-d/hercules.v9 v9.1.0 h1:/y0VwA4VPDR2T8FVav4WiI1yAnspX86UF+lDiqKLHHQ=
-gopkg.in/src-d/hercules.v9 v9.1.0/go.mod h1:yfoQVuiQo3WbQdRnxzKAsEwadvaEsWQvlDHV2sh12ok=
+gopkg.in/src-d/hercules.v10 v9.1.0 h1:/y0VwA4VPDR2T8FVav4WiI1yAnspX86UF+lDiqKLHHQ=
+gopkg.in/src-d/hercules.v10 v9.1.0/go.mod h1:yfoQVuiQo3WbQdRnxzKAsEwadvaEsWQvlDHV2sh12ok=
+gopkg.in/src-d/hercules.v10 v10.0.0-20190306213444-676904be5ada/go.mod h1:PZWVcLihiDjDG5Z/cRHapq9TYHDw0sbXPGmCOPQ6A5M=
+gopkg.in/src-d/hercules.v10 v10.0.0 h1:FKM5RsBnTwaz/BEgWI8LYuNr+rttdDev0M34qNNZCc8=
+gopkg.in/src-d/hercules.v10 v10.0.0/go.mod h1:PZWVcLihiDjDG5Z/cRHapq9TYHDw0sbXPGmCOPQ6A5M=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 h1:uRGJdciOHaEIrze2W8Q3AKkepLTh2hOroT7a+7czfdQ=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWDmTeBkI65Dw0HsyUHuEVlX15mw=
 gopkg.in/toqueteos/substring.v1 v1.0.2 h1:urLqCeMm6x/eTuQa1oZerNw8N1KNOIp5hD5kGL7lFsE=

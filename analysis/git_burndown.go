@@ -1,6 +1,6 @@
 package analysis
 
-import "gopkg.in/src-d/hercules.v9/leaves"
+import "gopkg.in/src-d/hercules.v10/leaves"
 
 // BurndownResult represents the burndown analysis result
 type BurndownResult struct {
