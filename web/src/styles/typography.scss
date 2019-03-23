@@ -2,7 +2,7 @@
 //        FONTS        //
 /////////////////////////
 
-// todo - font faces
+@import url('https://fonts.googleapis.com/css?family=Playfair+Display:400,700');
 
 /////////////////////////
 //    TEXT CLASSES     //
@@ -11,6 +11,16 @@
 .text {
   &-center { text-align: center; }
   &-nowrap { white-space: nowrap; }
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  color: #333333;
+
+  &-m {
+    font-size: 16px;
+    font-weight: bold;
+  }
 }
 
 .underline { text-decoration: underline; }
