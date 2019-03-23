@@ -32,8 +32,8 @@ type Syncer struct {
 
 	opts SyncOptions
 
-	issuesC       chan *github.Issue
-	fetchDetailsC chan *github.Issue
+	issuesC chan *github.Issue
+	prC     chan *github.PullRequest
 
 	outC chan *host.Item
 
@@ -53,8 +53,8 @@ func NewSyncer(
 		c:    client,
 		opts: opts,
 
-		issuesC:       make(chan *github.Issue, opts.DetailsFetchWorkers),
-		fetchDetailsC: make(chan *github.Issue, opts.DetailsFetchWorkers),
+		issuesC: make(chan *github.Issue, opts.DetailsFetchWorkers),
+		prC:     make(chan *github.PullRequest, opts.DetailsFetchWorkers),
 
 		outC: make(chan *host.Item, opts.OutputBufferSize),
 	}
@@ -84,17 +84,13 @@ func (s *Syncer) Sync(ctx context.Context, wg *sync.WaitGroup) (<-chan *host.Ite
 }
 
 func (s *Syncer) sync(ctx context.Context, wg *sync.WaitGroup) <-chan error {
-	// spin up workers
-	for i := 0; i < s.opts.DetailsFetchWorkers; i++ {
-		wg.Add(1)
-		go s.fetchDetails(ctx, wg)
-	}
-	wg.Add(1)
+	wg.Add(2)
 	go s.handleIssues(ctx, wg)
+	go s.handlePullRequests(ctx, wg)
 
 	// start sync
 	var errC = make(chan error)
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		if err := s.c.GetIssues(
 			ctx,
@@ -102,13 +98,25 @@ func (s *Syncer) sync(ctx context.Context, wg *sync.WaitGroup) <-chan error {
 			s.opts.Repo.Name,
 			s.opts.Filter,
 			s.issuesC,
-			s.fetchDetailsC,
 			wg); err != nil {
 			errC <- err
 		}
-		s.l.Infow("all issues loaded done, waiting")
+	}()
+	go func() {
+		if err := s.c.GetPullRequests(
+			ctx,
+			s.opts.Repo.Owner,
+			s.opts.Repo.Name,
+			s.opts.Filter,
+			s.prC,
+			wg); err != nil {
+			errC <- err
+		}
+	}()
+	go func() {
+		s.l.Infow("waiting for waitgroup")
 		wg.Wait()
-		s.l.Infow("sync done, closing error output")
+		s.l.Infow("waitgroup done, closing errors")
 		close(errC)
 	}()
 
@@ -142,40 +150,44 @@ func (s *Syncer) handleIssues(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func (s *Syncer) fetchDetails(ctx context.Context, wg *sync.WaitGroup) {
-	for i := range s.fetchDetailsC {
-		if pr, err := s.c.GetPullRequest(ctx, i); err != nil {
-			s.l.Errorw("failed to get pull request",
-				"issue", i.GetNumber())
-		} else {
-			var item = &host.Item{
-				GitHubID: int(pr.GetID()),
-				Number:   int(i.GetNumber()),
-				Type:     host.ItemTypePR,
+func (s *Syncer) handlePullRequests(ctx context.Context, wg *sync.WaitGroup) {
+	for pr := range s.prC {
+		var item = &host.Item{
+			GitHubID: int(pr.GetID()),
+			Number:   int(pr.GetNumber()),
+			Type:     host.ItemTypePR,
 
-				Author: i.GetUser().GetName(),
-				Opened: i.GetCreatedAt(),
-				Closed: i.CreatedAt,
+			Author: pr.GetUser().GetName(),
+			Opened: pr.GetCreatedAt(),
+			Closed: pr.ClosedAt,
 
-				Title: i.GetTitle(),
-				Body:  i.GetBody(),
+			Title: pr.GetTitle(),
+			Body:  pr.GetBody(),
 
-				// TODO: flesh out PR stuff
-				Details: map[string]interface{}{
-					"commit":      pr.GetMergeCommitSHA(),
-					"comments":    pr.GetComments(),
-					"commits":     pr.GetCommits(),
-					"files":       pr.GetChangedFiles(),
-					"additions":   pr.GetAdditions(),
-					"deletions":   pr.GetDeletions(),
-					"mergability": pr.GetMergeableState(),
-				},
-			}
-			item.WithGitHubReactions(i.Reactions)
-			item.WithGitHubLabels(i.Labels)
-			s.outC <- item
+			// TODO: flesh out PR stuff
+			Details: map[string]interface{}{
+				"commit":      pr.GetMergeCommitSHA(),
+				"comments":    pr.GetComments(),
+				"commits":     pr.GetCommits(),
+				"files":       pr.GetChangedFiles(),
+				"additions":   pr.GetAdditions(),
+				"deletions":   pr.GetDeletions(),
+				"mergability": pr.GetMergeableState(),
+			},
 		}
+		// PR list api does not return reactions :(
+		// item.WithGitHubReactions(pr.Reactions)
+
+		// PR list api returns labels as []*github.Label, convert it first
+		labels := make([]github.Label, len(pr.Labels))
+		for i, l := range pr.Labels {
+			if l != nil {
+				labels[i] = *l
+			}
+		}
+		item.WithGitHubLabels(labels)
+		s.outC <- item
 	}
-	s.l.Infow("all detail fetching processed")
+	s.l.Infow("all pull requests processed")
 	wg.Done()
 }

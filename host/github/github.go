@@ -102,19 +102,18 @@ func (c *Client) GetIssues(
 	user, repo string,
 	filter ItemFilter,
 	issuesC chan<- *github.Issue,
-	fetchDetailsC chan<- *github.Issue,
 	wait *sync.WaitGroup,
 ) error {
-	defer func() {
-		close(issuesC)
-		close(fetchDetailsC)
-		wait.Done()
-	}()
-
 	var (
-		l         = c.l.With("user", user, "repo", repo)
+		l         = c.l.With("user", user, "repo", repo, "sync", "issues")
 		itemCount = 0
 	)
+
+	defer func() {
+		close(issuesC)
+		l.Infof("collected %d items", itemCount)
+		wait.Done()
+	}()
 
 	for page := filter.MinNumber/100 + 1; page != 0; {
 
@@ -134,24 +133,15 @@ func (c *Client) GetIssues(
 				user, repo, page, err)
 		}
 		itemCount += len(items)
-		l.Infow("items retrieved", "items", itemCount, "page", page)
+		l.Infow("items retrieved", "total_items", itemCount, "page", page)
 
 		// queue all items into output
 		for _, i := range items {
 			if !i.IsPullRequest() {
 				issuesC <- i
-			} else {
-				// set repository data to help fetch pull request details
-				if i.GetRepository() == nil || i.GetRepository().GetOwner() == nil {
-					i.Repository = &github.Repository{
-						Name: github.String(repo),
-						Owner: &github.User{
-							Login: github.String(user),
-						},
-					}
-				}
-				fetchDetailsC <- i
 			}
+			// TODO: some metadata is only available on this API, and not the PR one,
+			// most notably reactions. somehow merge results with the PR fetching?
 		}
 
 		// wait if required before making next request
@@ -164,26 +154,56 @@ func (c *Client) GetIssues(
 	return nil
 }
 
-// GetPullRequest extracts a Pull Request from the given issue
-func (c *Client) GetPullRequest(ctx context.Context, i *github.Issue) (*github.PullRequest, error) {
-	if !i.IsPullRequest() {
-		return nil, fmt.Errorf("issue '%d' is not a pull request", i.GetNumber())
+// GetPullRequests retrieves all pull requests for a project
+func (c *Client) GetPullRequests(
+	ctx context.Context,
+	user, repo string,
+	filter ItemFilter,
+	prC chan<- *github.PullRequest,
+	wait *sync.WaitGroup,
+) error {
+	var (
+		l         = c.l.With("user", user, "repo", repo, "sync", "pull_requests")
+		itemCount = 0
+	)
+
+	defer func() {
+		close(prC)
+		l.Infof("collected %d items", itemCount)
+		wait.Done()
+	}()
+
+	for page := filter.MinNumber/100 + 1; page != 0; {
+
+		// fetch items
+		items, resp, err := c.gh.PullRequests.List(ctx, user, repo, &github.PullRequestListOptions{
+			Direction: "asc",
+			Sort:      "created",
+			State:     string(filter.State),
+			ListOptions: github.ListOptions{
+				Page:    page,
+				PerPage: 100,
+			},
+		})
+		if err != nil {
+			l.Errorw("failed to fetch issues", "error", err, "items", items, "page", page)
+			return fmt.Errorf("failed to fetch issues for '%s/%s' on page '%d': %s",
+				user, repo, page, err)
+		}
+		itemCount += len(items)
+		l.Infow("items retrieved", "total_items", itemCount, "page", page)
+
+		// queue all items into output
+		for _, pr := range items {
+			prC <- pr
+		}
+
+		// wait if required before making next request
+		page = resp.NextPage
+		if filter.Interval > 0 {
+			time.Sleep(filter.Interval)
+		}
 	}
 
-	var repo = i.GetRepository()
-	if repo == nil || repo.GetOwner() == nil {
-		return nil, fmt.Errorf("repo or owner is not set in issue '%d'", i.GetNumber())
-	}
-	pr, _, err := c.gh.PullRequests.Get(ctx,
-		repo.GetOwner().GetLogin(),
-		repo.GetName(),
-		i.GetNumber())
-	if err != nil {
-		c.l.Errorw("failed to get pull request",
-			"issue", i.GetNumber(),
-			"repo", repo)
-		return nil, fmt.Errorf("failed to get pull request for issue '%d'", i.GetNumber())
-	}
-
-	return pr, nil
+	return nil
 }
