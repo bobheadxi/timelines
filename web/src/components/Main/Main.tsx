@@ -10,7 +10,7 @@ class Main extends Component {
           <img src={banner} alt="banner" height="100px" width="75%" />
         </header>
 
-        <div className="uk-child-width-1-2@s uk-grid-match" uk-grid>
+        <div className="uk-child-width-1-2@s uk-grid-match" data-uk-grid>
           <div>
             <div className="uk-card uk-card-hover uk-card-default uk-card-body">
                 <h3 className="uk-card-title">Default</h3>

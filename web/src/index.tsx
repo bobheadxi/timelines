@@ -1,14 +1,12 @@
+const UIkit: any = require('uikit');
+const Icons: any = require('uikit/dist/js/uikit-icons');
+UIkit.use(Icons);
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './styles/_all.scss';
 import Main from './components/Main/Main';
 import * as serviceWorker from './serviceWorker';
-
-const UIkit: any = require('uikit');
-const Icons: any = require('uikit/dist/js/uikit-icons');
-
-// load the icon plugin
-UIkit.use(Icons);
 
 ReactDOM.render(<Main />, document.getElementById('root'));
 
