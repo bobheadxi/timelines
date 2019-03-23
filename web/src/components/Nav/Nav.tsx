@@ -3,7 +3,7 @@ import { Location } from 'history';
 
 class Nav extends Component<{
   noTitles?: Boolean;
-  location: any;
+  location: any; // TODO: why can't this be of type Location?
 }> {
   render() {
     return (
