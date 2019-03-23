@@ -3,6 +3,7 @@ import { match } from 'react-router-dom';
 import { Location } from 'history';
 
 import Nav from '../../components/Nav/Nav';
+import { Burndown } from '../../components/vis';
 
 interface ProjectQuery {
   host: string;
@@ -25,6 +26,7 @@ class Timeline extends Component<{
             <span>{`${host}/${owner}/${name}`}</span>
           </h1>
         </div>
+        <Burndown />
       </div>
     );
   }
