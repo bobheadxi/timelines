@@ -28,7 +28,9 @@ type GitRepoAnalyser struct {
 }
 
 // GitRepoAnalyserOptions denotes options for the analyzer
-type GitRepoAnalyserOptions struct{}
+type GitRepoAnalyserOptions struct {
+	TickCount int
+}
 
 // NewGitAnalyser sets up a new pipeline for repo analysis
 func NewGitAnalyser(
@@ -39,6 +41,9 @@ func NewGitAnalyser(
 	var pipe = hercules.NewPipeline(repo)
 	pipe.PrintActions = false
 	pipe.DumpPlan = false
+	if opts.TickCount == 0 {
+		opts.TickCount = 500
+	}
 
 	// get time of first commit, to calculate relative timeframes
 	history, err := repo.Log(&gogit.LogOptions{
@@ -64,6 +69,10 @@ func NewGitAnalyser(
 		size++
 		return nil
 	})
+	l.Infow("repo prepped",
+		"size", size,
+		"first_commit", first,
+		"last_commit", last)
 
 	return &GitRepoAnalyser{
 		pipe: pipe,
@@ -115,13 +124,24 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 }
 
 func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, error) {
+	// calculate number of ticks to use
+	hours := g.last.Sub(g.first).Hours()
+	tickSize := hours / float64(g.opts.TickCount)
+	g.l.Infow("preparing pipeline",
+		"total_hours", hours,
+		"tick_size", tickSize)
+
+	// grab commits and initialize pipeline
 	commits, err := g.pipe.Commits(true)
 	if err != nil {
 		return nil, err
 	}
 	g.pipe.Initialize(map[string]interface{}{
 		leaves.ConfigBurndownTrackPeople: true,
+		"TicksSinceStart.TickSize":       int(tickSize), // TODO: scale with repo
 	})
+
+	// execute pipeline
 	return g.pipe.Run(commits)
 }
 
