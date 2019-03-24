@@ -56,8 +56,7 @@ steps:
     docker ps
     sleep 5
     make pg-init
-    # go test -coverprofile=coverage.txt -covermode=atomic -race -short ./...
-    go test -coverprofile=coverage.txt -covermode=atomic -short ./...
+    go test -coverprofile=coverage.txt -covermode=atomic -race -short ./...
   workingDirectory: '$(modulePath)'
   displayName: 'Set up devenv and run tests'
 
