@@ -39,7 +39,10 @@ type ReposDatabase struct {
 }
 
 const (
-	preparedStmtInsertHostItem = "insert_host_item"
+	preparedStmtInsertHostItem          = "insert_host_item"
+	preparedStmtInsertGitBurndownGlobal = "insert_git_burndowns_globals"
+	preparedStmtInsertGitBurndownFile   = "insert_git_burndowns_files"
+	preparedStmtInsertGitBurndownPeople = "insert_git_burndowns_contributors"
 )
 
 // init sets up all prepared statements associated with repositories
@@ -53,6 +56,30 @@ VALUES
 		$5::TEXT, $6::DATE, $7::DATE, 
 		$8::TEXT, $9::TEXT,
 		$10::TEXT[], $11::JSONB, $12::JSONB
+	)
+`)
+	r.db.pg.Prepare(preparedStmtInsertGitBurndownGlobal, `
+INSERT INTO
+	git_burndowns_globals
+VALUES
+	(
+		$1::INTEGER, $2::TSRANGE, $3::INTEGER[]
+	)
+`)
+	r.db.pg.Prepare(preparedStmtInsertGitBurndownFile, `
+INSERT INTO
+	git_burndowns_files
+VALUES
+	(
+		$1::INTEGER, $2::TEXT, $3::TSRANGE, $4::INTEGER[]
+	)
+`)
+	r.db.pg.Prepare(preparedStmtInsertGitBurndownPeople, `
+INSERT INTO
+	git_burndowns_contributors
+VALUES
+	(
+		$1::INTEGER, $2::TEXT, $3::TSRANGE, $4::INTEGER[]
 	)
 `)
 }
@@ -108,8 +135,9 @@ func (r *ReposDatabase) DeleteRepository(ctx context.Context, id int) error {
 }
 
 // InsertGitBurndownResult processes a burndown analysis for insertion
-func (r *ReposDatabase) InsertGitBurndownResult(ctx context.Context, burndown *analysis.BurndownResult) {
+func (r *ReposDatabase) InsertGitBurndownResult(ctx context.Context, burndown *analysis.BurndownResult) error {
 	// TODO
+	return nil
 }
 
 // InsertHostItems executes a batch insert on all given items
