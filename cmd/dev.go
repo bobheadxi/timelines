@@ -12,6 +12,7 @@ import (
 
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/dev"
+	"github.com/bobheadxi/timelines/host"
 	"github.com/bobheadxi/timelines/store"
 )
 
@@ -55,6 +56,7 @@ func newPGCommand() *cobra.Command {
 					return err
 				}
 				return c.Repos().NewRepository(context.Background(),
+					host.HostGitHub,
 					dev.GetTestInstallationID(),
 					"bobheadxi", "calories")
 			},
