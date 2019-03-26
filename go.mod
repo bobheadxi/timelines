@@ -6,11 +6,11 @@ require (
 	github.com/99designs/gqlgen v0.8.0
 	github.com/Jeffail/tunny v0.0.0-20180304204616-59cfa8fcb19f // indirect
 	github.com/antchfx/xpath v0.0.0-20180922041825-3de91f3991a1 // indirect
-	github.com/bobheadxi/res v0.0.0-20190302035355-d482a297f229
+	github.com/bobheadxi/res v0.0.0-20190326234649-a658daa8699a
 	github.com/cespare/trie v0.0.0-20150610204604-3fe1a95cbba9 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/go-chi/chi v3.3.2+incompatible
+	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/go-chi/render v1.0.1
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/google/go-github v17.0.0+incompatible

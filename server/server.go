@@ -5,7 +5,6 @@ import (
 
 	"github.com/99designs/gqlgen/handler"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/render"
 	"go.uber.org/zap"
 	"gocloud.dev/server"
 
@@ -56,7 +55,7 @@ func Run(
 	var mux = chi.NewMux()
 	mux.Route("/api", func(r chi.Router) {
 		r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			render.Render(w, r, res.MsgOK("the timelines api is online!"))
+			res.R(w, r, res.MsgOK("the timelines api is online!"))
 		})
 		r.Handle("/playground", handler.Playground("timelines API Playground", "/api/query"))
 		r.Handle("/query", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
