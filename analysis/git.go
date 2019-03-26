@@ -134,6 +134,9 @@ func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, err
 	g.l.Infow("preparing pipeline",
 		"total_hours", hours,
 		"tick_size", tickSize)
+	if tickSize == 0 {
+		tickSize = 1
+	}
 
 	// grab commits and initialize pipeline
 	commits, err := g.pipe.Commits(true)
