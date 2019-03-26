@@ -25,6 +25,9 @@ type GitRepoAnalyser struct {
 	size  int
 
 	l *zap.SugaredLogger
+
+	// analysis metadata
+	facts map[string]interface{}
 }
 
 // GitRepoAnalyserOptions denotes options for the analyzer
@@ -111,7 +114,8 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 
 	// collect results
 	var (
-		burndown = newBurndownResult(results[burnItem].(leaves.BurndownResult))
+		people   = g.facts[hercules.FactIdentityDetectorReversedPeopleDict].([]string)
+		burndown = newBurndownResult(results[burnItem].(leaves.BurndownResult), people)
 		coupling = newCouplingResult(results[couplingItem].(leaves.CouplesResult))
 	)
 
@@ -126,7 +130,7 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, error) {
 	// calculate number of ticks to use
 	hours := g.last.Sub(g.first).Hours()
-	tickSize := hours / float64(g.opts.TickCount)
+	tickSize := int(hours / float64(g.opts.TickCount))
 	g.l.Infow("preparing pipeline",
 		"total_hours", hours,
 		"tick_size", tickSize)
@@ -136,10 +140,19 @@ func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	g.pipe.Initialize(map[string]interface{}{
+	g.facts = map[string]interface{}{
+		"TicksSinceStart.TickSize": tickSize,
+
+		// Tree config
+		"TreeDiff.Languages":           []string{"all"},
+		"TreeDiff.EnableBlacklist":     true,
+		"TreeDiff.BlacklistedPrefixes": []string{"vendor/", "vendors/", "node_modules/"},
+
+		// Burndown config
 		leaves.ConfigBurndownTrackPeople: true,
-		"TicksSinceStart.TickSize":       int(tickSize), // TODO: scale with repo
-	})
+		leaves.ConfigBurndownTrackFiles:  true,
+	}
+	g.pipe.Initialize(g.facts)
 
 	// execute pipeline
 	return g.pipe.Run(commits)
@@ -154,7 +167,7 @@ func (g *GitRepoAnalyser) burndown() hercules.LeafPipelineItem {
 		// (eg hackathons) this gives kind of useless data. will probably need some
 		// way to scale this automatically, based on the repo size.
 		Granularity: 30,
-		Sampling:    30,
+		Sampling:    30, // sampling != granularity seems broken - see https://github.com/src-d/hercules/issues/260
 
 		PeopleNumber: 10,
 	}).(hercules.LeafPipelineItem)

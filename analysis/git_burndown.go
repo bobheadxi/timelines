@@ -4,20 +4,42 @@ import "gopkg.in/src-d/hercules.v10/leaves"
 
 // BurndownResult represents the burndown analysis result
 type BurndownResult struct {
-	Global          [][]int64            // [number of samples][number of bands]
-	FileHistories   map[string][][]int64 // [file][number of samples][number of bands]
-	PeopleHistories [][][]int64          // [people][number of samples][number of bands]
+	// Metadata
+	TickSize int
 
-	FileOwnership map[string]map[int]int // [file][developer][lines]
-	PeopleMatrix  [][]int64              // [number of people][number of people + 2] (map people -> lines)
+	// Burndowns are matrices that represent each band's values at a particular
+	// sampling size, which will be 30 * ticks (at least for now - see the
+	// analysis class for more details). From what I understand, it's sort of like
+	// this:
+	//     time intervals (aka ticks) * bands (representing if code is still present)
+	// The size of each band is determined by the
+	Global [][]int64
+	People map[string][][]int64
+	Files  map[string][][]int64
+
+	// Misc analysis
+	// FileOwnership map[string]map[string]int
 }
 
-func newBurndownResult(r leaves.BurndownResult) BurndownResult {
+func newBurndownResult(r leaves.BurndownResult, people []string) BurndownResult {
 	return BurndownResult{
-		Global:          r.GlobalHistory,
-		FileHistories:   r.FileHistories,
-		FileOwnership:   r.FileOwnership,
-		PeopleHistories: r.PeopleHistories,
-		PeopleMatrix:    r.PeopleMatrix,
+		TickSize: int(r.TickSize.Hours()),
+
+		Global: r.GlobalHistory,
+		People: peopleBurndowns(r.PeopleHistories, people),
+		Files:  r.FileHistories,
+
+		// FileOwnership: TODO
 	}
+}
+
+func peopleBurndowns(data [][][]int64, people []string) map[string][][]int64 {
+	res := make(map[string][][]int64)
+	for i, bd := range data {
+		if i > len(people) {
+			continue // shouldn't happen, but just in case
+		}
+		res[people[i]] = bd
+	}
+	return res
 }
