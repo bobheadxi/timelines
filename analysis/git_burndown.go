@@ -4,9 +4,6 @@ import "gopkg.in/src-d/hercules.v10/leaves"
 
 // BurndownResult represents the burndown analysis result
 type BurndownResult struct {
-	// Metadata
-	TickSize int
-
 	// Burndowns are matrices that represent each band's values at a particular
 	// sampling size, which will be 30 * ticks (at least for now - see the
 	// analysis class for more details). From what I understand, it's sort of like
@@ -23,8 +20,6 @@ type BurndownResult struct {
 
 func newBurndownResult(r leaves.BurndownResult, people []string) BurndownResult {
 	return BurndownResult{
-		TickSize: int(r.TickSize.Hours()),
-
 		Global: r.GlobalHistory,
 		People: peopleBurndowns(r.PeopleHistories, people),
 		Files:  r.FileHistories,

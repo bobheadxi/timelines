@@ -5,6 +5,7 @@ import (
 	// TODO: explore gitbase
 	// gitbase "gopkg.in/src-d/gitbase.v0"
 
+	"errors"
 	"time"
 
 	"go.uber.org/zap"
@@ -17,16 +18,16 @@ import (
 // GitRepoAnalyser executes pipelines on a repo
 type GitRepoAnalyser struct {
 	pipe *hercules.Pipeline
+	l    *zap.SugaredLogger
 	opts *GitRepoAnalyserOptions
 
 	// repo metadata
-	first time.Time
-	last  time.Time
-	size  int
+	first    time.Time
+	last     time.Time
+	commits  int
+	tickSize int
 
-	l *zap.SugaredLogger
-
-	// analysis metadata
+	// analysis metadata - this is populated by hercules
 	facts map[string]interface{}
 }
 
@@ -45,7 +46,7 @@ func NewGitAnalyser(
 	pipe.PrintActions = false
 	pipe.DumpPlan = false
 	if opts.TickCount == 0 {
-		opts.TickCount = 500
+		opts.TickCount = 600
 	}
 
 	// get time of first commit, to calculate relative timeframes
@@ -65,33 +66,47 @@ func NewGitAnalyser(
 	}
 	last = obj.Committer.When
 	history.ForEach(func(obj *object.Commit) error {
-		// if no more parents, this is probably the first commit
 		if obj.NumParents() == 0 {
+			// if no more parents, this is probably the first commit
 			first = obj.Committer.When
 		}
 		size++
 		return nil
 	})
+	if first.Unix() == 0 {
+		return nil, errors.New("could not find a 'first' commit with no parents")
+	}
+	// calculate number of ticks to use
+	hours := last.Sub(first).Hours()
+	tickSize := int(hours / float64(opts.TickCount))
+	if tickSize == 0 {
+		tickSize = 1
+	}
 	l.Infow("repo prepped",
-		"size", size,
+		"commits", size,
 		"first_commit", first,
-		"last_commit", last)
+		"last_commit", last,
+		"total_hours", hours,
+		"tick_size", tickSize)
 
 	return &GitRepoAnalyser{
 		pipe: pipe,
 		opts: &opts,
+		l:    l,
 
-		first: first,
-		last:  last,
-		size:  size,
-
-		l: l,
+		first:    first,
+		last:     last,
+		commits:  size,
+		tickSize: tickSize,
 	}, nil
 }
 
 // GitRepoReport is a container around different analysis results
 type GitRepoReport struct {
-	First time.Time
+	Commits  int
+	First    time.Time
+	Last     time.Time
+	TickSize int
 
 	Burndown *BurndownResult
 	Coupling *CouplingResult
@@ -102,6 +117,7 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 
 	// set up pipe
 	var (
+		start        = time.Now()
 		burnItem     = g.burndown()
 		couplingItem = g.coupling()
 	)
@@ -119,8 +135,17 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 		coupling = newCouplingResult(results[couplingItem].(leaves.CouplesResult))
 	)
 
+	// log some stuff about the results
+	g.l.Infow("analysis complete",
+		"duration", time.Since(start),
+		"burndown.intervals", len(burndown.Global),
+		"burndown.bands", len(burndown.Global[0]))
+
 	return &GitRepoReport{
-		First: g.first,
+		Commits:  g.commits,
+		First:    g.first,
+		Last:     g.last,
+		TickSize: g.tickSize,
 
 		Burndown: &burndown,
 		Coupling: &coupling,
@@ -128,23 +153,14 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 }
 
 func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, error) {
-	// calculate number of ticks to use
-	hours := g.last.Sub(g.first).Hours()
-	tickSize := int(hours / float64(g.opts.TickCount))
-	g.l.Infow("preparing pipeline",
-		"total_hours", hours,
-		"tick_size", tickSize)
-	if tickSize == 0 {
-		tickSize = 1
-	}
-
-	// grab commits and initialize pipeline
-	commits, err := g.pipe.Commits(true)
+	// grab commits and initialize pipeline - only grab parents if there are over
+	// 5000 commits for performance. TODO: assess threshold
+	commits, err := g.pipe.Commits(g.commits > 5000)
 	if err != nil {
 		return nil, err
 	}
 	g.facts = map[string]interface{}{
-		"TicksSinceStart.TickSize": tickSize,
+		"TicksSinceStart.TickSize": g.tickSize,
 
 		// Tree config
 		"TreeDiff.Languages":           []string{"all"},
@@ -163,21 +179,12 @@ func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, err
 
 func (g *GitRepoAnalyser) burndown() hercules.LeafPipelineItem {
 	return g.pipe.DeployItem(&leaves.BurndownAnalysis{
-		TrackFiles: true,
-
-		// TODO: these is important to keep high (~30+) to account for largish (1k+)
-		// to massive (100k+) repositories, but for smaller or shorter projects
-		// (eg hackathons) this gives kind of useless data. will probably need some
-		// way to scale this automatically, based on the repo size.
+		TrackFiles:  true,
 		Granularity: 30,
 		Sampling:    30, // sampling != granularity seems broken - see https://github.com/src-d/hercules/issues/260
-
-		PeopleNumber: 10,
 	}).(hercules.LeafPipelineItem)
 }
 
 func (g *GitRepoAnalyser) coupling() hercules.LeafPipelineItem {
-	return g.pipe.DeployItem(&leaves.CouplesAnalysis{
-		PeopleNumber: 10,
-	}).(hercules.LeafPipelineItem)
+	return g.pipe.DeployItem(&leaves.CouplesAnalysis{}).(hercules.LeafPipelineItem)
 }
