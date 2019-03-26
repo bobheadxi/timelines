@@ -34,7 +34,7 @@ CREATE TABLE git_burndowns_globals (
   interval     TSRANGE,
   PRIMARY KEY (fk_repo_id, interval),
 
-  delta        INTEGER
+  delta_bands  INTEGER[]
 );
 
 CREATE TABLE git_burndowns_files (
@@ -43,7 +43,7 @@ CREATE TABLE git_burndowns_files (
   interval     TSRANGE,
   PRIMARY KEY (fk_repo_id, filename, interval),
 
-  delta        INTEGER
+  delta_bands  INTEGER[]
 );
 
 CREATE TABLE git_burndowns_contributors (
@@ -52,5 +52,5 @@ CREATE TABLE git_burndowns_contributors (
   interval     TSRANGE,
   PRIMARY KEY (fk_repo_id, contributor, interval),
 
-  delta        INTEGER
+  delta_bands  INTEGER[]
 );
