@@ -14,8 +14,8 @@ CREATE TYPE host_item_type AS ENUM ('unknown', 'issue', 'pull_request');
 CREATE TABLE host_items (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
   type         host_item_type,
-  number       INTEGER,
   host_id      INTEGER,
+  number       INTEGER,
 
   author       TEXT,
   open_date    DATE,
@@ -31,8 +31,8 @@ CREATE TABLE host_items (
 
 CREATE TABLE git_burndowns_globals (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
-  interval     DATERANGE,
-  PRIMARY KEY (fk_repo_id, date),
+  interval     TSRANGE,
+  PRIMARY KEY (fk_repo_id, interval),
 
   delta        INTEGER
 );
@@ -40,8 +40,8 @@ CREATE TABLE git_burndowns_globals (
 CREATE TABLE git_burndowns_files (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
   filename     TEXT,
-  interval     DATERANGE,
-  PRIMARY KEY (fk_repo_id, filename, date),
+  interval     TSRANGE,
+  PRIMARY KEY (fk_repo_id, filename, interval),
 
   delta        INTEGER
 );
@@ -49,8 +49,8 @@ CREATE TABLE git_burndowns_files (
 CREATE TABLE git_burndowns_contributors (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
   contributor  TEXT,
-  interval     DATERANGE,
-  PRIMARY KEY (fk_repo_id, contributor, date),
+  interval     TSRANGE,
+  PRIMARY KEY (fk_repo_id, contributor, interval),
 
   delta        INTEGER
 );

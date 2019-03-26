@@ -6,13 +6,21 @@ import (
 	"github.com/google/go-github/github"
 )
 
-// ItemType denotes supported GitHub item types
+// Host denotes supported hosts
+type Host string
+
+const (
+	// HostGitHub is GitHub
+	HostGitHub Host = "github"
+)
+
+// ItemType denotes supported host item types
 type ItemType string
 
 const (
-	// ItemTypeIssue is a GitHub issue
+	// ItemTypeIssue is an issue
 	ItemTypeIssue ItemType = "issue"
-	// ItemTypePR is a GitHub pull request
+	// ItemTypePR is a pull request
 	ItemTypePR ItemType = "pull_request"
 )
 

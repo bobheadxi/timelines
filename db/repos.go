@@ -49,7 +49,7 @@ INSERT INTO
 	host_items
 VALUES
 	(
-		$1::INTEGER, $2::INTEGER, $3::INTEGER, $4::host_item_type,
+		$1::INTEGER, $2::host_item_type, $3::INTEGER, $4::INTEGER,
 		$5::TEXT, $6::DATE, $7::DATE, 
 		$8::TEXT, $9::TEXT,
 		$10::TEXT[], $11::JSONB, $12::JSONB
@@ -68,7 +68,11 @@ func (r *ReposDatabase) GetRepositoryID(ctx context.Context, owner, name string)
 }
 
 // NewRepository creates a new repository entry
-func (r *ReposDatabase) NewRepository(ctx context.Context, installation, owner, name string) error {
+func (r *ReposDatabase) NewRepository(
+	ctx context.Context,
+	h host.Host,
+	installation, owner, name string,
+) error {
 	if installation == "" {
 		return errors.New("installation required")
 	}
@@ -77,11 +81,11 @@ func (r *ReposDatabase) NewRepository(ctx context.Context, installation, owner, 
 	}
 	_, err := r.db.pg.ExecEx(ctx, `
 	INSERT INTO 
-		repositories (installation_id, owner, name)
+		repositories (installation_id, type, owner, name)
 	VALUES
-		($1, $2, $3)
+		($1, $2, $3, $4)
 	`, &pgx.QueryExOptions{},
-		installation, owner, name)
+		installation, string(h), owner, name)
 	if err == nil {
 		r.l.Infow("created new entry for repo", "repo", owner+"/"+name)
 	}
@@ -123,7 +127,7 @@ func (r *ReposDatabase) InsertHostItems(ctx context.Context, repoID int, items [
 		itemCount++
 		batch.Queue(preparedStmtInsertHostItem,
 			[]interface{}{
-				repoID, i.GitHubID, i.Number, i.Type,
+				repoID, string(i.Type), i.GitHubID, i.Number,
 				i.Author, i.Opened, i.Closed,
 				i.Title, i.Body,
 				i.Labels, i.Reactions, i.Details,

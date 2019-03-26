@@ -29,7 +29,8 @@ func TestDatabase(t *testing.T) {
 	var repos = client.Repos()
 
 	// make a repo
-	err = repos.NewRepository(ctx, installation, "bobheadxi", "calories")
+	err = repos.NewRepository(ctx, host.HostGitHub,
+		installation, "bobheadxi", "calories")
 	assert.NoError(t, err)
 
 	// get that repo id
