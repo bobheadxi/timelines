@@ -1,17 +1,21 @@
+CREATE TYPE host_service AS ENUM ('unknown', 'github', 'gitlab');
 CREATE TABLE repositories (
   id              SERIAL PRIMARY KEY,
   installation_id TEXT UNIQUE,
+  type            host_service,
   owner           TEXT,
   name            TEXT,
+  service_stats   JSONB NULL,
+
   UNIQUE(owner, name)
 );
 
-CREATE TYPE github_item_type AS ENUM ('unknown', 'issue', 'pull_request');
-CREATE TABLE github_items (
+CREATE TYPE host_item_type AS ENUM ('unknown', 'issue', 'pull_request');
+CREATE TABLE host_items (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
-  github_id    INTEGER,
+  type         host_item_type,
   number       INTEGER,
-  type         github_item_type,
+  host_id      INTEGER,
 
   author       TEXT,
   open_date    DATE,
@@ -27,16 +31,16 @@ CREATE TABLE github_items (
 
 CREATE TABLE git_burndowns_globals (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
-  date         DATE,
+  interval     DATERANGE,
   PRIMARY KEY (fk_repo_id, date),
 
-  global_delta INTEGER
+  delta        INTEGER
 );
 
 CREATE TABLE git_burndowns_files (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
   filename     TEXT,
-  date         DATE,
+  interval     DATERANGE,
   PRIMARY KEY (fk_repo_id, filename, date),
 
   delta        INTEGER
@@ -45,7 +49,7 @@ CREATE TABLE git_burndowns_files (
 CREATE TABLE git_burndowns_contributors (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
   contributor  TEXT,
-  date         DATE,
+  interval     DATERANGE,
   PRIMARY KEY (fk_repo_id, contributor, date),
 
   delta        INTEGER

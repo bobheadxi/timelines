@@ -39,17 +39,17 @@ type ReposDatabase struct {
 }
 
 const (
-	preparedStmtInsertGitHubItem = "insert_github_item"
+	preparedStmtInsertHostItem = "insert_host_item"
 )
 
 // init sets up all prepared statements associated with repositories
 func (r *ReposDatabase) init() {
-	r.db.pg.Prepare(preparedStmtInsertGitHubItem, `
+	r.db.pg.Prepare(preparedStmtInsertHostItem, `
 INSERT INTO
-	github_items
+	host_items
 VALUES
 	(
-		$1::INTEGER, $2::INTEGER, $3::INTEGER, $4::github_item_type,
+		$1::INTEGER, $2::INTEGER, $3::INTEGER, $4::host_item_type,
 		$5::TEXT, $6::DATE, $7::DATE, 
 		$8::TEXT, $9::TEXT,
 		$10::TEXT[], $11::JSONB, $12::JSONB
@@ -108,8 +108,8 @@ func (r *ReposDatabase) InsertGitBurndownResult(ctx context.Context, burndown *a
 	// TODO
 }
 
-// InsertGitHubItems executes a batch insert on all given items
-func (r *ReposDatabase) InsertGitHubItems(ctx context.Context, repoID int, items []*host.Item) error {
+// InsertHostItems executes a batch insert on all given items
+func (r *ReposDatabase) InsertHostItems(ctx context.Context, repoID int, items []*host.Item) error {
 	var (
 		batch     = r.db.pg.BeginBatch()
 		itemCount int64
@@ -121,7 +121,7 @@ func (r *ReposDatabase) InsertGitHubItems(ctx context.Context, repoID int, items
 			break
 		}
 		itemCount++
-		batch.Queue(preparedStmtInsertGitHubItem,
+		batch.Queue(preparedStmtInsertHostItem,
 			[]interface{}{
 				repoID, i.GitHubID, i.Number, i.Type,
 				i.Author, i.Opened, i.Closed,

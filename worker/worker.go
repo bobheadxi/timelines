@@ -287,7 +287,7 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 			// if the first item of buffer is non-nil, there are some number of items
 			// that needs to be dumped
 			if buf[0] != nil {
-				if err := repos.InsertGitHubItems(ctx, repoID, buf); err != nil {
+				if err := repos.InsertHostItems(ctx, repoID, buf); err != nil {
 					l.Errorw("failed to clear github items", "error", err)
 					w.errC <- err
 					atomic.AddInt32(&errorCount, 1)
@@ -307,7 +307,7 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 
 				// if we're at buffer limit, dump buffer
 				if cur >= bufsize {
-					var err = repos.InsertGitHubItems(ctx, repoID, buf)
+					var err = repos.InsertHostItems(ctx, repoID, buf)
 					// clear buffer straight away to prevent defer from double-inserting
 					cur = 0
 					buf = nil

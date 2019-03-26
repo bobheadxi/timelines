@@ -39,7 +39,7 @@ func TestDatabase(t *testing.T) {
 	t.Log("bobheadxi/calories created as ID:", id)
 
 	// add an item
-	err = repos.InsertGitHubItems(ctx, id, []*host.Item{
+	err = repos.InsertHostItems(ctx, id, []*host.Item{
 		&host.Item{
 			GitHubID: 1234,
 			Number:   25,
