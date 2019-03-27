@@ -60,6 +60,7 @@ func Run(
 
 	// set up worker
 	var (
+		// this channel is for critical errors
 		errC = make(chan error, 10)
 		w    = newWorker(
 			opts.Name,
@@ -173,7 +174,9 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 	defer wg.Done()
 
 	var (
-		l      = w.l.With("job.id", job.ID).Named("git_analysis")
+		l = w.l.
+			With("job.id", job.ID, "job.repo", job.Owner+"/"+job.Repo).
+			Named("git_analysis")
 		start  = time.Now()
 		remote = fmt.Sprintf("https://github.com/%s/%s.git", job.Owner, job.Repo)
 	)
@@ -250,7 +253,9 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 	defer wg.Done()
 
 	var (
-		l     = w.l.With("job.id", job.ID).Named("github_sync")
+		l = w.l.
+			With("job.id", job.ID, "job.repo", job.Owner+"/"+job.Repo).
+			Named("github_sync")
 		start = time.Now()
 		repos = w.db.Repos()
 	)
@@ -268,7 +273,6 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 		l.Errorw("failed to authenticate for installation",
 			"error", err,
 			"github.installation_id", job.InstallationID)
-		w.errC <- fmt.Errorf("could not find ID for repository '%s/%s'", job.Owner, job.Repo)
 		return
 	}
 
@@ -286,7 +290,6 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 		l.Errorw("could not find repository entry in database",
 			"error", err,
 			"repository", job.Owner+"/"+job.Repo)
-		w.errC <- fmt.Errorf("could not find ID for repository '%s/%s'", job.Owner, job.Repo)
 		return
 	}
 	l = l.With("db.id", repoID)
@@ -330,7 +333,6 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 			if buf[0] != nil {
 				if err := repos.InsertHostItems(ctx, repoID, buf); err != nil {
 					l.Errorw("failed to clear github items", "error", err)
-					w.errC <- err
 					atomic.AddInt32(&errorCount, 1)
 					return
 				}
@@ -355,7 +357,6 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 					buf = make([]*host.Item, bufsize)
 					if err != nil {
 						l.Errorw("failed to insert github items", "error", err)
-						w.errC <- err
 						atomic.AddInt32(&errorCount, 1)
 						return
 					}
@@ -370,7 +371,6 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 				if err != nil {
 					l.Errorw("error occured while syncing",
 						"error", err)
-					w.errC <- err
 					atomic.AddInt32(&errorCount, 1)
 				} else {
 					syncErrC = nil
