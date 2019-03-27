@@ -20,7 +20,6 @@ class Burndown extends React.Component {
     const layers = [
       new ScatterplotLayer({
         id: 'scatter-plot',
-        // @ts-ignore - this is a demo. property 'data' doesn't exist?
         data: 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/scatterplot/manhattan.json',
         radiusScale: 10,
         radiusMinPixels: 0.5,

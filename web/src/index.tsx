@@ -4,8 +4,10 @@ UIkit.use(Icons);
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 import './styles/_all.scss';
 import Main from './Main/Main';
+
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(<Main />, document.getElementById('root'));
