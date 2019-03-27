@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -20,6 +21,7 @@ import (
 
 // RunOpts denotes worker options
 type RunOpts struct {
+	Name     string
 	Workers  int
 	Store    config.Store
 	Database config.Database
@@ -31,6 +33,10 @@ func Run(
 	stop chan bool,
 	opts RunOpts,
 ) error {
+	if opts.Name == "" {
+		opts.Name = os.Getenv("HOSTNAME")
+	}
+
 	store, err := store.NewClient(l.Named("store"), opts.Store)
 	if err != nil {
 		return err
@@ -56,6 +62,7 @@ func Run(
 	var (
 		errC = make(chan error, 10)
 		w    = newWorker(
+			opts.Name,
 			l,
 			store,
 			database,
@@ -66,10 +73,11 @@ func Run(
 
 	// let's go!
 	defer close(errC)
-	l.Infow("spinning up worker")
 	if opts.Workers == 0 {
 		opts.Workers = 1
 	}
+	l.Infow("spinning up worker processes",
+		"workers", opts.Workers)
 	for i := 0; i < opts.Workers; i++ {
 		go w.processJobs(stop, errC)
 	}
@@ -88,6 +96,8 @@ func Run(
 }
 
 type worker struct {
+	name string
+
 	store *store.Client
 	db    *db.Database
 
@@ -100,6 +110,7 @@ type worker struct {
 }
 
 func newWorker(
+	name string,
 	l *zap.SugaredLogger,
 	store *store.Client,
 	db *db.Database,
@@ -108,6 +119,7 @@ func newWorker(
 	errC chan<- error,
 ) *worker {
 	return &worker{
+		name,
 		store,
 		db,
 		hub,
@@ -174,13 +186,15 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 			w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 				Analysis: &store.StateMeta{
 					State:   store.StateError,
-					Message: err.Error(),
+					Message: fmt.Sprintf("analysis.git_clone: %v", err),
+					Meta:    map[string]interface{}{"worker": w.name},
 				},
 			})
 			l.Errorw("repo does not exist and could not download", "error", err)
 			return
 		}
 	}
+	l.Infow("repo loaded", "dir", repo.Dir())
 
 	// set up analysis
 	an, err := analysis.NewGitAnalyser(
@@ -192,6 +206,7 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 			Analysis: &store.StateMeta{
 				State:   store.StateError,
 				Message: fmt.Sprintf("analysis.setup: %v", err),
+				Meta:    map[string]interface{}{"worker": w.name},
 			},
 		})
 		l.Errorw("analysis failed", "error", err)
@@ -199,25 +214,34 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 	}
 
 	// execute
+	l.Info("executing analysis")
 	report, err := an.Analyze()
 	if err != nil {
 		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 			Analysis: &store.StateMeta{
 				State:   store.StateError,
 				Message: fmt.Sprintf("analysis.execute: %v", err),
+				Meta: map[string]interface{}{
+					"duration": time.Since(start),
+					"worker":   w.name,
+				},
 			},
 		})
 		l.Errorw("analysis failed", "error", err)
 		return
 	}
 
-	// TODO dump in DB
+	dur := time.Since(start)
 	l.Infow("analysis complete",
-		"duration", time.Since(start),
-		"report", report)
+		"duration", dur,
+		"report", report) // TODO dump in DB instead
 	w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 		Analysis: &store.StateMeta{
 			State: store.StateDone,
+			Meta: map[string]interface{}{
+				"duration": dur,
+				"worker":   w.name,
+			},
 		},
 	})
 }
@@ -234,9 +258,17 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 	// set up client
 	client, err := w.hub.GetInstallationClient(ctx, job.InstallationID)
 	if err != nil {
+		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+			Analysis: &store.StateMeta{
+				State:   store.StateError,
+				Message: fmt.Sprintf("github_sync.new_client: %v", err),
+				Meta:    map[string]interface{}{"worker": w.name, "installation": job.InstallationID},
+			},
+		})
 		l.Errorw("failed to authenticate for installation",
 			"error", err,
 			"github.installation_id", job.InstallationID)
+		w.errC <- fmt.Errorf("could not find ID for repository '%s/%s'", job.Owner, job.Repo)
 		return
 	}
 
@@ -244,6 +276,13 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 	repoID, err := repos.GetRepositoryID(ctx, job.Owner, job.Repo)
 	if err != nil || repoID == 0 {
 		// repo must exist at this point, since server must create it first
+		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+			Analysis: &store.StateMeta{
+				State:   store.StateError,
+				Message: fmt.Sprintf("github_sync.get_repo: %v", err),
+				Meta:    map[string]interface{}{"worker": w.name},
+			},
+		})
 		l.Errorw("could not find repository entry in database",
 			"error", err,
 			"repository", job.Owner+"/"+job.Repo)
@@ -251,10 +290,11 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 		return
 	}
 	l = l.With("db.id", repoID)
+	l.Info("repository found")
 
 	// init syncer
 	var syncer = github.NewSyncer(
-		w.l.Named("github_sync").With("job.id", job.ID),
+		l.Named("syncer"),
 		client,
 		github.SyncOptions{
 			Repo: github.Repo{
@@ -278,6 +318,7 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 
 		itemsC, syncErrC = syncer.Sync(ctx, &syncWG)
 	)
+	l.Info("initializing sync")
 	go func() {
 		var (
 			cur int
@@ -346,26 +387,33 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 	}()
 
 	// wait until sync wraps up
+	dur := time.Since(start)
 	syncWG.Wait()
 	l.Infow("github sync complete",
 		"items", itemCount,
-		"duration", time.Since(start))
+		"duration", dur)
 	stopPipe <- true
 
 	// update job state
 	var state *store.RepoJobState
+	meta := map[string]interface{}{
+		"items":    itemCount,
+		"duration": dur,
+		"worker":   w.name,
+	}
 	if errorCount > 0 {
 		state = &store.RepoJobState{
 			GitHubSync: &store.StateMeta{
 				State:   store.StateError,
 				Message: "an error was encountered during sync", // TODO: track actual error
+				Meta:    meta,
 			},
 		}
 	} else {
 		state = &store.RepoJobState{
 			GitHubSync: &store.StateMeta{
 				State: store.StateDone,
-				Meta:  map[string]interface{}{"items": itemCount},
+				Meta:  meta,
 			},
 		}
 	}
