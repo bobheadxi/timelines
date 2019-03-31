@@ -26,7 +26,7 @@ func main() {
 		Use:    "no-help",
 		Hidden: true,
 	})
-	root.Flags().StringArrayVar(&envFiles, "env", nil, "")
+	root.Flags().StringArrayVar(&envFiles, "env", nil, "env files to load")
 	cmd.Initialize(root)
 	if err := root.Execute(); err != nil {
 		os.Exit(1)

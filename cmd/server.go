@@ -16,7 +16,8 @@ func newServerCmd() *cobra.Command {
 		devMode bool
 	)
 	c := &cobra.Command{
-		Use: "server",
+		Use:   "server",
+		Short: "spin up the core Timelines server",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			l, err := log.NewLogger(devMode, logpath)
 			if err != nil {
@@ -41,8 +42,8 @@ func newServerCmd() *cobra.Command {
 		},
 	}
 	flags := c.Flags()
-	flags.StringVarP(&port, "port", "p", "8080", "")
-	flags.StringVar(&logpath, "logpath", "", "")
-	flags.BoolVar(&devMode, "dev", false, "")
+	flags.StringVarP(&port, "port", "p", "8080", "port to serve API on")
+	flags.StringVar(&logpath, "logpath", "", "path to log dump")
+	flags.BoolVar(&devMode, "dev", false, "toggle dev mode")
 	return c
 }

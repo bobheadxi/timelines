@@ -19,6 +19,7 @@ import (
 func newDevCommand() *cobra.Command {
 	d := &cobra.Command{
 		Use:              "dev",
+		Short:            "handy utility commands for development use",
 		Hidden:           os.Getenv("MODE") != "development",
 		PersistentPreRun: func(*cobra.Command, []string) { godotenv.Load() },
 	}
@@ -30,7 +31,8 @@ func newPGCommand() *cobra.Command {
 	var (
 		envFiles []string
 		pg       = &cobra.Command{
-			Use: "pg",
+			Use:   "pg",
+			Short: "postgres database utilities",
 			PersistentPreRun: func(*cobra.Command, []string) {
 				if len(envFiles) > 0 {
 					godotenv.Load(envFiles...)
@@ -44,7 +46,8 @@ func newPGCommand() *cobra.Command {
 
 	var (
 		seed = &cobra.Command{
-			Use: "seed",
+			Use:   "seed",
+			Short: "seed postgres database with test data",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				logger, err := zap.NewDevelopment()
 				if err != nil {
@@ -70,13 +73,15 @@ func newPGCommand() *cobra.Command {
 func newRedisCommand() *cobra.Command {
 	var (
 		redis = &cobra.Command{
-			Use: "redis",
+			Use:   "redis",
+			Short: "redis store utilities",
 		}
 	)
 
 	var (
 		reset = &cobra.Command{
-			Use: "reset",
+			Use:   "reset",
+			Short: "drop everything in store",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				logger, err := zap.NewDevelopment()
 				if err != nil {
@@ -95,7 +100,8 @@ func newRedisCommand() *cobra.Command {
 
 	var (
 		seed = &cobra.Command{
-			Use: "seed",
+			Use:   "seed",
+			Short: "seed store with test data",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				logger, err := zap.NewDevelopment()
 				if err != nil {

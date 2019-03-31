@@ -17,7 +17,8 @@ func newWorkerCmd() *cobra.Command {
 		workers int
 	)
 	c := &cobra.Command{
-		Use: "worker",
+		Use:   "worker",
+		Short: "spin up a Timelines worker",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			l, err := log.NewLogger(devMode, logpath)
 			if err != nil {
@@ -42,9 +43,9 @@ func newWorkerCmd() *cobra.Command {
 		},
 	}
 	flags := c.Flags()
-	flags.StringVarP(&port, "port", "p", "8090", "")
-	flags.StringVar(&logpath, "logpath", "", "")
-	flags.IntVar(&workers, "workers", 3, "")
-	flags.BoolVar(&devMode, "dev", false, "")
+	flags.StringVarP(&port, "port", "p", "8090", "port to serve worker API on")
+	flags.StringVar(&logpath, "logpath", "", "path to log dump")
+	flags.IntVar(&workers, "workers", 3, "number of workers to spin up")
+	flags.BoolVar(&devMode, "dev", false, "toggle dev mode")
 	return c
 }
