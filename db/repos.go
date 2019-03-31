@@ -143,8 +143,8 @@ func (r *ReposDatabase) InsertGitBurndownResult(ctx context.Context, burndown *a
 // InsertHostItems executes a batch insert on all given items
 func (r *ReposDatabase) InsertHostItems(ctx context.Context, repoID int, items []*host.Item) error {
 	var (
-		batch     = r.db.pg.BeginBatch()
 		itemCount int64
+		rows      = make([][]interface{}, len(items))
 	)
 
 	// queue all items for insertion
@@ -153,32 +153,22 @@ func (r *ReposDatabase) InsertHostItems(ctx context.Context, repoID int, items [
 			break
 		}
 		itemCount++
-		batch.Queue(preparedStmtInsertHostItem,
-			[]interface{}{
-				repoID, string(i.Type), i.GitHubID, i.Number,
-				i.Author, i.Opened, i.Closed,
-				i.Title, i.Body,
-				i.Labels, i.Reactions, i.Details,
-			}, nil, nil)
+		rows = append(rows, []interface{}{
+			repoID, string(i.Type), i.GitHubID, i.Number,
+			i.Author, i.Opened, i.Closed,
+			i.Title, i.Body,
+			i.Labels, i.Reactions, i.Details,
+		})
 	}
-
-	// send and fetch execution results
-	if err := batch.Send(ctx, &pgx.TxOptions{}); err != nil {
-		return err
-	}
-	res, err := batch.ExecResults()
-	if err != nil {
-		return err
-	}
-
-	// if an incorrect number of rows is modified, throw an error
-	if res.RowsAffected() != itemCount {
-		// TODO: this check does terrible things sometimes
-		// https://github.com/bobheadxi/timelines/issues/22
-
-		// r.l.Infow("provided items", "items", items[29].Number)
-		// return fmt.Errorf("expected %d rows to change, only changed %d rows",
-		//	itemCount, res.RowsAffected())
-	}
-	return nil
+	_, err := r.db.pg.CopyFrom(
+		pgx.Identifier{"host_items"},
+		[]string{
+			"fk_repo_id", "type", "host_id", "number",
+			"author", "open_date", "close_date",
+			"title", "body",
+			"labels", "reactions", "details",
+		},
+		pgx.CopyFromRows(rows),
+	)
+	return err
 }
