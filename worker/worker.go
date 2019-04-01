@@ -81,22 +81,39 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 				ctx = context.Background() // TODO: enforce timeout?
 			)
 
+			// check for entry in DB
+			repoID, err := w.db.Repos().GetRepositoryID(ctx, job.Owner, job.Repo)
+			if err != nil || repoID == 0 {
+				// repo must exist at this point, since server must create it first
+				w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+					Analysis: &store.StateMeta{
+						State:   store.StateError,
+						Message: fmt.Sprintf("get_repo: %v", err),
+						Meta:    map[string]interface{}{"worker": w.name},
+					},
+				})
+				w.l.Errorw("could not find repository entry in database",
+					"error", err,
+					"repository", job.Owner+"/"+job.Repo)
+				continue
+			}
+
 			// spin up handlers and wait until completion
 			wg.Add(2)
-			go w.githubSync(ctx, job, &wg)
-			go w.gitAnalysis(ctx, job, &wg)
+			go w.githubSync(ctx, repoID, job, &wg)
+			go w.gitAnalysis(ctx, repoID, job, &wg)
 			wg.Wait()
 			w.l.Infow("job processed", "job.id", job.ID)
 		}
 	}
 }
 
-func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.WaitGroup) {
+func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var (
 		l = w.l.
-			With("job.id", job.ID, "job.repo", job.Owner+"/"+job.Repo).
+			With("job.id", job.ID, "job.repo", job.Owner+"/"+job.Repo, "job.repo_id", repoID).
 			Named("git_analysis")
 		start  = time.Now()
 		remote = fmt.Sprintf("https://github.com/%s/%s.git", job.Owner, job.Repo)
@@ -154,28 +171,46 @@ func (w *worker) gitAnalysis(ctx context.Context, job *store.RepoJob, wg *sync.W
 		l.Errorw("analysis failed", "error", err)
 		return
 	}
-
-	dur := time.Since(start)
 	l.Infow("analysis complete",
-		"duration", dur,
-		"report", report) // TODO dump in DB instead
+		"duration", time.Since(start),
+		"report", report)
+
+	// pipe to DB
+	err = w.db.Repos().InsertGitBurndownResult(ctx, repoID, report.Meta, report.Burndown)
+	if err != nil {
+		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
+			Analysis: &store.StateMeta{
+				State:   store.StateError,
+				Message: fmt.Sprintf("analysis.store: %v", err),
+				Meta: map[string]interface{}{
+					"duration": time.Since(start),
+					"worker":   w.name,
+				},
+			},
+		})
+		l.Errorw("analysis could not be stored", "error", err)
+		return
+	}
+	l.Info("analysis successfully stored in database")
+
+	// report success!
 	w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 		Analysis: &store.StateMeta{
 			State: store.StateDone,
 			Meta: map[string]interface{}{
-				"duration": dur,
+				"duration": time.Since(start),
 				"worker":   w.name,
 			},
 		},
 	})
 }
 
-func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.WaitGroup) {
+func (w *worker) githubSync(ctx context.Context, repoID int, job *store.RepoJob, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var (
 		l = w.l.
-			With("job.id", job.ID, "job.repo", job.Owner+"/"+job.Repo).
+			With("job.id", job.ID, "job.repo", job.Owner+"/"+job.Repo, "job.repo_id", repoID).
 			Named("github_sync")
 		start = time.Now()
 		repos = w.db.Repos()
@@ -196,25 +231,6 @@ func (w *worker) githubSync(ctx context.Context, job *store.RepoJob, wg *sync.Wa
 			"github.installation_id", job.InstallationID)
 		return
 	}
-
-	// check for entry in DB
-	repoID, err := repos.GetRepositoryID(ctx, job.Owner, job.Repo)
-	if err != nil || repoID == 0 {
-		// repo must exist at this point, since server must create it first
-		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
-			Analysis: &store.StateMeta{
-				State:   store.StateError,
-				Message: fmt.Sprintf("github_sync.get_repo: %v", err),
-				Meta:    map[string]interface{}{"worker": w.name},
-			},
-		})
-		l.Errorw("could not find repository entry in database",
-			"error", err,
-			"repository", job.Owner+"/"+job.Repo)
-		return
-	}
-	l = l.With("db.id", repoID)
-	l.Info("repository found")
 
 	// init syncer
 	var syncer = github.NewSyncer(
