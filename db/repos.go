@@ -3,10 +3,9 @@ package db
 import (
 	"context"
 	"errors"
+	"time"
 
-	// need https://github.com/jackc/pgx/issues/335
 	"github.com/jackc/pgx"
-
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/analysis"
@@ -94,33 +93,107 @@ func (r *ReposDatabase) DeleteRepository(ctx context.Context, id int) error {
 }
 
 // InsertGitBurndownResult processes a burndown analysis for insertion
-func (r *ReposDatabase) InsertGitBurndownResult(ctx context.Context, burndown *analysis.BurndownResult) error {
-	// TODO
+func (r *ReposDatabase) InsertGitBurndownResult(
+	ctx context.Context,
+	repoID int,
+	m *analysis.GitRepoMeta,
+	bd *analysis.BurndownResult,
+) error {
+	var (
+		start = time.Now()
+		width = len(bd.Global)
+		l     = r.l.Named("insert_burndowns").With("repo_id", repoID, "items", width+
+			len(bd.Files)*width+
+			len(bd.People)*width)
+	)
+
+	tx, err := r.db.pg.BeginEx(ctx, &pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	l.Debug("preparing global burndowns")
+	count, err := tx.CopyFrom(
+		pgx.Identifier{"git_burndowns_globals"},
+		[]string{
+			"fk_repo_id", "interval",
+			"delta_bands",
+		},
+		copyFromBurndowns(repoID, "", m, bd.Global),
+	)
+	if err != nil {
+		l.Errorw("failed to insert global burndowns",
+			"error", err)
+		return err
+	}
+	if count != width {
+		l.Errorf("expected '%d' items, got '%d' items", width, count)
+	}
+
+	l.Debug("preparing per-file burndowns")
+	for f, v := range bd.Files {
+		count, err := tx.CopyFrom(
+			pgx.Identifier{"git_burndowns_files"},
+			[]string{
+				"fk_repo_id", "interval", "filename",
+				"delta_bands",
+			},
+			copyFromBurndowns(repoID, f, m, v),
+		)
+		if err != nil {
+			l.Errorw("failed to insert file burndowns",
+				"file", f,
+				"error", err)
+			return err
+		}
+		if count != width {
+			l.Errorf("file '%s': expected '%d' items, got '%d' items", f, width, count)
+		}
+	}
+
+	l.Debug("preparing per-contributor burndowns")
+	for c, v := range bd.Files {
+		count, err := tx.CopyFrom(
+			pgx.Identifier{"git_burndowns_contributors"},
+			[]string{
+				"fk_repo_id", "interval", "contributor",
+				"delta_bands",
+			},
+			copyFromBurndowns(repoID, c, m, v),
+		)
+		if err != nil {
+			l.Errorw("failed to insert contributor burndowns",
+				"contributor", c,
+				"error", err)
+			return err
+		}
+		if count != width {
+			l.Errorf("contributor '%s': expected '%d' items, got '%d' items", c, width, count)
+		}
+	}
+
+	if err := tx.CommitEx(ctx); err != nil {
+		l.Errorw("failed to commit transaction for burndown insertion",
+			"error", err)
+		return err
+	}
+
+	l.Infow("burndown committed",
+		"duration", time.Since(start))
 	return nil
 }
 
 // InsertHostItems executes a batch insert on all given items
-func (r *ReposDatabase) InsertHostItems(ctx context.Context, repoID int, items []*host.Item) error {
+func (r *ReposDatabase) InsertHostItems(
+	ctx context.Context,
+	repoID int,
+	items []*host.Item,
+) error {
 	var (
-		itemCount int
-		rows      = make([][]interface{}, len(items))
-		l         = r.l.With("repo_id", repoID)
+		l     = r.l.Named("insert_host_items").With("repo_id", repoID)
+		cp    = copyFromItems(repoID, items)
+		start = time.Now()
 	)
-
-	for i, v := range items {
-		if v == nil {
-			break
-		}
-		itemCount++
-		rows[i] = []interface{}{
-			repoID, string(v.Type), v.GitHubID, v.Number,
-			v.Author, v.Opened, v.Closed,
-			v.Title, v.Body,
-			v.Labels, v.Reactions, v.Details,
-		}
-	}
-	l = l.With("items", itemCount)
-	l.Info("preparing to insert items")
 
 	count, err := r.db.pg.CopyFrom(
 		pgx.Identifier{"host_items"},
@@ -130,17 +203,19 @@ func (r *ReposDatabase) InsertHostItems(ctx context.Context, repoID int, items [
 			"title", "body",
 			"labels", "reactions", "details",
 		},
-		copyFromRows(rows),
+		cp,
 	)
 	if err != nil {
 		l.Errorw("failed to insert host items",
 			"error", err)
 		return err
 	}
-	if count != itemCount {
-		l.Errorf("expected '%d' items, got '%d' items", itemCount, count)
+	if count != cp.idx {
+		l.Errorf("expected '%d' items, got '%d' items", cp.idx, count)
 		return errors.New("unexpected mismatch actual items and inserted items")
 	}
-	l.Infow("items successfully inserted")
+
+	l.Infow("items successfully inserted",
+		"duration", time.Since(start))
 	return nil
 }
