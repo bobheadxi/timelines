@@ -53,7 +53,7 @@ func newPGCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				var l = logger.Sugar().Named("dev.redis.reset")
+				var l = logger.Sugar().Named("dev.pg.seed")
 				c, err := db.New(l, "integration_test", dev.DatabaseOptions)
 				if err != nil {
 					return err
