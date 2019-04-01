@@ -49,6 +49,9 @@ func TestDatabase(t *testing.T) {
 				"some_detail": 23847125,
 			},
 		},
+		// it is possible to have nil items pad the end
+		nil,
+		nil,
 	})
 	assert.NoError(t, err)
 

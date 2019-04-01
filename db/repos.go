@@ -47,17 +47,6 @@ const (
 
 // init sets up all prepared statements associated with repositories
 func (r *ReposDatabase) init() {
-	r.db.pg.Prepare(preparedStmtInsertHostItem, `
-INSERT INTO
-	host_items
-VALUES
-	(
-		$1::INTEGER, $2::host_item_type, $3::INTEGER, $4::INTEGER,
-		$5::TEXT, $6::DATE, $7::DATE, 
-		$8::TEXT, $9::TEXT,
-		$10::TEXT[], $11::JSONB, $12::JSONB
-	)
-`)
 	r.db.pg.Prepare(preparedStmtInsertGitBurndownGlobal, `
 INSERT INTO
 	git_burndowns_globals
@@ -143,24 +132,27 @@ func (r *ReposDatabase) InsertGitBurndownResult(ctx context.Context, burndown *a
 // InsertHostItems executes a batch insert on all given items
 func (r *ReposDatabase) InsertHostItems(ctx context.Context, repoID int, items []*host.Item) error {
 	var (
-		itemCount int64
+		itemCount int
 		rows      = make([][]interface{}, len(items))
+		l         = r.l.With("repo_id", repoID)
 	)
 
-	// queue all items for insertion
-	for _, i := range items {
-		if i == nil {
+	for i, v := range items {
+		if v == nil {
 			break
 		}
 		itemCount++
-		rows = append(rows, []interface{}{
-			repoID, string(i.Type), i.GitHubID, i.Number,
-			i.Author, i.Opened, i.Closed,
-			i.Title, i.Body,
-			i.Labels, i.Reactions, i.Details,
-		})
+		rows[i] = []interface{}{
+			repoID, string(v.Type), v.GitHubID, v.Number,
+			v.Author, v.Opened, v.Closed,
+			v.Title, v.Body,
+			v.Labels, v.Reactions, v.Details,
+		}
 	}
-	_, err := r.db.pg.CopyFrom(
+	l = l.With("items", itemCount)
+	l.Info("preparing to insert items")
+
+	count, err := r.db.pg.CopyFrom(
 		pgx.Identifier{"host_items"},
 		[]string{
 			"fk_repo_id", "type", "host_id", "number",
@@ -168,7 +160,17 @@ func (r *ReposDatabase) InsertHostItems(ctx context.Context, repoID int, items [
 			"title", "body",
 			"labels", "reactions", "details",
 		},
-		pgx.CopyFromRows(rows),
+		copyFromRows(rows),
 	)
-	return err
+	if err != nil {
+		l.Errorw("failed to insert host items",
+			"error", err)
+		return err
+	}
+	if count != itemCount {
+		l.Errorf("expected '%d' items, got '%d' items", itemCount, count)
+		return errors.New("unexpected mismatch actual items and inserted items")
+	}
+	l.Infow("items successfully inserted")
+	return nil
 }
