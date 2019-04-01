@@ -38,39 +38,9 @@ type ReposDatabase struct {
 	l  *zap.SugaredLogger
 }
 
-const (
-	preparedStmtInsertHostItem          = "insert_host_item"
-	preparedStmtInsertGitBurndownGlobal = "insert_git_burndowns_globals"
-	preparedStmtInsertGitBurndownFile   = "insert_git_burndowns_files"
-	preparedStmtInsertGitBurndownPeople = "insert_git_burndowns_contributors"
-)
-
 // init sets up all prepared statements associated with repositories
 func (r *ReposDatabase) init() {
-	r.db.pg.Prepare(preparedStmtInsertGitBurndownGlobal, `
-INSERT INTO
-	git_burndowns_globals
-VALUES
-	(
-		$1::INTEGER, $2::TSRANGE, $3::INTEGER[]
-	)
-`)
-	r.db.pg.Prepare(preparedStmtInsertGitBurndownFile, `
-INSERT INTO
-	git_burndowns_files
-VALUES
-	(
-		$1::INTEGER, $2::TEXT, $3::TSRANGE, $4::INTEGER[]
-	)
-`)
-	r.db.pg.Prepare(preparedStmtInsertGitBurndownPeople, `
-INSERT INTO
-	git_burndowns_contributors
-VALUES
-	(
-		$1::INTEGER, $2::TEXT, $3::TSRANGE, $4::INTEGER[]
-	)
-`)
+	// no-op for now
 }
 
 // GetRepositoryID retrieves the ID associated with the given repository
