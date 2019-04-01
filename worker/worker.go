@@ -172,8 +172,7 @@ func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob
 		return
 	}
 	l.Infow("analysis complete",
-		"duration", time.Since(start),
-		"report", report)
+		"duration", time.Since(start))
 
 	// pipe to DB
 	err = w.db.Repos().InsertGitBurndownResult(ctx, repoID, report.Meta, report.Burndown)

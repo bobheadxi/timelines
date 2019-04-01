@@ -2,6 +2,7 @@ package worker
 
 import (
 	"os"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -26,6 +27,7 @@ func Run(
 	stop chan bool,
 	opts RunOpts,
 ) error {
+	start := time.Now()
 	if opts.Name == "" {
 		opts.Name = os.Getenv("HOSTNAME")
 	}
@@ -75,6 +77,8 @@ func Run(
 	for i := 0; i < opts.Workers; i++ {
 		go w.processJobs(stop, errC)
 	}
+	l.Infow("worker ready",
+		"startup.duration", time.Since(start))
 	for {
 		select {
 		case err := <-errC:
