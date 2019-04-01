@@ -11,7 +11,6 @@ require (
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v4.0.2+incompatible
-	github.com/go-chi/render v1.0.1
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.0
