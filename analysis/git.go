@@ -15,6 +15,28 @@ import (
 	"gopkg.in/src-d/hercules.v10/leaves"
 )
 
+// GitRepoReport is a container around different analysis results
+type GitRepoReport struct {
+	Meta     *GitRepoMeta
+	Burndown *BurndownResult
+	Coupling *CouplingResult
+}
+
+// GitRepoMeta denotes the configuration used to execute the analysis
+type GitRepoMeta struct {
+	Commits  int
+	First    time.Time
+	Last     time.Time
+	TickSize int
+}
+
+// GetTickRange returns the beginning and end times of the given tick
+func (m *GitRepoMeta) GetTickRange(t int) (time.Time, time.Time) {
+	real := time.Duration(m.TickSize) * time.Hour
+	return m.First.Add(real * time.Duration(t)),
+		m.First.Add(real * (time.Duration(t) + 1))
+}
+
 // GitRepoAnalyser executes pipelines on a repo
 type GitRepoAnalyser struct {
 	pipe *hercules.Pipeline
@@ -101,17 +123,6 @@ func NewGitAnalyser(
 	}, nil
 }
 
-// GitRepoReport is a container around different analysis results
-type GitRepoReport struct {
-	Commits  int
-	First    time.Time
-	Last     time.Time
-	TickSize int
-
-	Burndown *BurndownResult
-	Coupling *CouplingResult
-}
-
 // Analyze executes the pipeline
 func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 
@@ -142,11 +153,12 @@ func (g *GitRepoAnalyser) Analyze() (*GitRepoReport, error) {
 		"burndown.bands", len(burndown.Global[0]))
 
 	return &GitRepoReport{
-		Commits:  g.commits,
-		First:    g.first,
-		Last:     g.last,
-		TickSize: g.tickSize,
-
+		Meta: &GitRepoMeta{
+			Commits:  g.commits,
+			First:    g.first,
+			Last:     g.last,
+			TickSize: g.tickSize,
+		},
 		Burndown: &burndown,
 		Coupling: &coupling,
 	}, nil

@@ -9,7 +9,8 @@ type BurndownResult struct {
 	// analysis class for more details). From what I understand, it's sort of like
 	// this:
 	//     time intervals (aka ticks) * bands (representing if code is still present)
-	// The size of each band is determined by the
+	// Might be able to drop Global - TODO: assess if sum of files per band and tick
+	// is equal to global.
 	Global [][]int64
 	People map[string][][]int64
 	Files  map[string][][]int64
