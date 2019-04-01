@@ -12,7 +12,11 @@ type serverLogger struct {
 
 // NewRequestLogger wraps the given logger in gocloud's requestlog.Logger
 func NewRequestLogger(l *zap.SugaredLogger, loggers ...requestlog.Logger) requestlog.Logger {
-	return &serverLogger{l.Desugar(), loggers}
+	return &serverLogger{
+		// don't take stacktrace of wrapper class
+		l.Desugar().WithOptions(zap.AddCallerSkip(1)),
+		loggers,
+	}
 }
 
 func (s *serverLogger) Log(e *requestlog.Entry) {

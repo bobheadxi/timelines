@@ -11,7 +11,10 @@ type databaseLogger struct {
 
 // NewDatabaseLogger wraps the given logger in pgx.Logger
 func NewDatabaseLogger(l *zap.SugaredLogger) pgx.Logger {
-	return &databaseLogger{l: l.Desugar()}
+	return &databaseLogger{
+		// don't take stacktrace of wrapper class
+		l: l.Desugar().WithOptions(zap.AddCallerSkip(1)),
+	}
 }
 
 func (d *databaseLogger) Log(lv pgx.LogLevel, msg string, data map[string]interface{}) {
@@ -20,7 +23,7 @@ func (d *databaseLogger) Log(lv pgx.LogLevel, msg string, data map[string]interf
 	case pgx.LogLevelDebug:
 		d.l.Debug(msg, zapData)
 	case pgx.LogLevelWarn:
-		d.l.Debug(msg, zapData)
+		d.l.Warn(msg, zapData)
 	case pgx.LogLevelError:
 		d.l.Error(msg, zapData)
 	default:
