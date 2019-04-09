@@ -6,22 +6,20 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/dev"
 	"github.com/bobheadxi/timelines/host"
+	"github.com/bobheadxi/timelines/log"
 	"github.com/bobheadxi/timelines/store"
 )
 
 func newDevCommand() *cobra.Command {
 	d := &cobra.Command{
-		Use:              "dev",
-		Short:            "handy utility commands for development use",
-		Hidden:           os.Getenv("MODE") != "development",
-		PersistentPreRun: func(*cobra.Command, []string) { godotenv.Load() },
+		Use:    "dev",
+		Short:  "handy utility commands for development use",
+		Hidden: os.Getenv("MODE") != "development",
 	}
 	d.AddCommand(newRedisCommand(), newPGCommand())
 	return d
@@ -29,31 +27,22 @@ func newDevCommand() *cobra.Command {
 
 func newPGCommand() *cobra.Command {
 	var (
-		envFiles []string
-		pg       = &cobra.Command{
+		pg = &cobra.Command{
 			Use:   "pg",
 			Short: "postgres database utilities",
-			PersistentPreRun: func(*cobra.Command, []string) {
-				if len(envFiles) > 0 {
-					godotenv.Load(envFiles...)
-				} else {
-					godotenv.Load()
-				}
-			},
 		}
 	)
-	pg.Flags().StringArrayVar(&envFiles, "env", nil, "")
 
 	var (
 		seed = &cobra.Command{
 			Use:   "seed",
 			Short: "seed postgres database with test data",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				logger, err := zap.NewDevelopment()
+				logger, err := log.NewLogger(true, "")
 				if err != nil {
 					return err
 				}
-				var l = logger.Sugar().Named("dev.pg.seed")
+				var l = logger.Named("dev.pg.seed")
 				c, err := db.New(l, "integration_test", dev.DatabaseOptions)
 				if err != nil {
 					return err
@@ -83,11 +72,11 @@ func newRedisCommand() *cobra.Command {
 			Use:   "reset",
 			Short: "drop everything in store",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				logger, err := zap.NewDevelopment()
+				logger, err := log.NewLogger(true, "")
 				if err != nil {
 					return err
 				}
-				var l = logger.Sugar().Named("dev.redis.reset")
+				var l = logger.Named("dev.redis.reset")
 				c, err := store.NewClient(l, dev.StoreOptions)
 				if err != nil {
 					return err
@@ -103,11 +92,11 @@ func newRedisCommand() *cobra.Command {
 			Use:   "seed",
 			Short: "seed store with test data",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				logger, err := zap.NewDevelopment()
+				logger, err := log.NewLogger(true, "")
 				if err != nil {
 					return err
 				}
-				var l = logger.Sugar().Named("dev.redis.seed")
+				var l = logger.Named("dev.redis.seed")
 				c, err := store.NewClient(l, dev.StoreOptions)
 				if err != nil {
 					return err
