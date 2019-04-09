@@ -194,9 +194,10 @@ func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob
 		l.Errorw("analysis could not be stored", "error", err)
 		return
 	}
-	l.Info("analysis successfully stored in database")
 
 	// report success!
+	l.Infow("analysis successfully completed and updated in database",
+		"duration", time.Since(start))
 	w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 		Analysis: &store.StateMeta{
 			State: store.StateDone,
