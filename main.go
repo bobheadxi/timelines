@@ -10,9 +10,7 @@ import (
 )
 
 func main() {
-	var (
-		envFiles []string
-	)
+	var envFiles []string
 	root := &cobra.Command{
 		Use: "timelines",
 		PersistentPreRun: func(*cobra.Command, []string) {
@@ -22,11 +20,11 @@ func main() {
 			}
 		},
 	}
-	root.SetHelpCommand(&cobra.Command{
-		Use:    "no-help",
-		Hidden: true,
-	})
 	root.Flags().StringArrayVar(&envFiles, "env", nil, "env files to load")
+	// hide the help command because it's not pretty
+	root.SetHelpCommand(&cobra.Command{Use: "no-help", Hidden: true})
+
+	// initialize and execute commands
 	cmd.Initialize(root)
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
