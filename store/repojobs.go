@@ -24,8 +24,8 @@ type RepoJob struct {
 
 // RepoJobState denotes the state of a job
 type RepoJobState struct {
-	Analysis   *StateMeta `json:"analysis"`
-	GitHubSync *StateMeta `json:"github_sync"`
+	Analysis   *StateMeta
+	GitHubSync *StateMeta
 }
 
 // RepoJobsClient exposes an API for interacting with repo job entries
