@@ -59,5 +59,6 @@ func TestDatabase_integration(t *testing.T) {
 		assert.NoError(t, repos.InsertGitBurndownResult(ctx, id,
 			testdata.Meta,
 			testdata.Burndown))
+		assert.NoError(t, repos.DeleteRepository(ctx, id))
 	})
 }

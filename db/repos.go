@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -10,6 +11,12 @@ import (
 
 	"github.com/bobheadxi/timelines/analysis"
 	"github.com/bobheadxi/timelines/host"
+)
+
+const (
+	tableGitBurndownGlobals      = "git_burndowns_globals"
+	tableGitBurndownFiles        = "git_burndowns_files"
+	tableGitBurndownContributors = "git_burndowns_contributors"
 )
 
 // Repository represents a stored repository. TODO
@@ -65,11 +72,11 @@ func (r *ReposDatabase) NewRepository(
 		return errors.New("repository identifiers (owner and name) required")
 	}
 	_, err := r.db.pg.ExecEx(ctx, `
-	INSERT INTO 
-		repositories (installation_id, type, owner, name)
-	VALUES
-		($1, $2, $3, $4)
-	`, &pgx.QueryExOptions{},
+		INSERT INTO 
+			repositories (installation_id, type, owner, name)
+		VALUES
+			($1, $2, $3, $4)
+		`, &pgx.QueryExOptions{},
 		installation, string(h), owner, name)
 	if err == nil {
 		r.l.Infow("created new entry for repo", "repo", owner+"/"+name)
@@ -80,15 +87,68 @@ func (r *ReposDatabase) NewRepository(
 // DeleteRepository removes a repository and associated items
 func (r *ReposDatabase) DeleteRepository(ctx context.Context, id int) error {
 	res, err := r.db.pg.ExecEx(ctx, `
-	DELETE FROM 
-		repositories
-	WHERE id = $1`, &pgx.QueryExOptions{}, id)
+		DELETE FROM 
+			repositories
+		WHERE
+			id = $1
+		`, &pgx.QueryExOptions{},
+		id)
 	if err != nil {
 		return err
 	}
 	if res.RowsAffected() < 1 {
 		return errors.New("no repository was deleted")
 	}
+	return nil
+}
+
+// DropGitBurndownResults deletes all git burndown results associated with the
+// given repository ID.
+// TODO: should this be done? see https://github.com/bobheadxi/timelines/issues/44
+func (r *ReposDatabase) DropGitBurndownResults(ctx context.Context, repoID int) error {
+	var (
+		start = time.Now()
+		l     = r.l.Named("drop_burndowns").With("repo_id", repoID)
+	)
+
+	tx, err := r.db.pg.BeginEx(ctx, &pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %v", err)
+	}
+	for _, t := range []string{
+		tableGitBurndownGlobals,
+		tableGitBurndownFiles,
+		tableGitBurndownContributors,
+	} {
+		// need to custom format the table name into the query string, since the
+		// pgx formatter doesn't like table names as arguments
+		_, err := tx.ExecEx(ctx, fmt.Sprintf(`
+			DELETE FROM
+				%s
+			WHERE
+				fk_repo_id = $1
+			`, t), &pgx.QueryExOptions{},
+			repoID)
+		if err != nil {
+			l.Errorw("could not drop burndowns from table",
+				"table", t,
+				"error", err)
+			if err := tx.RollbackEx(ctx); err != nil {
+				l.Warnw("error when rolling back transaction",
+					"error", err)
+			}
+			return fmt.Errorf("could not delete existing burndowns, rolling back: %v", err)
+		}
+	}
+
+	if err := tx.CommitEx(ctx); err != nil {
+		l.Errorw("could not commit burndowns drops",
+			"error", err)
+		return fmt.Errorf("could not delete existing burndowns: %v", err)
+	}
+
+	l.Infow("burndown results dropped",
+		"duration", time.Since(start))
 	return nil
 }
 
@@ -113,61 +173,55 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 	}
 
 	l.Debug("preparing global burndowns")
-	count, err := tx.CopyFrom(
-		pgx.Identifier{"git_burndowns_globals"},
+	if count, err := tx.CopyFrom(
+		pgx.Identifier{tableGitBurndownGlobals},
 		[]string{
 			"fk_repo_id", "interval",
 			"delta_bands",
 		},
 		copyFromBurndowns(repoID, "", m, bd.Global),
-	)
-	if err != nil {
+	); err != nil {
 		l.Errorw("failed to insert global burndowns",
 			"error", err)
 		return err
-	}
-	if count != width {
-		l.Errorf("expected '%d' items, got '%d' items", width, count)
+	} else if count != width {
+		l.Warnf("expected '%d' items, got '%d' items", width, count)
 	}
 
 	l.Debug("preparing per-file burndowns")
 	for f, v := range bd.Files {
-		count, err := tx.CopyFrom(
-			pgx.Identifier{"git_burndowns_files"},
+		if count, err := tx.CopyFrom(
+			pgx.Identifier{tableGitBurndownFiles},
 			[]string{
 				"fk_repo_id", "interval", "filename",
 				"delta_bands",
 			},
 			copyFromBurndowns(repoID, f, m, v),
-		)
-		if err != nil {
+		); err != nil {
 			l.Errorw("failed to insert file burndowns",
 				"file", f,
 				"error", err)
 			return err
-		}
-		if count != width {
-			l.Errorf("file '%s': expected '%d' items, got '%d' items", f, width, count)
+		} else if count != width {
+			l.Warnf("file '%s': expected '%d' items, got '%d' items", f, width, count)
 		}
 	}
 
 	l.Debug("preparing per-contributor burndowns")
 	for c, v := range bd.Files {
-		count, err := tx.CopyFrom(
+		if count, err := tx.CopyFrom(
 			pgx.Identifier{"git_burndowns_contributors"},
 			[]string{
 				"fk_repo_id", "interval", "contributor",
 				"delta_bands",
 			},
 			copyFromBurndowns(repoID, c, m, v),
-		)
-		if err != nil {
+		); err != nil {
 			l.Errorw("failed to insert contributor burndowns",
 				"contributor", c,
 				"error", err)
 			return err
-		}
-		if count != width {
+		} else if count != width {
 			l.Errorf("contributor '%s': expected '%d' items, got '%d' items", c, width, count)
 		}
 	}
