@@ -16,7 +16,7 @@ func TestStore(t *testing.T) {
 	godotenv.Load("../.env")
 
 	l := zaptest.NewLogger(t).Sugar()
-	c, err := NewClient(l, dev.StoreOptions)
+	c, err := NewClient(l, "store_test", dev.StoreOptions)
 	assert.NoError(t, err)
 	defer c.Reset()
 

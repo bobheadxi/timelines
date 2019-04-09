@@ -30,8 +30,9 @@ type RepoJobState struct {
 
 // RepoJobsClient exposes an API for interacting with repo job entries
 type RepoJobsClient struct {
-	c *Client
-	l *zap.SugaredLogger
+	name string
+	c    *Client
+	l    *zap.SugaredLogger
 }
 
 // Queue queues a repo for update
@@ -142,6 +143,7 @@ func (r *RepoJobsClient) SetState(jobID uuid.UUID, state *RepoJobState) error {
 			state.Analysis.Meta = make(map[string]interface{})
 		}
 		state.Analysis.Meta["updated"] = time.Now()
+		state.Analysis.Meta["agent"] = r.name
 
 		// add to pipeline
 		data, _ := json.Marshal(state.Analysis)
@@ -155,6 +157,7 @@ func (r *RepoJobsClient) SetState(jobID uuid.UUID, state *RepoJobState) error {
 			state.GitHubSync.Meta = make(map[string]interface{})
 		}
 		state.GitHubSync.Meta["updated"] = time.Now()
+		state.Analysis.Meta["agent"] = r.name
 
 		// add to pipeline
 		data, _ := json.Marshal(state.GitHubSync)

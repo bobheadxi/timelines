@@ -32,7 +32,7 @@ func Run(
 		opts.Name = os.Getenv("HOSTNAME")
 	}
 
-	store, err := store.NewClient(l.Named("store"), opts.Store)
+	store, err := store.NewClient(l.Named("store"), opts.Name, opts.Store)
 	if err != nil {
 		return err
 	}

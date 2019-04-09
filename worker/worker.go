@@ -89,7 +89,6 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 					Analysis: &store.StateMeta{
 						State:   store.StateError,
 						Message: fmt.Sprintf("get_repo: %v", err),
-						Meta:    map[string]interface{}{"worker": w.name},
 					},
 				})
 				w.l.Errorw("could not find repository entry in database",
@@ -128,7 +127,6 @@ func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob
 				Analysis: &store.StateMeta{
 					State:   store.StateError,
 					Message: fmt.Sprintf("analysis.git_clone: %v", err),
-					Meta:    map[string]interface{}{"worker": w.name},
 				},
 			})
 			l.Errorw("repo does not exist and could not download", "error", err)
@@ -147,7 +145,6 @@ func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob
 			Analysis: &store.StateMeta{
 				State:   store.StateError,
 				Message: fmt.Sprintf("analysis.setup: %v", err),
-				Meta:    map[string]interface{}{"worker": w.name},
 			},
 		})
 		l.Errorw("analysis failed", "error", err)
@@ -164,7 +161,6 @@ func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob
 				Message: fmt.Sprintf("analysis.execute: %v", err),
 				Meta: map[string]interface{}{
 					"duration": time.Since(start),
-					"worker":   w.name,
 				},
 			},
 		})
@@ -187,7 +183,6 @@ func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob
 				Message: fmt.Sprintf("analysis.store: %v", err),
 				Meta: map[string]interface{}{
 					"duration": time.Since(start),
-					"worker":   w.name,
 				},
 			},
 		})
@@ -203,7 +198,6 @@ func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob
 			State: store.StateDone,
 			Meta: map[string]interface{}{
 				"duration": time.Since(start),
-				"worker":   w.name,
 			},
 		},
 	})
@@ -227,7 +221,7 @@ func (w *worker) githubSync(ctx context.Context, repoID int, job *store.RepoJob,
 			Analysis: &store.StateMeta{
 				State:   store.StateError,
 				Message: fmt.Sprintf("github_sync.new_client: %v", err),
-				Meta:    map[string]interface{}{"worker": w.name, "installation": job.InstallationID},
+				Meta:    map[string]interface{}{"installation": job.InstallationID},
 			},
 		})
 		l.Errorw("failed to authenticate for installation",
@@ -340,7 +334,6 @@ func (w *worker) githubSync(ctx context.Context, repoID int, job *store.RepoJob,
 	meta := map[string]interface{}{
 		"items":    itemCount,
 		"duration": dur,
-		"worker":   w.name,
 	}
 	if errorCount > 0 {
 		state = &store.RepoJobState{

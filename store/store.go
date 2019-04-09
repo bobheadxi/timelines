@@ -11,13 +11,14 @@ import (
 
 // Client is the interface to the redis store
 type Client struct {
+	name  string
 	redis *redis.Client
 
 	l *zap.SugaredLogger
 }
 
 // NewClient sets up a new client for the redis store
-func NewClient(l *zap.SugaredLogger, opts config.Store) (*Client, error) {
+func NewClient(l *zap.SugaredLogger, name string, opts config.Store) (*Client, error) {
 	if opts.Address == "" {
 		return nil, errors.New("no address provided")
 	}
@@ -45,7 +46,7 @@ func NewClient(l *zap.SugaredLogger, opts config.Store) (*Client, error) {
 
 // RepoJobs returns a client for managing repo job entries
 func (c *Client) RepoJobs() *RepoJobsClient {
-	return &RepoJobsClient{c: c, l: c.l.Named(repoJobsName)}
+	return &RepoJobsClient{name: c.name, c: c, l: c.l.Named(repoJobsName)}
 }
 
 // Reset drops all keys
