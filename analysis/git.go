@@ -1,19 +1,18 @@
 package analysis
 
 import (
-
-	// TODO: explore gitbase
-	// gitbase "gopkg.in/src-d/gitbase.v0"
-
 	"errors"
 	"time"
 
-	"github.com/bobheadxi/timelines/log"
+	// TODO: explore gitbase
+	// gitbase "gopkg.in/src-d/gitbase.v0"
 	"go.uber.org/zap"
 	gogit "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	hercules "gopkg.in/src-d/hercules.v10"
 	"gopkg.in/src-d/hercules.v10/leaves"
+
+	"github.com/bobheadxi/timelines/log"
 )
 
 // GitRepoReport is a container around different analysis results
