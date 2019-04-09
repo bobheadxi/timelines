@@ -8,6 +8,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/bobheadxi/timelines/log"
 	"go.uber.org/zap"
 	gogit "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -98,6 +99,7 @@ func NewGitAnalyser(
 	if first.Unix() == 0 {
 		return nil, errors.New("could not find a 'first' commit with no parents")
 	}
+
 	// calculate number of ticks to use
 	hours := last.Sub(first).Hours()
 	tickSize := int(hours / float64(opts.TickCount))
@@ -172,6 +174,7 @@ func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, err
 		return nil, err
 	}
 	g.facts = map[string]interface{}{
+		hercules.ConfigLogger:      log.NewHerculesLogger(g.l.Named("hercules")),
 		"TicksSinceStart.TickSize": g.tickSize,
 
 		// Tree config
