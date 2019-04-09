@@ -2,9 +2,25 @@
 all:
 	go build
 
+.PHONY: clean
+clean:
+	docker-compose -f dev/monitoring.yml rm -f -s -v
+	docker-compose -f dev/docker-compose.yml rm -f -s -v
+	rm -rf tmp
+
 .PHONY: web
 web:
-	cd web && npm run start
+	cd web && npm run build
+
+.PHONY: scripts
+scripts:
+	$(MAKE) -C .scripts install
+
+.PHONY: lint
+lint:
+	./.scripts/lint.sh
+
+# Dev environment
 
 .PHONY: devenv
 devenv:
@@ -16,16 +32,14 @@ devmonitoring:
 	docker-compose -f dev/monitoring.yml up -d
 	docker ps
 
-.PHONY: clean
-clean:
-	docker-compose -f dev/monitoring.yml rm -f -s -v
-	docker-compose -f dev/docker-compose.yml rm -f -s -v
-	rm -rf tmp
+# Codegen
 
 .PHONY: graphql
 graphql:
 	$(MAKE) -C graphql go
 	$(MAKE) -C graphql ts
+
+# PG utils
 
 .PHONY: devpg
 devpg: pg-reset pg-init

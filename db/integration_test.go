@@ -42,7 +42,7 @@ func TestDatabase_integration(t *testing.T) {
 	// run tests
 	t.Run("test host items", func(t *testing.T) {
 		assert.NoError(t, repos.InsertHostItems(ctx, id, []*host.Item{
-			&host.Item{
+			{
 				GitHubID: 1234,
 				Number:   25,
 				Type:     host.ItemTypeIssue,

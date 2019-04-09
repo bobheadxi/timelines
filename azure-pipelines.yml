@@ -45,8 +45,7 @@ steps:
 
 - script: |
     go build -v
-    go fmt ./...
-    golint $(go list ./... | grep -v /vendor/)
+    make lint
     go vet ./...
   workingDirectory: '$(modulePath)'
   displayName: 'Build and run static analysis'

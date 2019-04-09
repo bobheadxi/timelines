@@ -36,7 +36,7 @@ func Run(
 	})
 
 	// init clients
-	store, err := store.NewClient(l.Named("store"), opts.Store)
+	store, err := store.NewClient(l.Named("store"), "server", opts.Store)
 	if err != nil {
 		return err
 	}

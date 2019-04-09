@@ -77,7 +77,7 @@ func newRedisCommand() *cobra.Command {
 					return err
 				}
 				var l = logger.Named("dev.redis.reset")
-				c, err := store.NewClient(l, dev.StoreOptions)
+				c, err := store.NewClient(l, "dev.redis.reset", dev.StoreOptions)
 				if err != nil {
 					return err
 				}
@@ -97,7 +97,7 @@ func newRedisCommand() *cobra.Command {
 					return err
 				}
 				var l = logger.Named("dev.redis.seed")
-				c, err := store.NewClient(l, dev.StoreOptions)
+				c, err := store.NewClient(l, "dev.redis.seed", dev.StoreOptions)
 				if err != nil {
 					return err
 				}
