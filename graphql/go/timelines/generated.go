@@ -221,8 +221,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "../../schema.graphql", Input: `# placeholder
-
+	&ast.Source{Name: "../../schema.graphql", Input: `# Query defines all API queries
 type Query {
   repo(owner: String!, repo: String!): Repository
   burndown(id: Int!, type: BurndownType = GLOBAL): Burndown

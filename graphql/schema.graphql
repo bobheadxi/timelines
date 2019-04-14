@@ -1,11 +1,11 @@
-# placeholder
-
+# Query defines all API queries
 type Query {
   repo(owner: String!, repo: String!): Repository
   burndown(id: Int!, type: BurndownType = GLOBAL): Burndown
 }
 
 scalar Time
+scalar Long
 
 # Repositories
 

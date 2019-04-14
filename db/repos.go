@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
+
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
 	"go.uber.org/zap"
@@ -280,7 +282,7 @@ func (r *ReposDatabase) InsertHostItems(
 func (r *ReposDatabase) GetGlobalBurndown(
 	ctx context.Context,
 	repoID int,
-) (map[int64][]int64, error) {
+) ([]models.BurndownEntry, error) {
 	rows, err := r.db.pg.Query(fmt.Sprintf(`
 	SELECT
 		interval, delta_bands
@@ -294,7 +296,7 @@ func (r *ReposDatabase) GetGlobalBurndown(
 	}
 	defer rows.Close()
 
-	var vals = make(map[int64][]int64)
+	entries := make([]models.BurndownEntry, 0)
 	for rows.Next() {
 		var (
 			interval   pgtype.Tsrange
@@ -303,8 +305,16 @@ func (r *ReposDatabase) GetGlobalBurndown(
 		if err = rows.Scan(&interval, &deltaBands); err != nil {
 			return nil, err
 		}
-		vals[interval.Lower.Time.Unix()] = deltaBands
+		// for now, we need to cast manually into a int[]
+		intBands := make([]int, len(deltaBands))
+		for i, v := range deltaBands {
+			intBands[i] = int(v)
+		}
+		entries = append(entries, models.BurndownEntry{
+			Start: interval.Lower.Time,
+			Bands: intBands,
+		})
 	}
 
-	return vals, nil
+	return entries, nil
 }
