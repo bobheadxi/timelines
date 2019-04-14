@@ -2,19 +2,68 @@
 
 package models
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+import (
+	"fmt"
+	"io"
+	"strconv"
+	"time"
+)
+
+type Burndown struct {
+	Type    *BurndownType   `json:"type"`
+	Entries []BurndownEntry `json:"entries"`
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User User   `json:"user"`
+type BurndownEntry struct {
+	Start time.Time `json:"start"`
+	Bands []int     `json:"bands"`
 }
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type Repository struct {
+	ID    *int    `json:"id"`
+	Owner *string `json:"owner"`
+	Repo  *string `json:"repo"`
+}
+
+type BurndownType string
+
+const (
+	BurndownTypeGlobal BurndownType = "GLOBAL"
+	BurndownTypeFile   BurndownType = "FILE"
+	BurndownTypeAuthor BurndownType = "AUTHOR"
+)
+
+var AllBurndownType = []BurndownType{
+	BurndownTypeGlobal,
+	BurndownTypeFile,
+	BurndownTypeAuthor,
+}
+
+func (e BurndownType) IsValid() bool {
+	switch e {
+	case BurndownTypeGlobal, BurndownTypeFile, BurndownTypeAuthor:
+		return true
+	}
+	return false
+}
+
+func (e BurndownType) String() string {
+	return string(e)
+}
+
+func (e *BurndownType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BurndownType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid BurndownType", str)
+	}
+	return nil
+}
+
+func (e BurndownType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

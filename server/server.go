@@ -48,7 +48,7 @@ func Run(
 	defer database.Close()
 
 	// init handlers
-	var resolver = newResolver(l.Named("resolver"))
+	var resolver = newRootResolver(l.Named("resolver"))
 	var webhook = newWebhookHandler(l.Named("webhooks"), database, store)
 
 	// set up endpoints
@@ -71,3 +71,20 @@ func Run(
 		"port", opts.Port)
 	return srv.ListenAndServe(":"+opts.Port, mux)
 }
+
+// rootResolver implements the timelines GraphQL API
+type rootResolver struct {
+	l *zap.SugaredLogger
+	q timelines.QueryResolver
+}
+
+func newRootResolver(l *zap.SugaredLogger) *rootResolver {
+	return &rootResolver{
+		l: l,
+		q: &queryResolver{
+			l: l.Named("query"),
+		},
+	}
+}
+
+func (r *rootResolver) Query() timelines.QueryResolver { return r.q }

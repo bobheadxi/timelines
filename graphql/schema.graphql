@@ -1,26 +1,37 @@
 # placeholder
 
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
-}
-
-type User {
-  id: ID!
-  name: String!
-}
-
 type Query {
-  todos: [Todo!]!
+  repo(owner: String!, repo: String!): Repository
+  burndown(id: Int!, type: BurndownType = GLOBAL): Burndown
 }
 
-input NewTodo {
-  text: String!
-  userId: String!
+scalar Time
+
+# Repositories
+
+type Repository {
+  id: Int
+  owner: String
+  repo: String
 }
 
-type Mutation {
-  createTodo(input: NewTodo!): Todo!
+# Burndowns
+
+type Burndown {
+  type: BurndownType
+  entries: [BurndownEntry!]
+}
+
+enum BurndownType {
+  GLOBAL
+  FILE
+  AUTHOR
+}
+
+type BurndownEntry {
+  start: Time!
+
+  # TODO: add Long type? tbh not sure if int64 is really justified at all here
+  # https://gqlgen.com/reference/scalars/#custom-scalars-for-types-you-don-t-control
+  bands: [Int!]!
 }

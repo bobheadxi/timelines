@@ -1,7 +1,9 @@
 export type Maybe<T> = T | null;
 
-export interface NewTodo {
-  text: string;
-
-  userId: string;
+export enum BurndownType {
+  Global = "GLOBAL",
+  File = "FILE",
+  Author = "AUTHOR"
 }
+
+export type Time = any;
