@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/analysis"
@@ -272,4 +273,38 @@ func (r *ReposDatabase) InsertHostItems(
 	l.Infow("items successfully inserted",
 		"duration", time.Since(start))
 	return nil
+}
+
+// GetGlobalBurndown retrieves global burndowns for the given repo
+// TODO: one at a time? all at once?
+func (r *ReposDatabase) GetGlobalBurndown(
+	ctx context.Context,
+	repoID int,
+) (map[int64][]int64, error) {
+	rows, err := r.db.pg.Query(fmt.Sprintf(`
+	SELECT
+		interval, delta_bands
+	FROM
+		%s
+	WHERE
+		fk_repo_id = $1
+	`, tableGitBurndownGlobals), repoID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var vals = make(map[int64][]int64)
+	for rows.Next() {
+		var (
+			interval   pgtype.Tsrange
+			deltaBands []int64
+		)
+		if err = rows.Scan(&interval, &deltaBands); err != nil {
+			return nil, err
+		}
+		vals[interval.Lower.Time.Unix()] = deltaBands
+	}
+
+	return vals, nil
 }

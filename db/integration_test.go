@@ -6,6 +6,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/bobheadxi/timelines/analysis/testdata"
@@ -25,16 +26,16 @@ func TestDatabase_integration(t *testing.T) {
 		installation = "6969696969"
 	}
 	client, err := db.New(l.Named("db"), "integration_test", dev.DatabaseOptions)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// make a repo
 	var repos = client.Repos()
 	err = repos.NewRepository(ctx, host.HostGitHub,
 		installation, "bobheadxi", "calories")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// get that repo id
 	id, err := repos.GetRepositoryID(ctx, "bobheadxi", "calories")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotZero(t, id)
 	t.Log("bobheadxi/calories created as ID:", id)
 	defer repos.DeleteRepository(ctx, id)
@@ -59,6 +60,9 @@ func TestDatabase_integration(t *testing.T) {
 		assert.NoError(t, repos.InsertGitBurndownResult(ctx, id,
 			testdata.Meta,
 			testdata.Burndown))
+		bd, err := repos.GetGlobalBurndown(ctx, id)
+		require.NoError(t, err)
+		assert.Equal(t, len(testdata.Burndown.Global), len(bd))
 		assert.NoError(t, repos.DeleteRepository(ctx, id))
 	})
 }
