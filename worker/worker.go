@@ -171,7 +171,7 @@ func (w *worker) gitAnalysis(ctx context.Context, repoID int, job *store.RepoJob
 		"duration", time.Since(start))
 
 	// pipe to DB
-	if err := w.db.Repos().DropGitBurndownResults(ctx, repoID); err != nil {
+	if err := w.db.Repos().DeleteGitBurndownResults(ctx, repoID); err != nil {
 		l.Warnw("failed to drop existing burndowns", "error", err)
 	}
 	if err := w.db.Repos().InsertGitBurndownResult(

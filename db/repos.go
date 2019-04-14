@@ -53,46 +53,6 @@ func (r *ReposDatabase) init() {
 	// no-op for now
 }
 
-// GetRepositories fetches all repositories associated with the given owner
-func (r *ReposDatabase) GetRepositories(ctx context.Context, owner string) ([]models.Repository, error) {
-	rows, err := r.db.pg.QueryEx(ctx, `
-		SELECT
-			id, owner, name
-		FROM
-			repositories
-		WHERE
-			owner=$1`,
-		&pgx.QueryExOptions{},
-		owner)
-	if err != nil {
-		return nil, err
-	}
-	var repos = make([]models.Repository, 0)
-	for rows.Next() {
-		var repo models.Repository
-		if err := rows.Scan(&repo.ID, &repo.Owner, &repo.Name); err != nil {
-			return nil, err
-		}
-		repos = append(repos, repo)
-	}
-	return repos, nil
-}
-
-// GetRepository fetches a specific repository
-func (r *ReposDatabase) GetRepository(ctx context.Context, owner, name string) (models.Repository, error) {
-	row := r.db.pg.QueryRowEx(ctx, `
-		SELECT
-			id, owner, name
-		FROM
-			repositories
-		WHERE
-			owner=$1 AND name=$2`,
-		&pgx.QueryExOptions{},
-		owner, name)
-	var repo models.Repository
-	return repo, row.Scan(&repo.ID, &repo.Owner, &repo.Name)
-}
-
 // NewRepository creates a new repository entry
 func (r *ReposDatabase) NewRepository(
 	ctx context.Context,
@@ -125,6 +85,46 @@ func (r *ReposDatabase) NewRepository(
 	return err
 }
 
+// GetRepository fetches a specific repository
+func (r *ReposDatabase) GetRepository(ctx context.Context, owner, name string) (models.Repository, error) {
+	row := r.db.pg.QueryRowEx(ctx, `
+		SELECT
+			id, owner, name
+		FROM
+			repositories
+		WHERE
+			owner=$1 AND name=$2`,
+		&pgx.QueryExOptions{},
+		owner, name)
+	var repo models.Repository
+	return repo, row.Scan(&repo.ID, &repo.Owner, &repo.Name)
+}
+
+// GetRepositories fetches all repositories associated with the given owner
+func (r *ReposDatabase) GetRepositories(ctx context.Context, owner string) ([]models.Repository, error) {
+	rows, err := r.db.pg.QueryEx(ctx, `
+		SELECT
+			id, owner, name
+		FROM
+			repositories
+		WHERE
+			owner=$1`,
+		&pgx.QueryExOptions{},
+		owner)
+	if err != nil {
+		return nil, err
+	}
+	var repos = make([]models.Repository, 0)
+	for rows.Next() {
+		var repo models.Repository
+		if err := rows.Scan(&repo.ID, &repo.Owner, &repo.Name); err != nil {
+			return nil, err
+		}
+		repos = append(repos, repo)
+	}
+	return repos, nil
+}
+
 // DeleteRepository removes a repository and associated items
 func (r *ReposDatabase) DeleteRepository(ctx context.Context, id int) error {
 	res, err := r.db.pg.ExecEx(ctx, `
@@ -143,10 +143,10 @@ func (r *ReposDatabase) DeleteRepository(ctx context.Context, id int) error {
 	return nil
 }
 
-// DropGitBurndownResults deletes all git burndown results associated with the
+// DeleteGitBurndownResults deletes all git burndown results associated with the
 // given repository ID.
 // TODO: should this be done? see https://github.com/bobheadxi/timelines/issues/44
-func (r *ReposDatabase) DropGitBurndownResults(ctx context.Context, repoID int) error {
+func (r *ReposDatabase) DeleteGitBurndownResults(ctx context.Context, repoID int) error {
 	var (
 		start = time.Now()
 		l     = r.l.Named("drop_burndowns").With("repo_id", repoID)
