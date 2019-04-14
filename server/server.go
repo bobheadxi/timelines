@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/99designs/gqlgen/handler"
@@ -29,12 +30,6 @@ func Run(
 	stop chan bool,
 	opts RunOpts,
 ) error {
-	// init server with diagnostic hooks
-	var srv = server.New(&server.Options{
-		// TODO
-		RequestLogger: log.NewRequestLogger(l.Named("requests")),
-	})
-
 	// init clients
 	store, err := store.NewClient(l.Named("store"), "server", opts.Store)
 	if err != nil {
@@ -48,11 +43,17 @@ func Run(
 	defer database.Close()
 
 	// init handlers
-	var resolver = newRootResolver(l.Named("resolver"))
-	var webhook = newWebhookHandler(l.Named("webhooks"), database, store)
+	var (
+		resolver = newRootResolver(l.Named("resolver"), database)
+		webhook  = newWebhookHandler(l.Named("webhooks"), database, store)
+		mux      = chi.NewMux()
+		srv      = server.New(&server.Options{
+			// TODO
+			RequestLogger: log.NewRequestLogger(l.Named("requests")),
+		})
+	)
 
 	// set up endpoints
-	var mux = chi.NewMux()
 	mux.Route("/api", func(r chi.Router) {
 		r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			res.R(w, r, res.MsgOK("the timelines api is online!"))
@@ -69,6 +70,11 @@ func Run(
 	// let's go!
 	l.Infow("spinning up server",
 		"port", opts.Port)
+	go func() {
+		<-stop
+		l.Info("shutting down server")
+		srv.Shutdown(context.Background())
+	}()
 	return srv.ListenAndServe(":"+opts.Port, mux)
 }
 
@@ -78,11 +84,15 @@ type rootResolver struct {
 	q timelines.QueryResolver
 }
 
-func newRootResolver(l *zap.SugaredLogger) *rootResolver {
+func newRootResolver(
+	l *zap.SugaredLogger,
+	database *db.Database,
+) *rootResolver {
 	return &rootResolver{
 		l: l,
 		q: &queryResolver{
-			l: l.Named("query"),
+			db: database,
+			l:  l.Named("query"),
 		},
 	}
 }

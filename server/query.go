@@ -3,12 +3,16 @@ package server
 import (
 	"context"
 
+	"github.com/bobheadxi/timelines/db"
+
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
 )
 
 type queryResolver struct {
+	db *db.Database
+
 	l *zap.SugaredLogger
 }
 
