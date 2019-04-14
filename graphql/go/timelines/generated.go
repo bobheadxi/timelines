@@ -60,7 +60,7 @@ type ComplexityRoot struct {
 	Repository struct {
 		ID    func(childComplexity int) int
 		Owner func(childComplexity int) int
-		Repo  func(childComplexity int) int
+		Name  func(childComplexity int) int
 	}
 }
 
@@ -150,12 +150,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Repository.Owner(childComplexity), true
 
-	case "Repository.Repo":
-		if e.complexity.Repository.Repo == nil {
+	case "Repository.Name":
+		if e.complexity.Repository.Name == nil {
 			break
 		}
 
-		return e.complexity.Repository.Repo(childComplexity), true
+		return e.complexity.Repository.Name(childComplexity), true
 
 	}
 	return 0, false
@@ -228,13 +228,14 @@ type Query {
 }
 
 scalar Time
+scalar Long
 
 # Repositories
 
 type Repository {
-  id: Int
-  owner: String
-  repo: String
+  id: Int!
+  owner: String!
+  name: String!
 }
 
 # Burndowns
@@ -580,12 +581,15 @@ func (ec *executionContext) _Repository_id(ctx context.Context, field graphql.Co
 		return obj.ID, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Repository_owner(ctx context.Context, field graphql.CollectedField, obj *models.Repository) graphql.Marshaler {
@@ -603,15 +607,18 @@ func (ec *executionContext) _Repository_owner(ctx context.Context, field graphql
 		return obj.Owner, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Repository_repo(ctx context.Context, field graphql.CollectedField, obj *models.Repository) graphql.Marshaler {
+func (ec *executionContext) _Repository_name(ctx context.Context, field graphql.CollectedField, obj *models.Repository) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -623,15 +630,18 @@ func (ec *executionContext) _Repository_repo(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Repo, nil
+		return obj.Name, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -1564,10 +1574,19 @@ func (ec *executionContext) _Repository(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("Repository")
 		case "id":
 			out.Values[i] = ec._Repository_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "owner":
 			out.Values[i] = ec._Repository_owner(ctx, field, obj)
-		case "repo":
-			out.Values[i] = ec._Repository_repo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "name":
+			out.Values[i] = ec._Repository_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2202,29 +2221,6 @@ func (ec *executionContext) marshalOBurndownType2ᚖgithubᚗcomᚋbobheadxiᚋt
 		return graphql.Null
 	}
 	return v
-}
-
-func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
-	return graphql.UnmarshalInt(v)
-}
-
-func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	return graphql.MarshalInt(v)
-}
-
-func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOInt2int(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalORepository2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx context.Context, sel ast.SelectionSet, v models.Repository) graphql.Marshaler {

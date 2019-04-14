@@ -10,9 +10,9 @@ scalar Long
 # Repositories
 
 type Repository {
-  id: Int
-  owner: String
-  repo: String
+  id: Int!
+  owner: String!
+  name: String!
 }
 
 # Burndowns

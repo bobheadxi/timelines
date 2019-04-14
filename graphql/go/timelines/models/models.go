@@ -20,9 +20,9 @@ type BurndownEntry struct {
 }
 
 type Repository struct {
-	ID    *int    `json:"id"`
-	Owner *string `json:"owner"`
-	Repo  *string `json:"repo"`
+	ID    int    `json:"id"`
+	Owner string `json:"owner"`
+	Name  string `json:"name"`
 }
 
 type BurndownType string

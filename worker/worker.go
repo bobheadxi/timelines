@@ -82,8 +82,8 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 			)
 
 			// check for entry in DB
-			repoID, err := w.db.Repos().GetRepositoryID(ctx, job.Owner, job.Repo)
-			if err != nil || repoID == 0 {
+			repo, err := w.db.Repos().GetRepository(ctx, job.Owner, job.Repo)
+			if err != nil || repo.ID == 0 {
 				// repo must exist at this point, since server must create it first
 				w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 					Analysis: &store.StateMeta{
@@ -99,8 +99,8 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 
 			// spin up handlers and wait until completion
 			wg.Add(2)
-			go w.githubSync(ctx, repoID, job, &wg)
-			go w.gitAnalysis(ctx, repoID, job, &wg)
+			go w.githubSync(ctx, repo.ID, job, &wg)
+			go w.gitAnalysis(ctx, repo.ID, job, &wg)
 			wg.Wait()
 			w.l.Infow("job processed", "job.id", job.ID)
 		}

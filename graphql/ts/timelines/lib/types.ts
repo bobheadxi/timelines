@@ -7,3 +7,5 @@ export enum BurndownType {
 }
 
 export type Time = any;
+
+export type Long = any;

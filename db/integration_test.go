@@ -34,15 +34,15 @@ func TestDatabase_integration(t *testing.T) {
 		installation, "bobheadxi", "calories")
 	require.NoError(t, err)
 	// get that repo id
-	id, err := repos.GetRepositoryID(ctx, "bobheadxi", "calories")
+	repo, err := repos.GetRepository(ctx, "bobheadxi", "calories")
 	require.NoError(t, err)
-	assert.NotZero(t, id)
-	t.Log("bobheadxi/calories created as ID:", id)
-	defer repos.DeleteRepository(ctx, id)
+	assert.NotZero(t, repo.ID)
+	t.Log("bobheadxi/calories created as ID:", repo.ID)
+	defer repos.DeleteRepository(ctx, repo.ID)
 
 	// run tests
 	t.Run("test host items", func(t *testing.T) {
-		assert.NoError(t, repos.InsertHostItems(ctx, id, []*host.Item{
+		assert.NoError(t, repos.InsertHostItems(ctx, repo.ID, []*host.Item{
 			{
 				GitHubID: 1234,
 				Number:   25,
@@ -57,12 +57,12 @@ func TestDatabase_integration(t *testing.T) {
 		}))
 	})
 	t.Run("test git burndown", func(t *testing.T) {
-		assert.NoError(t, repos.InsertGitBurndownResult(ctx, id,
+		assert.NoError(t, repos.InsertGitBurndownResult(ctx, repo.ID,
 			testdata.Meta,
 			testdata.Burndown))
-		bd, err := repos.GetGlobalBurndown(ctx, id)
+		bd, err := repos.GetGlobalBurndown(ctx, repo.ID)
 		require.NoError(t, err)
 		assert.Equal(t, len(testdata.Burndown.Global), len(bd))
-		assert.NoError(t, repos.DeleteRepository(ctx, id))
+		assert.NoError(t, repos.DeleteRepository(ctx, repo.ID))
 	})
 }

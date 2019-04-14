@@ -2,6 +2,7 @@ package db
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/jackc/pgx"
 	"go.uber.org/zap"
@@ -19,22 +20,25 @@ type Database struct {
 // New instantiates a new database
 func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, error) {
 	port, _ := strconv.Atoi(opts.Port)
-	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{ConnConfig: pgx.ConnConfig{
-		Host:     opts.Host,
-		Port:     uint16(port),
-		Database: opts.Database,
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig: pgx.ConnConfig{
+			Host:     opts.Host,
+			Port:     uint16(port),
+			Database: opts.Database,
 
-		// authentication
-		User:      opts.User,
-		Password:  opts.Password,
-		TLSConfig: opts.TLS,
+			// authentication
+			User:      opts.User,
+			Password:  opts.Password,
+			TLSConfig: opts.TLS,
 
-		// misc metadata
-		RuntimeParams: map[string]string{
-			"application_name": name,
+			// misc metadata
+			RuntimeParams: map[string]string{
+				"application_name": name,
+			},
+			Logger: log.NewDatabaseLogger(l.Named("pg")),
 		},
-		Logger: log.NewDatabaseLogger(l.Named("pg")),
-	}})
+		AcquireTimeout: 30 * time.Second,
+	})
 	if err != nil {
 		return nil, err
 	}

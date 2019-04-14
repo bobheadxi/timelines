@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
@@ -52,14 +53,44 @@ func (r *ReposDatabase) init() {
 	// no-op for now
 }
 
-// GetRepositoryID retrieves the ID associated with the given repository
-func (r *ReposDatabase) GetRepositoryID(ctx context.Context, owner, name string) (int, error) {
-	row := r.db.pg.QueryRowEx(ctx,
-		"SELECT id FROM repositories WHERE owner=$1 AND name=$2",
+// GetRepositories fetches all repositories associated with the given owner
+func (r *ReposDatabase) GetRepositories(ctx context.Context, owner string) ([]models.Repository, error) {
+	rows, err := r.db.pg.QueryEx(ctx, `
+		SELECT
+			id, owner, name
+		FROM
+			repositories
+		WHERE
+			owner=$1`,
+		&pgx.QueryExOptions{},
+		owner)
+	if err != nil {
+		return nil, err
+	}
+	var repos = make([]models.Repository, 0)
+	for rows.Next() {
+		var repo models.Repository
+		if err := rows.Scan(&repo.ID, &repo.Owner, &repo.Name); err != nil {
+			return nil, err
+		}
+		repos = append(repos, repo)
+	}
+	return repos, nil
+}
+
+// GetRepository fetches a specific repository
+func (r *ReposDatabase) GetRepository(ctx context.Context, owner, name string) (models.Repository, error) {
+	row := r.db.pg.QueryRowEx(ctx, `
+		SELECT
+			id, owner, name
+		FROM
+			repositories
+		WHERE
+			owner=$1 AND name=$2`,
 		&pgx.QueryExOptions{},
 		owner, name)
-	var id int
-	return id, row.Scan(&id)
+	var repo models.Repository
+	return repo, row.Scan(&repo.ID, &repo.Owner, &repo.Name)
 }
 
 // NewRepository creates a new repository entry
@@ -83,6 +114,13 @@ func (r *ReposDatabase) NewRepository(
 		installation, string(h), owner, name)
 	if err == nil {
 		r.l.Infow("created new entry for repo", "repo", owner+"/"+name)
+	} else {
+		r.l.Errorw("error encountered when creating repo",
+			"error", err)
+		if strings.Contains(err.Error(), "violates unique constraint") {
+			return fmt.Errorf("repo '%s:%s/%s' already exists",
+				h, owner, name)
+		}
 	}
 	return err
 }
