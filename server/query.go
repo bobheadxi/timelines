@@ -24,12 +24,14 @@ func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.
 
 	repo, err := q.db.Repos().GetRepository(ctx, owner, name)
 	if err != nil {
-		q.l.Errorw(err.Error(),
-			"owner", owner,
-			"name", name)
+		if !db.IsNotFound(err) {
+			q.l.Errorw(err.Error(),
+				"owner", owner,
+				"name", name)
+		}
 		return nil, fmt.Errorf("could not find repository for '%s/%s'", owner, name)
 	}
-	return &repo, nil
+	return repo, nil
 }
 
 func (q *queryResolver) Repos(ctx context.Context, owner string, h *models.RepositoryHost) ([]models.Repository, error) {

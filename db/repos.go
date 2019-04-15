@@ -86,7 +86,7 @@ func (r *ReposDatabase) NewRepository(
 }
 
 // GetRepository fetches a specific repository
-func (r *ReposDatabase) GetRepository(ctx context.Context, owner, name string) (models.Repository, error) {
+func (r *ReposDatabase) GetRepository(ctx context.Context, owner, name string) (*models.Repository, error) {
 	row := r.db.pg.QueryRowEx(ctx, `
 		SELECT
 			id, owner, name
@@ -97,7 +97,12 @@ func (r *ReposDatabase) GetRepository(ctx context.Context, owner, name string) (
 		&pgx.QueryExOptions{},
 		owner, name)
 	var repo models.Repository
-	return repo, row.Scan(&repo.ID, &repo.Owner, &repo.Name)
+	if err := row.Scan(&repo.ID, &repo.Owner, &repo.Name); err != nil {
+		if isPgxNotFound(err) {
+			return nil, errNotFound()
+		}
+	}
+	return &repo, nil
 }
 
 // GetRepositories fetches all repositories associated with the given owner
@@ -112,6 +117,9 @@ func (r *ReposDatabase) GetRepositories(ctx context.Context, owner string) ([]mo
 		&pgx.QueryExOptions{},
 		owner)
 	if err != nil {
+		if isPgxNotFound(err) {
+			return nil, errNotFound()
+		}
 		return nil, err
 	}
 	var repos = make([]models.Repository, 0)
@@ -138,7 +146,7 @@ func (r *ReposDatabase) DeleteRepository(ctx context.Context, id int) error {
 		return err
 	}
 	if res.RowsAffected() < 1 {
-		return errors.New("no repository was deleted")
+		return errNotFound()
 	}
 	return nil
 }
