@@ -51,3 +51,7 @@ pg-reset:
 .PHONY: pg-init
 pg-init:
 	docker exec -i postgres psql -U bobheadxi timelines-dev < db/sql/repos.sql
+
+.PHONY: herokupg
+herokupg:
+	heroku pg:psql --app timelines-server < db/sql/repos.sql
