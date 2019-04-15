@@ -1,2 +1,2 @@
-server: bin/timelines server --port 443
+server: bin/timelines server --port $PORT
 worker: bin/timelines worker
