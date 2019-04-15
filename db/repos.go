@@ -211,14 +211,16 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 	var (
 		start = time.Now()
 		width = len(bd.Global)
-		l     = r.l.Named("insert_burndowns").With("repo_id", repoID, "items", width+
-			len(bd.Files)*width+
-			len(bd.People)*width)
+		l     = r.l.Named("insert_burndowns").With("repo_id", repoID)
 	)
+
+	l.Infof("preparing to insert %d items", width+len(bd.Files)*width+len(bd.People)*width)
 
 	tx, err := r.db.pg.BeginEx(ctx, &pgx.TxOptions{})
 	if err != nil {
-		return err
+		l.Errorw("failed to start transaction",
+			"error", err)
+		return errors.New("could not begin transaction")
 	}
 
 	l.Debug("preparing global burndowns")
@@ -232,7 +234,7 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 	); err != nil {
 		l.Errorw("failed to insert global burndowns",
 			"error", err)
-		return err
+		return errors.New("burndowns update failed")
 	} else if count != width {
 		l.Warnf("expected '%d' items, got '%d' items", width, count)
 	}
@@ -251,7 +253,7 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 			l.Errorw("failed to insert file burndowns",
 				"file", f,
 				"error", err)
-			return err
+			return errors.New("burndowns update failed")
 		} else if count != width {
 			l.Warnf("file '%s': expected '%d' items, got '%d' items", f, width, count)
 		}
@@ -271,7 +273,7 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 			l.Errorw("failed to insert contributor burndowns",
 				"contributor", c,
 				"error", err)
-			return err
+			return errors.New("burndowns update failed")
 		} else if count != width {
 			l.Errorf("contributor '%s': expected '%d' items, got '%d' items", c, width, count)
 		}
@@ -280,7 +282,7 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 	if err := tx.CommitEx(ctx); err != nil {
 		l.Errorw("failed to commit transaction for burndown insertion",
 			"error", err)
-		return err
+		return errors.New("burndowns update failed")
 	}
 
 	l.Infow("burndown committed",
