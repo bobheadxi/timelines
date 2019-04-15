@@ -7,13 +7,11 @@ import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
-	"gocloud.dev/server"
 
 	"github.com/bobheadxi/res"
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/graphql/go/timelines"
-	"github.com/bobheadxi/timelines/log"
 	"github.com/bobheadxi/timelines/store"
 )
 
@@ -47,10 +45,10 @@ func Run(
 		resolver = newRootResolver(l.Named("resolver"), database)
 		webhook  = newWebhookHandler(l.Named("webhooks"), database, store)
 		mux      = chi.NewMux()
-		srv      = server.New(&server.Options{
-			// TODO
-			RequestLogger: log.NewRequestLogger(l.Named("requests")),
-		})
+		srv      = http.Server{
+			Addr:    ":" + opts.Port,
+			Handler: mux,
+		}
 	)
 
 	// set up endpoints
@@ -78,7 +76,7 @@ func Run(
 		l.Info("shutting down server")
 		srv.Shutdown(context.Background())
 	}()
-	return srv.ListenAndServe(":"+opts.Port, mux)
+	return srv.ListenAndServe()
 }
 
 // rootResolver implements the timelines GraphQL API
