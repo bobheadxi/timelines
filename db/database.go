@@ -23,12 +23,14 @@ func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, er
 	// set up configuration
 	var connConfig pgx.ConnConfig
 	if opts.PostgresConnURL != "" {
+		l.Info("parsing conn string")
 		var err error
 		connConfig, err = pgx.ParseURI(opts.PostgresConnURL)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read db conn url: %v", err)
 		}
 	} else {
+		l.Info("using provided parameters")
 		port, _ := strconv.Atoi(opts.Port)
 		connConfig = pgx.ConnConfig{
 			Host:     opts.Host,
@@ -47,6 +49,9 @@ func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, er
 			Logger: log.NewDatabaseLogger(l.Named("pg")),
 		}
 	}
+	l.Infow("set up configuration",
+		"host", connConfig.Host,
+		"database", connConfig.Database)
 
 	// init connection pool
 	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{

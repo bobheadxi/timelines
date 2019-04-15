@@ -28,6 +28,9 @@ func NewClient(l *zap.SugaredLogger, name string, opts config.Store) (*Client, e
 			return nil, err
 		}
 		c = redis.NewClient(cfg)
+		l.Infow("client successfully set up",
+			"address", cfg.Addr,
+			"db", cfg.DB)
 	} else {
 		l.Info("connecting using parameters")
 		if opts.Address == "" {
@@ -40,6 +43,9 @@ func NewClient(l *zap.SugaredLogger, name string, opts config.Store) (*Client, e
 
 			DB: 0, // use default DB
 		})
+		l.Infow("client successfully set up",
+			"address", opts.Address,
+			"db", 0)
 	}
 
 	// make sure all's good
