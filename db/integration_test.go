@@ -63,6 +63,5 @@ func TestDatabase_integration(t *testing.T) {
 		bd, err := repos.GetGlobalBurndown(ctx, repo.ID)
 		require.NoError(t, err)
 		assert.Equal(t, len(testdata.Burndown.Global), len(bd))
-		assert.NoError(t, repos.DeleteRepository(ctx, repo.ID))
 	})
 }
