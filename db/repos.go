@@ -237,7 +237,8 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 		l.Warnf("expected '%d' items, got '%d' items", width, count)
 	}
 
-	l.Debug("preparing per-file burndowns")
+	l.Debugw("preparing per-file burndowns",
+		"files", len(bd.Files))
 	for f, v := range bd.Files {
 		if count, err := tx.CopyFrom(
 			pgx.Identifier{tableGitBurndownFiles},
@@ -256,8 +257,9 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 		}
 	}
 
-	l.Debug("preparing per-contributor burndowns")
-	for c, v := range bd.Files {
+	l.Debugw("preparing per-contributor burndowns",
+		"contributors", len(bd.People))
+	for c, v := range bd.People {
 		if count, err := tx.CopyFrom(
 			pgx.Identifier{"git_burndowns_contributors"},
 			[]string{
