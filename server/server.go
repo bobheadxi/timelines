@@ -6,6 +6,7 @@ import (
 
 	"github.com/99designs/gqlgen/handler"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/res"
@@ -53,9 +54,17 @@ func Run(
 
 	// set up endpoints
 	mux.Handle("/playground", handler.Playground("timelines API Playground", "/query"))
-	mux.Handle("/query", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
-		Resolvers: resolver,
-	})))
+	mux.Route("/query", func(r chi.Router) {
+		// TODO: improve configuration
+		r.Use(cors.New(cors.Options{
+			AllowedOrigins:   []string{"*"},
+			AllowCredentials: true,
+			Debug:            true,
+		}).Handler)
+		r.Handle("/", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
+			Resolvers: resolver,
+		})))
+	})
 	mux.Route("/webhooks", func(r chi.Router) {
 		r.HandleFunc("/github", webhook.handleGitHub)
 	})
