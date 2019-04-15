@@ -69,13 +69,6 @@ func (h *webhookHandler) handleGitHub(w http.ResponseWriter, r *http.Request) {
 		res.R(w, r, res.MsgOK("event acknowledged but not processed - not implemented",
 			"type", t))
 
-	case *github.WatchEvent:
-		// https://developer.github.com/v3/activity/events/types/#watchevent
-		h.l.Infof("received %#v", event)
-		// TODO track star growth over time
-		res.R(w, r, res.MsgOK("event acknowledged but not processed - not implemented",
-			"type", t))
-
 	default:
 		h.l.Infof("unknown type %#v", event)
 		res.R(w, r, res.MsgOK("event acknowledged but not processed",
