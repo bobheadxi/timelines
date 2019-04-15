@@ -19,9 +19,17 @@ type Database struct {
 
 // New instantiates a new database
 func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, error) {
-	port, _ := strconv.Atoi(opts.Port)
-	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
-		ConnConfig: pgx.ConnConfig{
+	// set up configuration
+	var connConfig pgx.ConnConfig
+	if opts.PostgresConnURL != "" {
+		var err error
+		connConfig, err = pgx.ParseURI(opts.PostgresConnURL)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		port, _ := strconv.Atoi(opts.Port)
+		connConfig = pgx.ConnConfig{
 			Host:     opts.Host,
 			Port:     uint16(port),
 			Database: opts.Database,
@@ -36,7 +44,12 @@ func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, er
 				"application_name": name,
 			},
 			Logger: log.NewDatabaseLogger(l.Named("pg")),
-		},
+		}
+	}
+
+	// init connection pool
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig:     connConfig,
 		AcquireTimeout: 30 * time.Second,
 	})
 	if err != nil {

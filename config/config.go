@@ -11,6 +11,9 @@ type Store struct {
 	Password string
 
 	TLS *tls.Config
+
+	// this has priority
+	RedisConnURL string
 }
 
 // NewStoreConfig loads store configuration from environment
@@ -20,6 +23,8 @@ func NewStoreConfig() Store {
 		Password: os.Getenv("STORE_PW"),
 
 		TLS: nil,
+
+		RedisConnURL: os.Getenv("REDIS_URL"),
 	}
 }
 
@@ -34,6 +39,9 @@ type Database struct {
 
 	Drop bool
 	TLS  *tls.Config
+
+	// this has priority
+	PostgresConnURL string
 }
 
 // NewDatabaseConfig loads database configuration from environment
@@ -48,5 +56,7 @@ func NewDatabaseConfig() Database {
 
 		Drop: false,
 		TLS:  nil,
+
+		PostgresConnURL: os.Getenv("DATABASE_URL"),
 	}
 }

@@ -23,14 +23,25 @@ func NewClient(l *zap.SugaredLogger, name string, opts config.Store) (*Client, e
 		return nil, errors.New("no address provided")
 	}
 
-	var c = redis.NewClient(&redis.Options{
-		Addr:      opts.Address,
-		Password:  opts.Password,
-		TLSConfig: opts.TLS,
+	// set up redis client
+	var c *redis.Client
+	if opts.RedisConnURL != "" {
+		cfg, err := redis.ParseURL(opts.RedisConnURL)
+		if err != nil {
+			return nil, err
+		}
+		c = redis.NewClient(cfg)
+	} else {
+		c = redis.NewClient(&redis.Options{
+			Addr:      opts.Address,
+			Password:  opts.Password,
+			TLSConfig: opts.TLS,
 
-		DB: 0, // use default DB
-	})
+			DB: 0, // use default DB
+		})
+	}
 
+	// make sure all's good
 	l.Infow("pinging redis...")
 	var s = c.Ping()
 	if err := s.Err(); err != nil {
