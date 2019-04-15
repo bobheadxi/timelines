@@ -53,8 +53,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Repo     func(childComplexity int, owner string, repo string) int
-		Burndown func(childComplexity int, id int, typeArg *models.BurndownType) int
+		Repo     func(childComplexity int, owner string, name string, host *models.RepositoryHost) int
+		Repos    func(childComplexity int, owner string, host *models.RepositoryHost) int
+		Burndown func(childComplexity int, repoID int, typeArg *models.BurndownType) int
 	}
 
 	Repository struct {
@@ -65,8 +66,9 @@ type ComplexityRoot struct {
 }
 
 type QueryResolver interface {
-	Repo(ctx context.Context, owner string, repo string) (*models.Repository, error)
-	Burndown(ctx context.Context, id int, typeArg *models.BurndownType) (*models.Burndown, error)
+	Repo(ctx context.Context, owner string, name string, host *models.RepositoryHost) (*models.Repository, error)
+	Repos(ctx context.Context, owner string, host *models.RepositoryHost) ([]models.Repository, error)
+	Burndown(ctx context.Context, repoID int, typeArg *models.BurndownType) (*models.Burndown, error)
 }
 
 type executableSchema struct {
@@ -122,7 +124,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Repo(childComplexity, args["owner"].(string), args["repo"].(string)), true
+		return e.complexity.Query.Repo(childComplexity, args["owner"].(string), args["name"].(string), args["host"].(*models.RepositoryHost)), true
+
+	case "Query.Repos":
+		if e.complexity.Query.Repos == nil {
+			break
+		}
+
+		args, err := ec.field_Query_repos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Repos(childComplexity, args["owner"].(string), args["host"].(*models.RepositoryHost)), true
 
 	case "Query.Burndown":
 		if e.complexity.Query.Burndown == nil {
@@ -134,7 +148,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Burndown(childComplexity, args["id"].(int), args["type"].(*models.BurndownType)), true
+		return e.complexity.Query.Burndown(childComplexity, args["repoID"].(int), args["type"].(*models.BurndownType)), true
 
 	case "Repository.ID":
 		if e.complexity.Repository.ID == nil {
@@ -221,14 +235,31 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "../../schema.graphql", Input: `# Query defines all API queries
-type Query {
-  repo(owner: String!, repo: String!): Repository
-  burndown(id: Int!, type: BurndownType = GLOBAL): Burndown
+	&ast.Source{Name: "../../schema.graphql", Input: `schema {
+  query: Query
 }
 
 scalar Time
 scalar Long
+
+# Query defines all API queries
+type Query {
+  repo(
+    owner: String!,
+    name: String!,
+    host: RepositoryHost = GITHUB,
+  ): Repository
+
+  repos(
+    owner: String!,
+    host: RepositoryHost = GITHUB,
+  ): [Repository!]
+
+  burndown(
+    repoID: Int!,
+    type: BurndownType = GLOBAL,
+  ): Burndown
+}
 
 # Repositories
 
@@ -236,6 +267,12 @@ type Repository {
   id: Int!
   owner: String!
   name: String!
+}
+
+enum RepositoryHost {
+  GITHUB
+  GITLAB
+  BITBUCKET
 }
 
 # Burndowns
@@ -283,13 +320,13 @@ func (ec *executionContext) field_Query_burndown_args(ctx context.Context, rawAr
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
+	if tmp, ok := rawArgs["repoID"]; ok {
 		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["repoID"] = arg0
 	var arg1 *models.BurndownType
 	if tmp, ok := rawArgs["type"]; ok {
 		arg1, err = ec.unmarshalOBurndownType2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndownType(ctx, tmp)
@@ -313,13 +350,43 @@ func (ec *executionContext) field_Query_repo_args(ctx context.Context, rawArgs m
 	}
 	args["owner"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["repo"]; ok {
+	if tmp, ok := rawArgs["name"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["repo"] = arg1
+	args["name"] = arg1
+	var arg2 *models.RepositoryHost
+	if tmp, ok := rawArgs["host"]; ok {
+		arg2, err = ec.unmarshalORepositoryHost2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryHost(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["host"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_repos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["owner"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["owner"] = arg0
+	var arg1 *models.RepositoryHost
+	if tmp, ok := rawArgs["host"]; ok {
+		arg1, err = ec.unmarshalORepositoryHost2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryHost(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["host"] = arg1
 	return args, nil
 }
 
@@ -472,7 +539,7 @@ func (ec *executionContext) _Query_repo(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Repo(rctx, args["owner"].(string), args["repo"].(string))
+		return ec.resolvers.Query().Repo(rctx, args["owner"].(string), args["name"].(string), args["host"].(*models.RepositoryHost))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -481,6 +548,36 @@ func (ec *executionContext) _Query_repo(ctx context.Context, field graphql.Colle
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalORepository2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_repos(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_repos_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Repos(rctx, args["owner"].(string), args["host"].(*models.RepositoryHost))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]models.Repository)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalORepository2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_burndown(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -502,7 +599,7 @@ func (ec *executionContext) _Query_burndown(ctx context.Context, field graphql.C
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Burndown(rctx, args["id"].(int), args["type"].(*models.BurndownType))
+		return ec.resolvers.Query().Burndown(rctx, args["repoID"].(int), args["type"].(*models.BurndownType))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -1535,6 +1632,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_repo(ctx, field)
 				return res
 			})
+		case "repos":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_repos(ctx, field)
+				return res
+			})
 		case "burndown":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -1892,6 +2000,10 @@ func (ec *executionContext) marshalNInt2ᚕint(ctx context.Context, sel ast.Sele
 	return ret
 }
 
+func (ec *executionContext) marshalNRepository2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx context.Context, sel ast.SelectionSet, v models.Repository) graphql.Marshaler {
+	return ec._Repository(ctx, sel, &v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalString(v)
 }
@@ -2227,11 +2339,72 @@ func (ec *executionContext) marshalORepository2githubᚗcomᚋbobheadxiᚋtimeli
 	return ec._Repository(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalORepository2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx context.Context, sel ast.SelectionSet, v []models.Repository) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRepository2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalORepository2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx context.Context, sel ast.SelectionSet, v *models.Repository) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Repository(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalORepositoryHost2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryHost(ctx context.Context, v interface{}) (models.RepositoryHost, error) {
+	var res models.RepositoryHost
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalORepositoryHost2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryHost(ctx context.Context, sel ast.SelectionSet, v models.RepositoryHost) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalORepositoryHost2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryHost(ctx context.Context, v interface{}) (*models.RepositoryHost, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalORepositoryHost2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryHost(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalORepositoryHost2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryHost(ctx context.Context, sel ast.SelectionSet, v *models.RepositoryHost) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

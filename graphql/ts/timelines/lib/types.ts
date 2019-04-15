@@ -1,5 +1,11 @@
 export type Maybe<T> = T | null;
 
+export enum RepositoryHost {
+  Github = "GITHUB",
+  Gitlab = "GITLAB",
+  Bitbucket = "BITBUCKET"
+}
+
 export enum BurndownType {
   Global = "GLOBAL",
   File = "FILE",

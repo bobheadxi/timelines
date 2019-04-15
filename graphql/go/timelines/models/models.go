@@ -67,3 +67,46 @@ func (e *BurndownType) UnmarshalGQL(v interface{}) error {
 func (e BurndownType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+type RepositoryHost string
+
+const (
+	RepositoryHostGithub    RepositoryHost = "GITHUB"
+	RepositoryHostGitlab    RepositoryHost = "GITLAB"
+	RepositoryHostBitbucket RepositoryHost = "BITBUCKET"
+)
+
+var AllRepositoryHost = []RepositoryHost{
+	RepositoryHostGithub,
+	RepositoryHostGitlab,
+	RepositoryHostBitbucket,
+}
+
+func (e RepositoryHost) IsValid() bool {
+	switch e {
+	case RepositoryHostGithub, RepositoryHostGitlab, RepositoryHostBitbucket:
+		return true
+	}
+	return false
+}
+
+func (e RepositoryHost) String() string {
+	return string(e)
+}
+
+func (e *RepositoryHost) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RepositoryHost(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RepositoryHost", str)
+	}
+	return nil
+}
+
+func (e RepositoryHost) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

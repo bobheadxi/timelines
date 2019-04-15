@@ -1,11 +1,28 @@
-# Query defines all API queries
-type Query {
-  repo(owner: String!, repo: String!): Repository
-  burndown(id: Int!, type: BurndownType = GLOBAL): Burndown
+schema {
+  query: Query
 }
 
 scalar Time
 scalar Long
+
+# Query defines all API queries
+type Query {
+  repo(
+    owner: String!,
+    name: String!,
+    host: RepositoryHost = GITHUB,
+  ): Repository
+
+  repos(
+    owner: String!,
+    host: RepositoryHost = GITHUB,
+  ): [Repository!]
+
+  burndown(
+    repoID: Int!,
+    type: BurndownType = GLOBAL,
+  ): Burndown
+}
 
 # Repositories
 
@@ -13,6 +30,12 @@ type Repository {
   id: Int!
   owner: String!
   name: String!
+}
+
+enum RepositoryHost {
+  GITHUB
+  GITLAB
+  BITBUCKET
 }
 
 # Burndowns
