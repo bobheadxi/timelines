@@ -54,4 +54,5 @@ pg-init:
 
 .PHONY: herokupg
 herokupg:
+	heroku pg:psql --app timelines-server < db/sql/reset.sql
 	heroku pg:psql --app timelines-server < db/sql/repos.sql
