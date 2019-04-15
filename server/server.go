@@ -66,6 +66,9 @@ func Run(
 	mux.Route("/webhooks", func(r chi.Router) {
 		r.HandleFunc("/github", webhook.handleGitHub)
 	})
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		res.R(w, r, res.MsgOK("API server is online!"))
+	})
 
 	// let's go!
 	l.Infow("spinning up server",
