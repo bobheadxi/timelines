@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
+	"github.com/bobheadxi/timelines/analysis/testdata"
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/dev"
@@ -61,10 +62,20 @@ func newPGCommand() *cobra.Command {
 					return err
 				}
 
-				return c.Repos().NewRepository(context.Background(),
+				c.Repos().NewRepository(context.Background(),
 					host.HostGitHub,
 					dev.GetTestInstallationID(),
 					"bobheadxi", "calories")
+				repo, err := c.Repos().GetRepository(context.Background(),
+					"bobheadxi", "calories")
+				if err != nil {
+					return err
+				}
+				c.Repos().InsertGitBurndownResult(context.Background(),
+					repo.ID,
+					testdata.Meta,
+					testdata.Burndown)
+				return nil
 			},
 		}
 	)
