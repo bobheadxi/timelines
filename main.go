@@ -20,7 +20,7 @@ func main() {
 			}
 		},
 	}
-	root.Flags().StringArrayVar(&envFiles, "env", nil, "env files to load")
+	root.PersistentFlags().StringArrayVar(&envFiles, "env", nil, "env files to load")
 	// hide the help command because it's not pretty
 	root.SetHelpCommand(&cobra.Command{Use: "no-help", Hidden: true})
 
