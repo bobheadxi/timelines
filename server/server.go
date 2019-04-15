@@ -52,15 +52,10 @@ func Run(
 	)
 
 	// set up endpoints
-	mux.Route("/api", func(r chi.Router) {
-		r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			res.R(w, r, res.MsgOK("the timelines api is online!"))
-		})
-		r.Handle("/playground", handler.Playground("timelines API Playground", "/api/query"))
-		r.Handle("/query", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
-			Resolvers: resolver,
-		})))
-	})
+	mux.Handle("/playground", handler.Playground("timelines API Playground", "/query"))
+	mux.Handle("/query", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
+		Resolvers: resolver,
+	})))
 	mux.Route("/webhooks", func(r chi.Router) {
 		r.HandleFunc("/github", webhook.handleGitHub)
 	})
