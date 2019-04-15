@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -25,7 +26,7 @@ func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, er
 		var err error
 		connConfig, err = pgx.ParseURI(opts.PostgresConnURL)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to read db conn url: %v", err)
 		}
 	} else {
 		port, _ := strconv.Atoi(opts.Port)
@@ -53,7 +54,7 @@ func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, er
 		AcquireTimeout: 30 * time.Second,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to init db: %v", err)
 	}
 
 	// create struct

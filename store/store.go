@@ -19,19 +19,20 @@ type Client struct {
 
 // NewClient sets up a new client for the redis store
 func NewClient(l *zap.SugaredLogger, name string, opts config.Store) (*Client, error) {
-	if opts.Address == "" {
-		return nil, errors.New("no address provided")
-	}
-
 	// set up redis client
 	var c *redis.Client
 	if opts.RedisConnURL != "" {
+		l.Info("connecting using connection URL")
 		cfg, err := redis.ParseURL(opts.RedisConnURL)
 		if err != nil {
 			return nil, err
 		}
 		c = redis.NewClient(cfg)
 	} else {
+		l.Info("connecting using parameters")
+		if opts.Address == "" {
+			return nil, errors.New("store: no address provided")
+		}
 		c = redis.NewClient(&redis.Options{
 			Addr:      opts.Address,
 			Password:  opts.Password,
