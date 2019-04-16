@@ -6,7 +6,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "graphql": "apollo codegen:generate --target=typescript --tagName=gql --addTypename --globalTypesFile=src/types/graphql.globalTypes.ts types"
+    "graphql": "apollo codegen:generate --target=typescript --tagName=gql --addTypename --globalTypesFile=src/types/graphql.globalTypes.ts types",
+    "serve": "serve -s build -l 3000"
   },
   "dependencies": {
     "@types/graphql": "^14.2.0",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "apollo": "^2.8.3",
+    "serve": "^11.0.0",
     "ts-jest": "^24.0.1"
   },
   "eslintConfig": {
