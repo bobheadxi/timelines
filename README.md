@@ -7,7 +7,7 @@
     <img src="https://dev.azure.com/bobheadxi/bobheadxi/_apis/build/status/bobheadxi.timelines?branchName=master"
       alt="CI Status" />
   </a>
-  <a href="https://timelines-api.herokuapp.com/">
+  <a href="https://timelines-api.herokuapp.com/playground">
     <img src="https://img.shields.io/website/https/timelines-api.herokuapp.com.svg?down_color=lightgrey&down_message=offline&label=api&up_message=online"
       alt="API Status" >
   </a>
