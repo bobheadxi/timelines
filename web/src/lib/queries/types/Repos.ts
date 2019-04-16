@@ -2,20 +2,23 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
+import { RepositoryHost } from "./global";
+
 // ====================================================
-// GraphQL query operation: GetRepos
+// GraphQL query operation: Repos
 // ====================================================
 
-export interface GetRepos_repos {
+export interface Repos_repos {
   __typename: "Repository";
   id: number;
   name: string;
 }
 
-export interface GetRepos {
-  repos: GetRepos_repos[] | null;
+export interface Repos {
+  repos: Repos_repos[] | null;
 }
 
-export interface GetReposVariables {
+export interface ReposVariables {
   owner: string;
+  host?: RepositoryHost | null;
 }

@@ -1,5 +1,5 @@
 module.exports = {
-  includes: [ 'src/queries/*.tsx' ],
+  includes: [ 'src/lib/queries/*.tsx' ],
   client: {
     name: 'Timelines',
     service: {

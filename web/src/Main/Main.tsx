@@ -7,11 +7,9 @@ import Loading from '../components/Loading/Loading';
 
 const Home = lazy(() => import('../pages/Home/Home'));
 const About = lazy(() => import('../pages/About/About'));
-
 const Host = lazy(() => import('../pages/Host/Host'));
 const Owner = lazy(() => import('../pages/Owner/Owner'));
 const Timeline = lazy(() => import('../pages/Timeline/Timeline'));
-
 const NotFound = lazy(() => import('../pages/NotFound/NotFound'));
 
 const client = new ApolloClient({

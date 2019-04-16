@@ -6,7 +6,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "graphql": "apollo codegen:generate --target=typescript --tagName=gql --addTypename --globalTypesFile=src/types/graphql.globalTypes.ts types",
+    "graphql": "apollo codegen:generate --target=typescript --tagName=gql --addTypename --globalTypesFile=src/lib/queries/types/global.ts types",
     "serve": "serve -s build -l 3000"
   },
   "dependencies": {

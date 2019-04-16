@@ -6,6 +6,12 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum RepositoryHost {
+  BITBUCKET = "BITBUCKET",
+  GITHUB = "GITHUB",
+  GITLAB = "GITLAB",
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================

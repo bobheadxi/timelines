@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import { match } from 'react-router-dom';
 import { Location } from 'history';
-import { Query } from "react-apollo";
-import gql from "graphql-tag";
 
 import Nav from '../../components/Nav/Nav';
+import Loading from '../../components/Loading/Loading';
 import { getHostTypeFromHost } from '../../lib';
 
-import { REPOS_QUERY } from '../../queries/repos';
+import { ReposQuery, REPOS_QUERY } from '../../lib/queries/repos';
 
 interface OwnerQuery {
   host: string;
@@ -30,17 +29,43 @@ class Owner extends Component<{
             <span>{`${host}/${owner}`}</span>
           </h1>
 
-          <Query query={REPOS_QUERY} variables={{ owner, hostArg }}>
+          <ReposQuery query={REPOS_QUERY} variables={{ owner, hostArg }}>
             {({ loading, error, data }) => {
-              if (loading) return <p>Loading...</p>;
+              if (loading) return <Loading />;
+
+              // TODO: create prettier componenets
               if (error) {
                 console.error(error);
                 return <p>Error :( { error.message }</p>;
               }
+              if (!data || !data.repos ) return <p>No data found</p>;
 
-              return <p>{JSON.stringify(data)}</p>
+              // TODO: this style is somewhat often used, make a component to
+              // do this
+              return (
+                <div className="margin-sides-xxl">
+                  <div
+                    className="uk-child-width-1-2@s uk-grid-match"
+                    data-uk-scrollspy="target: > div; cls:uk-animation-fade; delay: 50"
+                    data-uk-grid>
+                    {data.repos.map(r => {
+                      return (
+                        <div>
+                          <div className="uk-card uk-card-hover uk-card-default">
+                            <div className="uk-card-body">
+                              <h3 className="uk-card-title">{r.name}</h3>
+                              <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+                              <a href={`${host}/${owner}/${name}`} className="uk-button uk-button-text">View project</a>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
             }}
-          </Query>
+          </ReposQuery>
         </div>
       </div>
     );

@@ -20,7 +20,7 @@ class Nav extends Component<{
         </div>
 
         <div className="uk-navbar-right">
-          {!this.props.noTitles && location.pathname != "/about"
+          {location.pathname != "/about"
             ? <div className="uk-navbar-item title title-m">
               <a href="/about" className="uk-link-heading">About</a>
             </div>

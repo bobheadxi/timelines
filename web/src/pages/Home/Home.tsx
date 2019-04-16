@@ -25,17 +25,17 @@ class Home extends Component<{
               <div>
                 <div className="uk-card uk-card-hover uk-card-default">
                   <div className="uk-card-body">
-                    <h3 className="uk-card-title">About</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-                    <a href="/about" className="uk-button uk-button-text">Read more</a>
+                    <h3 className="uk-card-title">Demo User</h3>
+                    <p>Check out an example user or organization overview.</p>
+                    <a href="/github.com/bobheadxi" className="uk-button uk-button-text">See the demo</a>
                   </div>
                 </div>
               </div>
               <div>
                 <div className="uk-card uk-card-hover uk-card-default">
                 <div className="uk-card-body">
-                  <h3 className="uk-card-title">Demo</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+                  <h3 className="uk-card-title">Demo Project</h3>
+                    <p>Check out an example project timeline.</p>
                     <a href="/github.com/bobheadxi/calories" className="uk-button uk-button-text">See the demo</a>
                   </div>
                 </div>
