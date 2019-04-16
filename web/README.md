@@ -1,6 +1,9 @@
 # Timelines Web
 
-This document outlines development notes for Timelines' web interface.
+[![Netlify Status](https://api.netlify.com/api/v1/badges/b56788d9-0743-4b39-a307-66e2c99bd428/deploy-status)](https://app.netlify.com/sites/timelines-bobheadxi/deploys)
+
+This document outlines development notes for Timelines' web interface. It is
+currently deployed using [Netlify](https://www.netlify.com/).
 
 ## Queries
 
