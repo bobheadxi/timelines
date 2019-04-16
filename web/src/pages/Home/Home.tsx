@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
-import { Location } from 'history';
+import { RouteComponentProps } from 'react-router-dom';
 
 import Nav from '../../components/Nav/Nav';
 import CardSet from '../../components/CardSet/CardSet';
 
 import banner from '../../assets/banner.png';
 
-class Home extends Component<{
-  location: Location;
-}> {
+class Home extends Component<{} & RouteComponentProps> {
   render() {
     return (
       <div >

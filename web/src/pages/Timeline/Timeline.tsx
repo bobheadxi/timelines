@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { match } from 'react-router-dom';
-import { Location } from 'history';
 
 import Nav from '../../components/Nav/Nav';
 import { Burndown } from '../../components/vis';
@@ -13,7 +12,6 @@ interface RepoQuery {
 
 class Timeline extends Component<{
   match: match<RepoQuery>;
-  location: Location;
 }> {
   render() {
     const { host, owner, name } = this.props.match.params;

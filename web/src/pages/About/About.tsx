@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
-import { Location } from 'history';
+import { RouteComponentProps } from 'react-router-dom';
 
 import Nav from '../../components/Nav/Nav';
 
-class About extends Component<{
-  location: Location;
-}> {
+class About extends Component<{} & RouteComponentProps> {
   render() {
     return (
       <div >

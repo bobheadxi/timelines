@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import { Location } from 'history';
 
 class Nav extends Component<{
   noTitles?: Boolean;
-  location: any; // TODO: why can't this be of type Location?
+  location: Location;
 }> {
   render() {
     const { noTitles } = this.props;
@@ -16,7 +15,7 @@ class Nav extends Component<{
           {noTitles
             ? null
             : <div className="uk-navbar-item title title-m">
-                <a href="/" className="uk-link-heading">Timelines</a>
+                <a href="/" className="uk-link-heading">timelines</a>
               </div>}
         </div>
 
@@ -24,7 +23,7 @@ class Nav extends Component<{
           {location.pathname == "/about"
             ? null
             : <div className="uk-navbar-item title title-m">
-                <a href="/about" className="uk-link-heading">About</a>
+                <a href="/about" className="uk-link-heading">about</a>
               </div>}
         </div>
       </nav>

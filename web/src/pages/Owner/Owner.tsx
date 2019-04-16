@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { match } from 'react-router-dom';
-import { Location } from 'history';
 
 import Nav from '../../components/Nav/Nav';
 import Loading from '../../components/Loading/Loading';
@@ -16,7 +15,6 @@ interface OwnerQuery {
 
 class Owner extends Component<{
   match: match<OwnerQuery>;
-  location: Location;
 }> {
   render() {
     const { host, owner } = this.props.match.params;

@@ -1,7 +1,7 @@
 import React, { Component, Suspense, lazy } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import ApolloClient from 'apollo-boost';
-import { ApolloProvider } from "react-apollo";
+import { ApolloProvider } from 'react-apollo';
 
 import Loading from '../components/Loading/Loading';
 

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { match } from 'react-router-dom';
-import { Location } from 'history';
 
 import Nav from '../../components/Nav/Nav';
 
@@ -10,7 +9,6 @@ interface HostQuery {
 
 class Timeline extends Component<{
   match: match<HostQuery>;
-  location: Location;
 }> {
   render() {
     const { host } = this.props.match.params;
