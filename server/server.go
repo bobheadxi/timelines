@@ -59,7 +59,6 @@ func Run(
 		r.Use(cors.New(cors.Options{
 			AllowedOrigins:   []string{"*"},
 			AllowCredentials: true,
-			Debug:            true,
 		}).Handler)
 		r.Handle("/", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
 			Resolvers: resolver,
