@@ -4,6 +4,7 @@ import { Location } from 'history';
 
 import Nav from '../../components/Nav/Nav';
 import Loading from '../../components/Loading/Loading';
+import CardSet from '../../components/CardSet/CardSet';
 import { getHostTypeFromHost } from '../../lib';
 
 import { ReposQuery, REPOS_QUERY } from '../../lib/queries/repos';
@@ -38,31 +39,21 @@ class Owner extends Component<{
                 console.error(error);
                 return <p>Error :( { error.message }</p>;
               }
-              if (!data || !data.repos ) return <p>No data found</p>;
 
-              // TODO: this style is somewhat often used, make a component to
-              // do this
+              if (!data || !data.repos) return <p>No data found</p>;
+              const { repos } = data;
+
               return (
-                <div className="margin-sides-xxl">
-                  <div
-                    className="uk-child-width-1-2@s uk-grid-match"
-                    data-uk-scrollspy="target: > div; cls:uk-animation-fade; delay: 50"
-                    data-uk-grid>
-                    {data.repos.map(r => {
-                      return (
-                        <div>
-                          <div className="uk-card uk-card-hover uk-card-default">
-                            <div className="uk-card-body">
-                              <h3 className="uk-card-title">{r.name}</h3>
-                              <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-                              <a href={`${host}/${owner}/${name}`} className="uk-button uk-button-text">View project</a>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
+                <CardSet cards={repos.map(r => {
+                  return {
+                    title: r.name,
+                    body: 'Hello world',
+                    button: {
+                      href: `${host}/${owner}/${name}`,
+                      text: 'View Project',
+                    },
+                  }
+                })} />
               )
             }}
           </ReposQuery>
