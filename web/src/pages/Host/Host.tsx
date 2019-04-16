@@ -3,30 +3,26 @@ import { match } from 'react-router-dom';
 import { Location } from 'history';
 
 import Nav from '../../components/Nav/Nav';
-import { Burndown } from '../../components/vis';
 
-interface RepoQuery {
+interface HostQuery {
   host: string;
-  owner: string;
-  name: string;
 }
 
 class Timeline extends Component<{
-  match: match<RepoQuery>;
+  match: match<HostQuery>;
   location: Location;
 }> {
   render() {
-    const { host, owner, name } = this.props.match.params;
+    const { host } = this.props.match.params;
 
     return (
       <div>
         <Nav location={location} />
         <div className="margin-sides-l">
           <h1 className="uk-heading-line uk-text-center pad-bot-l margin-sides-l">
-            <span>{`${host}/${owner}/${name}`}</span>
+            <span>{`${host}`}</span>
           </h1>
         </div>
-        <Burndown />
       </div>
     );
   }

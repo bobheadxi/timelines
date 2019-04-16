@@ -2,6 +2,13 @@
 
 This document outlines development notes for Timelines' web interface.
 
+## Queries
+
+The web app connects to the backend server using GraphQL, powered by
+[Apollo](https://github.com/apollographql/apollo-client).
+
+Relevant documentation: [link](https://www.apollographql.com/docs/react/)
+
 ## CSS
 
 ### UIkit

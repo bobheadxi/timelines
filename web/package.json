@@ -1,21 +1,27 @@
 {
-  "name": "web",
+  "name": "timelines-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test"
+    "test": "react-scripts test",
+    "graphql": "apollo codegen:generate --target=typescript --tagName=gql --addTypename --globalTypesFile=src/types/graphql.globalTypes.ts types"
   },
   "dependencies": {
+    "@types/graphql": "^14.2.0",
     "@types/node": "11.9.6",
     "@types/react": "16.8.6",
     "@types/react-dom": "16.8.2",
     "@types/react-router": "^4.4.5",
     "@types/react-router-dom": "^4.3.1",
+    "apollo-boost": "^0.3.1",
     "deck.gl": "^6.4.7",
+    "graphql": "^14.2.1",
+    "graphql-tag": "^2.10.1",
     "node-sass": "^4.11.0",
     "react": "^16.8.3",
+    "react-apollo": "^2.5.4",
     "react-dom": "^16.8.3",
     "react-router": "^5.0.0",
     "react-router-dom": "^5.0.0",
@@ -25,6 +31,7 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
+    "apollo": "^2.8.3",
     "ts-jest": "^24.0.1"
   },
   "eslintConfig": {
