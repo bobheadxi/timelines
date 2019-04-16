@@ -13,6 +13,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/go-chi/chi v4.0.2+incompatible
+	github.com/go-chi/cors v1.0.0
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/gogo/protobuf v1.1.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible
