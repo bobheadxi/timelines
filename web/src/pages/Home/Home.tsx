@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 
-import Nav from '../../components/Nav/Nav';
 import CardSet from '../../components/CardSet/CardSet';
+import SignUp from '../../components/netlify-forms/SignUp/SignUp';
 
 import banner from '../../assets/banner.png';
 
@@ -38,6 +38,8 @@ class Home extends Component<{} & RouteComponentProps> {
             ]}/>
 
             <hr className="uk-divider-icon" />
+
+            {SignUp}
           </div>
         </div>
       </div>
