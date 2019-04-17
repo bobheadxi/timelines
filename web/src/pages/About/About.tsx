@@ -9,10 +9,11 @@ class About extends Component<{
   render() {
     const { api } = this.props;
 
-    // strip leading protocol and trailing path for use to check API health
-    const apiCheckTarget = api
-      .substring(0, api.indexOf('/query'))
-      .replace(/(^\w+:|^)\/\//, '');
+    // strip trailing path
+    const apiRoot = api.substring(0, api.indexOf('/query'))
+
+    // strip leading protocol for use with the shields.io badge
+    const apiCheckTarget = apiRoot.replace(/(^\w+:|^)\/\//, '');
 
     return (
       <div className="margin-sides-xxl uk-panel">
@@ -24,12 +25,12 @@ class About extends Component<{
             the stories of your projects and your communities.
           </p>
           <div>
-            <a href={api}>
+            <a href={`${apiRoot}/playground`}>
               <img src={`https://img.shields.io/website/https/${apiCheckTarget}.svg?down_color=lightgrey&down_message=offline&label=api&up_message=online`}
-                alt="API Status" />
+                alt={`API Status (${api})`} />
             </a>
             &nbsp;
-            <a href="https://github.com/bobheadxi">
+            <a href="https://github.com/bobheadxi/timelines">
               <img src="https://img.shields.io/github/last-commit/bobheadxi/timelines/master.svg?color=FC9514&label=last%20updated"
                 alt="GitHub last commit (master)" />
             </a>
