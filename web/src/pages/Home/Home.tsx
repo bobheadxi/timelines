@@ -10,7 +10,6 @@ class Home extends Component<{} & RouteComponentProps> {
   render() {
     return (
       <div >
-        <Nav noTitles={true} location={location} />
         <div>
           <header className="flex ai-center jc-center ">
             <img src={banner} alt="banner" height="100px" width="85%" />

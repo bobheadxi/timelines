@@ -7,7 +7,6 @@ class NotFound extends Component<RouteComponentProps> {
   render() {
     return (
       <div>
-        <Nav location={location} />
         <div className="uk-position-center">
           <h1>Page Not Found</h1>
         </div>

@@ -22,7 +22,6 @@ class Owner extends Component<{
 
     return (
       <div>
-        <Nav location={location} />
         <div className="margin-sides-l">
           <h1 className="uk-heading-line uk-text-center pad-bot-l margin-sides-l">
             <span>{`${host}/${owner}`}</span>
