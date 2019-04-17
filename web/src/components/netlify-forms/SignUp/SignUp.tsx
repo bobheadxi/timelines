@@ -5,6 +5,7 @@ export default (
     <h3>SIGN UP FOR UPDATES</h3>
     <form
       name="contact"
+      method="POST"
       data-netlify
       className="uk-form-stacked">
       <p>
