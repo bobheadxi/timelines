@@ -6,7 +6,7 @@ currently deployed using [Netlify](https://www.netlify.com/).
 ## Code Style
 
 Styles are enforced by [eslint](https://eslint.org/), with rules defined in
-[`./.eslintrc`](./.eslintrc). 
+[`./.eslintrc.js`](./.eslintrc.js). 
 
 Note that because [`create-react-app`](https://github.com/facebook/create-react-app)
 is silly, `eslint` must be installed *globally* (and not in the project's
@@ -28,22 +28,31 @@ The API schema is defined in [`../graphql/schema.graphql`](../graphql/schema.gra
 Typescript definitions for the web app are generated using
 [Apollo-Tooling](https://github.com/apollographql/apollo-tooling), though the
 generated code still needs a small wrapper layer on top - see
-[`src/lib/queries/repos.tsx`](src/lib/queries/repos.tsx). To update the generated
+[`./src/lib/queries/repos.tsx`](src/lib/queries/repos.tsx). To update the generated
 code, run:
 
 ```
 npm run graphql
 ```
 
+Settings for code generation are defined in [`./apollo.config.js`](./apollo.config.js).
+
 ## Styling
 
 ### UIkit
 
+The Timelines web app leverages [uikit](https://getuikit.com/docs/introduction)
+for most UI elements.
+
 Certain UIkit styles, such as [`uk-grid`](https://getuikit.com/docs/grid),
 require that you add a custom attribute to an HTML element.
-[React unforuntately ignores non-standard attributes](https://zhenyong.github.io/react/docs/jsx-gotchas.html#custom-html-attributes),
+[React unfortunately ignores non-standard attributes](https://zhenyong.github.io/react/docs/jsx-gotchas.html#custom-html-attributes),
 so such attributes must be prefixed with `data-`. For example:
 
 ```jsx
 <div className="uk-child-width-1-2@s uk-grid-match" data-uk-grid></div>
 ```
+
+### SCSS
+
+Custom style classes are defined in [`./src/styles](./src/styles/_all.scss).

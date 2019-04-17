@@ -1,3 +1,5 @@
+// Configuration for the Apollo command line tool.
+// Reference: https://www.apollographql.com/docs/references/apollo-config
 module.exports = {
   includes: ['src/lib/queries/*.tsx'],
   client: {
