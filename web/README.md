@@ -55,4 +55,4 @@ so such attributes must be prefixed with `data-`. For example:
 
 ### SCSS
 
-Custom style classes are defined in [`./src/styles](./src/styles/_all.scss).
+Custom style classes are defined in [`./src/styles`](./src/styles/_all.scss).
