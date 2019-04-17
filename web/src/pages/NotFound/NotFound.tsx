@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
+import React, { Component, ReactElement } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 
 class NotFound extends Component<RouteComponentProps> {
-  render() {
+  public render(): ReactElement {
     return (
       <div>
         <div className="uk-position-center">

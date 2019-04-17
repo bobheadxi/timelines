@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, { Component, ReactElement } from 'react';
 
 class Loading extends Component {
-  render() {
+  public render(): ReactElement {
     return (
       <div className="fill-width fill-height">
         <div className="uk-position-center">
-          <span uk-spinner="ratio: 4.5"></span>
+          <span uk-spinner="ratio: 4.5" />
         </div>
       </div>
     );

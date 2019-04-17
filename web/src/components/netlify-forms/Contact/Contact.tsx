@@ -6,19 +6,20 @@ export default (
     <form
       name="contact"
       method="POST"
-      className="uk-form-stacked">
+      className="uk-form-stacked"
+    >
       <input type="hidden" name="form-name" value="contact" />
       <p>
         <label className="uk-form-label">
           NAME
         </label>
-        <input  type="text" name="name" className="uk-input uk-width-medium" />
+        <input type="text" name="name" className="uk-input uk-width-medium" />
       </p>
       <p>
         <label className="uk-form-label">
           EMAIL
         </label>
-        <input type="email" name="email" className="uk-input uk-width-medium"  />
+        <input type="email" name="email" className="uk-input uk-width-medium" />
       </p>
       <p>
         <button type="submit" className="uk-button uk-button-default uk-width-medium">
@@ -27,4 +28,4 @@ export default (
       </p>
     </form>
   </div>
-)
+);

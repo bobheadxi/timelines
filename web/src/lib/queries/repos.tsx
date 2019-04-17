@@ -1,7 +1,7 @@
-import { gql } from 'apollo-boost'
-import { Query } from 'react-apollo'
+import { gql } from 'apollo-boost';
+import { Query } from 'react-apollo';
 
-import { Repos, ReposVariables } from './types/Repos'
+import { Repos, ReposVariables } from './types/Repos';
 
 export const REPOS_QUERY = gql`
 query Repos($owner: String!, $host: RepositoryHost) {

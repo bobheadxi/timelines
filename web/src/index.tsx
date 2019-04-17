@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const UIkit: any = require('uikit');
 const Icons: any = require('uikit/dist/js/uikit-icons');
 UIkit.use(Icons);

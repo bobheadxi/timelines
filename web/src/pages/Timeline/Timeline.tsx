@@ -1,7 +1,6 @@
-import React, { Component } from 'react';
+import React, { Component, ReactElement } from 'react';
 import { match } from 'react-router-dom';
 
-import Nav from '../../components/Nav/Nav';
 import { Burndown } from '../../components/vis';
 
 interface RepoQuery {
@@ -15,8 +14,8 @@ interface RepoQuery {
 class Timeline extends Component<{
   match: match<RepoQuery>;
 }> {
-  render() {
-    const { host, owner, name } = this.props.match.params;
+  public render(): ReactElement {
+    const { match: { params: { host, owner, name } } } = this.props;
 
     return (
       <div>

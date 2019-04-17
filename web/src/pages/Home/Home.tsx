@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, ReactElement } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 
 import CardSet from '../../components/CardSet/CardSet';
@@ -7,9 +7,9 @@ import Contact from '../../components/netlify-forms/Contact/Contact';
 import banner from '../../assets/banner.png';
 
 class Home extends Component<{} & RouteComponentProps> {
-  render() {
+  public render(): ReactElement {
     return (
-      <div >
+      <div>
         <div>
           <header className="flex ai-center jc-center ">
             <img src={banner} alt="banner" height="100px" width="85%" />
@@ -35,7 +35,8 @@ class Home extends Component<{} & RouteComponentProps> {
                   text: 'See the demo',
                 },
               },
-            ]}/>
+            ]}
+            />
 
             <hr className="uk-divider-icon" />
 

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, ReactElement } from 'react';
 import { match } from 'react-router-dom';
 
 interface HostQuery {
@@ -8,8 +8,8 @@ interface HostQuery {
 class Timeline extends Component<{
   match: match<HostQuery>;
 }> {
-  render() {
-    const { host } = this.props.match.params;
+  public render(): ReactElement {
+    const { match: { params: { host } } } = this.props;
 
     return (
       <div>

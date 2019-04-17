@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, { Component, ReactElement } from 'react';
 
-interface CardButton {
+export interface CardButton {
   href: string;
   text: string;
 }
 
-interface Card {
+export interface Card {
   title: string;
   body: string;
   button?: CardButton;
@@ -14,14 +14,15 @@ interface Card {
 class CardSet extends Component<{
   cards: Card[];
 }> {
-  render() {
+  public render(): ReactElement {
     const { cards } = this.props;
     return (
       <div
         className="uk-child-width-1-2@s uk-grid-match"
         data-uk-scrollspy="target: > div; cls:uk-animation-fade; delay: 50"
-        data-uk-grid>
-        {cards.map(card => {
+        data-uk-grid
+      >
+        {cards.map((card): ReactElement => {
           const { title, body, button } = card;
           return (
             <div>
@@ -34,16 +35,15 @@ class CardSet extends Component<{
                     {body}
                   </p>
                   {button
-                    ? <a
-                        href={button.href}
-                        className="uk-button uk-button-text">
+                    ? (
+                      <a href={button.href} className="uk-button uk-button-text">
                         {button.text}
                       </a>
-                    : null}
+                    ) : null}
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
     );
