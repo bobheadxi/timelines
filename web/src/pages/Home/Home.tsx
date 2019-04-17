@@ -15,7 +15,9 @@ class Home extends Component<{} & RouteComponentProps> {
             <img src={banner} alt="banner" height="100px" width="85%" />
           </header>
 
-          <div className="margin-sides-xxl">
+          <div className="margin-sides-168">
+
+            <hr className="uk-divider-icon" />
             <CardSet cards={[
               {
                 title: 'Demo User',
@@ -34,6 +36,8 @@ class Home extends Component<{} & RouteComponentProps> {
                 },
               },
             ]}/>
+
+            <hr className="uk-divider-icon" />
           </div>
         </div>
       </div>

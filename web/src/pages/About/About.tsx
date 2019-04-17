@@ -16,7 +16,7 @@ class About extends Component<{
     const apiCheckTarget = apiRoot.replace(/(^\w+:|^)\/\//, '');
 
     return (
-      <div className="margin-sides-xxl uk-panel">
+      <div className="margin-sides-48 uk-panel">
         <article className="uk-article">
           <img
             src={surfer}

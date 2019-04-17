@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import { match } from 'react-router-dom';
 
-import Nav from '../../components/Nav/Nav';
-
 interface HostQuery {
   host: string;
 }
@@ -15,8 +13,8 @@ class Timeline extends Component<{
 
     return (
       <div>
-        <div className="margin-sides-l">
-          <h1 className="uk-heading-line uk-text-center pad-bot-l margin-sides-l">
+        <div className="margin-sides-48">
+          <h1 className="uk-heading-line uk-text-center pad-bot-48">
             <span>{`${host}`}</span>
           </h1>
         </div>

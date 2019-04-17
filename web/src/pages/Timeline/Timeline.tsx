@@ -20,8 +20,8 @@ class Timeline extends Component<{
 
     return (
       <div>
-        <div className="margin-sides-l">
-          <h1 className="uk-heading-line uk-text-center pad-bot-l margin-sides-l">
+        <div className="margin-sides-48">
+          <h1 className="uk-heading-line uk-text-center pad-bot-48 margin-sides-l">
             <span>{`${host}/${owner}/${name}`}</span>
           </h1>
         </div>

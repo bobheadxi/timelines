@@ -6,7 +6,7 @@ class Nav extends Component<{
   render() {
     return (
       <nav
-        className="uk-navbar-container uk-navbar-transparent margin-ends-l margin-sides-l"
+        className="uk-navbar-container uk-navbar-transparent margin-ends-32 margin-sides-32"
         data-uk-navbar="mode: click">
 
         <div className="uk-navbar-left">

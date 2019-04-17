@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 
-import Nav from '../../components/Nav/Nav';
-
 class NotFound extends Component<RouteComponentProps> {
   render() {
     return (

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { match } from 'react-router-dom';
 
-import Nav from '../../components/Nav/Nav';
 import Loading from '../../components/Loading/Loading';
 import CardSet from '../../components/CardSet/CardSet';
 import { getHostTypeFromHost } from '../../lib';
@@ -22,8 +21,8 @@ class Owner extends Component<{
 
     return (
       <div>
-        <div className="margin-sides-l">
-          <h1 className="uk-heading-line uk-text-center pad-bot-l margin-sides-l">
+        <div className="margin-sides-48">
+          <h1 className="uk-heading-line uk-text-center pad-bot-48">
             <span>{`${host}/${owner}`}</span>
           </h1>
 
