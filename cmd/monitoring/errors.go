@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"runtime"
+	"strings"
 
 	"cloud.google.com/go/errorreporting"
 	"go.uber.org/zap"
@@ -14,56 +17,113 @@ import (
 
 // AttachErrorLogging attaches the GCP Stackdriver Error Reporting client to
 // the given zap logger. See https://cloud.google.com/error-reporting/docs/setup/go
-func AttachErrorLogging(l *zap.SugaredLogger, service string, meta config.BuildMeta) (*zap.SugaredLogger, error) {
+func AttachErrorLogging(l *zap.Logger, service string, meta config.BuildMeta, dev bool) (*zap.SugaredLogger, error) {
 	cloud := config.NewCloudConfig()
 	if cloud.Provider() != config.ProviderGCP {
 		return nil, errors.New("error logging only supported for GCP")
 	}
 
-	l.Infow("setting up GCP error reporting",
-		"project_id", cloud.GCP.ProjectID)
+	l.Info("setting up GCP error reporting",
+		zap.String("project_id", cloud.GCP.ProjectID))
+
+	errHandler := func(error) {}
+	if dev {
+		errHandler = func(e error) { log.Printf("gcp.error-reporter: %v\n", e) }
+	}
 	opts := config.NewGCPConnectionOptions()
 	reporter, err := errorreporting.NewClient(
 		context.Background(),
 		cloud.GCP.ProjectID, errorreporting.Config{
 			ServiceName:    service,
-			ServiceVersion: meta.Commit,
-			OnError:        func(e error) { l.Named("gcp.errors").Error(e.Error()) },
+			ServiceVersion: meta.AnnotatedCommit(dev),
+			OnError:        errHandler,
 		},
 		opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return l.Desugar().
+	return l.
 		WithOptions(zap.WrapCore(func(c zapcore.Core) zapcore.Core {
-			return &zapcoreGCPErrors{c, reporter, zapcore.NewJSONEncoder(zapcore.EncoderConfig{})}
+			return zapcore.NewTee(c, gcpErrorsWrapCore(reporter))
 		})).
 		Sugar(), nil
 }
 
-type zapcoreGCPErrors struct {
-	zapcore.Core
-
+type gcpErrorReportingZapCore struct {
 	reporter *errorreporting.Client
-	encoder  zapcore.Encoder
+	enc      zapcore.Encoder
 }
 
-func (z *zapcoreGCPErrors) Write(entry zapcore.Entry, fields []zapcore.Field) error {
-	if entry.Level == zapcore.ErrorLevel {
-		buf, err := z.encoder.EncodeEntry(entry, fields)
-		if err != nil {
-			return fmt.Errorf("failed to encode entry for gcp error reporter: %v", err)
-		}
-		z.reporter.Report(errorreporting.Entry{
-			Error: errors.New(buf.String()),
-			Stack: []byte(entry.Stack),
-		})
+func gcpErrorsWrapCore(reporter *errorreporting.Client) zapcore.Core {
+	return &gcpErrorReportingZapCore{reporter, zapcore.NewJSONEncoder(zapcore.EncoderConfig{
+		NameKey:    "logger",
+		MessageKey: "msg",
+		LevelKey:   "level",
+
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.LowercaseLevelEncoder,
+		EncodeTime:     zapcore.EpochTimeEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	})}
+}
+
+func (z *gcpErrorReportingZapCore) Enabled(l zapcore.Level) bool {
+	return l >= zapcore.WarnLevel
+}
+
+func (z *gcpErrorReportingZapCore) Write(entry zapcore.Entry, fields []zapcore.Field) error {
+	if entry.Stack == "" {
+		return nil
 	}
-	return z.Core.Write(entry, fields)
+
+	buf, err := z.enc.EncodeEntry(entry, fields)
+	if err != nil {
+		return fmt.Errorf("failed to encode entry for gcp error reporter: %v", err)
+	}
+	z.reporter.Report(errorreporting.Entry{
+		Error: errors.New(buf.String()),
+		Stack: stacktrace(),
+	})
+
+	return nil
 }
 
-func (z *zapcoreGCPErrors) Sync() error {
+func (z *gcpErrorReportingZapCore) Sync() error {
 	z.reporter.Flush()
-	return z.Core.Sync()
+	return nil
+}
+
+func (z *gcpErrorReportingZapCore) With(fields []zapcore.Field) zapcore.Core {
+	clone := &gcpErrorReportingZapCore{z.reporter, z.enc.Clone()}
+	for i := range fields {
+		fields[i].AddTo(clone.enc)
+	}
+	return clone
+}
+
+func (z *gcpErrorReportingZapCore) Check(e zapcore.Entry, c *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+	if z.Enabled(e.Level) {
+		return c.AddCore(e, z)
+	}
+	return c
+}
+
+// stackSkip denotes the number of stack levels we need to skip over:
+// * stacktrace()
+// * Core.Write()
+// * CheckedEntry.Write()
+// * logger.Warn() or equivalent
+const stackSkip = 4
+
+// stacktrace captures the calling goroutine's stack and trims out irrelevant
+// levels (as described in documentation for stackSkip)
+// TODO: this performs quite poorly, refactor to avoid string conversions
+func stacktrace() []byte {
+	var buf [16 * 1024]byte
+	stack := buf[0:runtime.Stack(buf[:], false)]
+	lines := strings.Split(string(stack), "\n")
+	lines = append(lines[:1], lines[2*stackSkip+1:]...)
+	return []byte(strings.Join(lines, "\n"))
 }

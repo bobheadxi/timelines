@@ -79,7 +79,10 @@ func Run(
 		l.Info("shutting down server")
 		srv.Shutdown(context.Background())
 	}()
-	return srv.ListenAndServe()
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
 
 // rootResolver implements the timelines GraphQL API

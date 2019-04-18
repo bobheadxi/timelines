@@ -22,7 +22,7 @@ func StartProfiler(l *zap.SugaredLogger, service string, meta config.BuildMeta, 
 		opts := config.NewGCPConnectionOptions()
 		if err := profiler.Start(profiler.Config{
 			Service:        service,
-			ServiceVersion: meta.Commit,
+			ServiceVersion: meta.AnnotatedCommit(dev),
 			ProjectID:      cloud.GCP.ProjectID,
 			DebugLogging:   dev,
 		}, opts...); err != nil {

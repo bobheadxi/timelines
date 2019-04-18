@@ -29,7 +29,7 @@ func newWorkerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			l = l.Named(monitor.Service).With("build.version", meta.Commit)
+			l = l.Named(monitor.Service).With("build.version", meta.AnnotatedCommit(devMode))
 
 			if monitor.Profile {
 				if err := monitoring.StartProfiler(l, monitor.Service, meta, devMode); err != nil {
@@ -37,7 +37,7 @@ func newWorkerCmd() *cobra.Command {
 				}
 			}
 			if monitor.Errors {
-				if l, err = monitoring.AttachErrorLogging(l, monitor.Service, meta); err != nil {
+				if l, err = monitoring.AttachErrorLogging(l.Desugar(), monitor.Service, meta, devMode); err != nil {
 					return fmt.Errorf("failed to attach error logger: %v", err)
 				}
 			}
@@ -49,8 +49,9 @@ func newWorkerCmd() *cobra.Command {
 				dbCfg = dev.DatabaseOptions
 			}
 
+			defer l.Sync()
 			return worker.Run(
-				l.Named("worker"),
+				l,
 				newStopper(),
 				worker.RunOpts{
 					Workers:  workers,

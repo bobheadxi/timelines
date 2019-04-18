@@ -19,8 +19,16 @@ type BuildMeta struct {
 // Currently leverages Heroku's Dyno Metadata: https://devcenter.heroku.com/articles/dyno-metadata
 func NewBuildMeta() BuildMeta {
 	return BuildMeta{
-		Commit: firstOf(Commit, os.Getenv("HEROKU_SLUG_COMMIT")),
+		Commit: firstOf(Commit, os.Getenv("HEROKU_SLUG_COMMIT"))[:7],
 	}
+}
+
+// AnnotatedCommit returns a dev-prefixed commit if necessary
+func (b BuildMeta) AnnotatedCommit(dev bool) string {
+	if dev {
+		return "dev-" + b.Commit
+	}
+	return b.Commit
 }
 
 // Store denotes store client instantiation options
