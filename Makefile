@@ -59,7 +59,7 @@ herokupg:
 	heroku pg:psql --app timelines-server < db/sql/reset.sql
 	heroku pg:psql --app timelines-server < db/sql/repos.sql
 
-GOOGLE_APPLICATION_CREDENTIALS=`< gcp.json`
+GOOGLE_APPLICATION_RAW=`< gcp.json`
 .PHONY: herokugcp
 herokugcp:
-	heroku config:set GOOGLE_APPLICATION_CREDENTIALS="$(GOOGLE_APPLICATION_CREDENTIALS)"
+	heroku config:set GOOGLE_APPLICATION_RAW="$(GOOGLE_APPLICATION_RAW)"

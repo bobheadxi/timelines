@@ -33,7 +33,7 @@ func newWorkerCmd() *cobra.Command {
 
 			if profile {
 				l.Info("setting up profiling")
-				if err := monitoring.StartProfiler(l, meta); err != nil {
+				if err := monitoring.StartProfiler(l, "timelines-worker", meta); err != nil {
 					return fmt.Errorf("failed to start profiler: %v", err)
 				}
 			}

@@ -3,26 +3,34 @@ package monitoring
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"cloud.google.com/go/profiler"
 	"go.uber.org/zap"
+	"google.golang.org/api/option"
 
 	"github.com/bobheadxi/timelines/config"
 )
 
 // StartProfiler starts a suitable background profiler based on environment
 // variables
-func StartProfiler(l *zap.SugaredLogger, meta config.BuildMeta) error {
+func StartProfiler(l *zap.SugaredLogger, service string, meta config.BuildMeta) error {
 	cloud := config.NewCloudConfig()
 	provider := cloud.Provider()
 	switch provider {
 	case config.ProviderGCP:
 		l.Info("starting server with GCP profiling")
+		var opts []option.ClientOption
+		if os.Getenv("GOOGLE_APPLICATION_RAW") != "" {
+			opts = []option.ClientOption{
+				option.WithCredentialsJSON([]byte(os.Getenv("GOOGLE_APPLICATION_RAW"))),
+			}
+		}
 		if err := profiler.Start(profiler.Config{
-			Service:        "timelines-server",
+			Service:        service,
 			ServiceVersion: meta.Commit,
 			ProjectID:      cloud.GCP.ProjectID,
-		}); err != nil {
+		}, opts...); err != nil {
 			return err
 		}
 
