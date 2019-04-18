@@ -1,6 +1,10 @@
 package config
 
-import "os"
+import (
+	"os"
+
+	"google.golang.org/api/option"
+)
 
 // CloudProvider denotes supported providers
 type CloudProvider string
@@ -38,4 +42,17 @@ func (c Cloud) Provider() CloudProvider {
 		return ProviderGCP
 	}
 	return ProviderNone
+}
+
+const envGCPCredentialsRaw = "GOOGLE_APPLICATION_CREDENTIALS_RAW"
+
+// NewGCPConnectionOptions returns options needed to connect to GCP services
+func NewGCPConnectionOptions() []option.ClientOption {
+	var opts []option.ClientOption
+	if os.Getenv(envGCPCredentialsRaw) != "" {
+		opts = []option.ClientOption{
+			option.WithCredentialsJSON([]byte(os.Getenv(envGCPCredentialsRaw))),
+		}
+	}
+	return opts
 }

@@ -17,7 +17,7 @@ func newWorkerCmd() *cobra.Command {
 		port    string
 		logpath string
 		workers int
-		profile bool
+		monitor = &monitoring.Flags{}
 		devMode bool
 	)
 	c := &cobra.Command{
@@ -29,12 +29,16 @@ func newWorkerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			l = l.With("build.version", meta.Commit)
+			l = l.Named(monitor.Service).With("build.version", meta.Commit)
 
-			if profile {
-				l.Info("setting up profiling")
-				if err := monitoring.StartProfiler(l, "timelines-worker", meta); err != nil {
+			if monitor.Profile {
+				if err := monitoring.StartProfiler(l, monitor.Service, meta); err != nil {
 					return fmt.Errorf("failed to start profiler: %v", err)
+				}
+			}
+			if monitor.Errors {
+				if l, err = monitoring.AttachErrorLogging(l, monitor.Service, meta); err != nil {
+					return fmt.Errorf("failed to attach error logger: %v", err)
 				}
 			}
 
@@ -59,7 +63,7 @@ func newWorkerCmd() *cobra.Command {
 	flags.StringVarP(&port, "port", "p", "8090", "port to serve worker API on")
 	flags.StringVar(&logpath, "logpath", "", "path to log dump")
 	flags.IntVar(&workers, "workers", 3, "number of workers to spin up")
-	flags.BoolVar(&profile, "profile", false, "enable profiling")
+	monitor.Attach(flags, "timelines-worker")
 	flags.BoolVar(&devMode, "dev", false, "toggle dev mode")
 	return c
 }

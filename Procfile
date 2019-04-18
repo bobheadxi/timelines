@@ -1,2 +1,2 @@
-web: bin/timelines server --profile --port $PORT
+web: bin/timelines server --profile --errors --port $PORT
 worker: bin/timelines worker --profile

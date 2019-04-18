@@ -16,7 +16,7 @@ func newServerCmd() *cobra.Command {
 	var (
 		port    string
 		logpath string
-		profile bool
+		monitor = &monitoring.Flags{}
 		devMode bool
 	)
 	c := &cobra.Command{
@@ -28,12 +28,16 @@ func newServerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			l = l.With("build.version", meta.Commit)
+			l = l.Named(monitor.Service).With("build.version", meta.Commit)
 
-			if profile {
-				l.Info("setting up profiling")
-				if err := monitoring.StartProfiler(l, "timelines-server", meta); err != nil {
+			if monitor.Profile {
+				if err := monitoring.StartProfiler(l, monitor.Service, meta); err != nil {
 					return fmt.Errorf("failed to start profiler: %v", err)
+				}
+			}
+			if monitor.Errors {
+				if l, err = monitoring.AttachErrorLogging(l, monitor.Service, meta); err != nil {
+					return fmt.Errorf("failed to attach error logger: %v", err)
 				}
 			}
 
@@ -57,7 +61,7 @@ func newServerCmd() *cobra.Command {
 	flags := c.Flags()
 	flags.StringVarP(&port, "port", "p", "8080", "port to serve API on")
 	flags.StringVar(&logpath, "logpath", "", "path to log dump")
-	flags.BoolVar(&profile, "profile", false, "enable profiling")
+	monitor.Attach(flags, "timelines-server")
 	flags.BoolVar(&devMode, "dev", false, "toggle dev mode")
 	return c
 }
