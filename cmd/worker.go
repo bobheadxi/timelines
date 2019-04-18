@@ -5,10 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/bobheadxi/timelines/cmd/monitoring"
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/dev"
 	"github.com/bobheadxi/timelines/log"
+	"github.com/bobheadxi/timelines/monitoring"
 	"github.com/bobheadxi/timelines/worker"
 )
 
