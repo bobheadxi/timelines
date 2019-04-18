@@ -84,6 +84,10 @@ func (z *gcpErrorReportingZapCore) Write(entry zapcore.Entry, fields []zapcore.F
 	}
 	z.reporter.Report(errorreporting.Entry{
 		Error: errors.New(buf.String()),
+
+		// GCP Error Reporting does not like Zap's custom stacktraces (from entry.Stack),
+		// so a custom stacktrace must be taken that conforms to the standard. Ugh.
+		// See stacktrace() for details.
 		Stack: stacktrace(),
 	})
 
