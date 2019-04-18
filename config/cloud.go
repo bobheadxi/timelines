@@ -49,9 +49,10 @@ const envGCPCredentialsRaw = "GOOGLE_APPLICATION_CREDENTIALS_RAW"
 // NewGCPConnectionOptions returns options needed to connect to GCP services
 func NewGCPConnectionOptions() []option.ClientOption {
 	var opts []option.ClientOption
-	if os.Getenv(envGCPCredentialsRaw) != "" {
+	rawCredentials := os.Getenv(envGCPCredentialsRaw)
+	if rawCredentials != "" {
 		opts = []option.ClientOption{
-			option.WithCredentialsJSON([]byte(os.Getenv(envGCPCredentialsRaw))),
+			option.WithCredentialsJSON([]byte(rawCredentials)),
 		}
 	}
 	return opts

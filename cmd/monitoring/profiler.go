@@ -12,17 +12,19 @@ import (
 
 // StartProfiler starts a suitable background profiler based on environment
 // variables
-func StartProfiler(l *zap.SugaredLogger, service string, meta config.BuildMeta) error {
+func StartProfiler(l *zap.SugaredLogger, service string, meta config.BuildMeta, dev bool) error {
 	cloud := config.NewCloudConfig()
 	provider := cloud.Provider()
 	switch provider {
 	case config.ProviderGCP:
-		l.Info("starting server with GCP profiling")
+		l.Infow("setting up GCP profiling",
+			"project_id", cloud.GCP.ProjectID)
 		opts := config.NewGCPConnectionOptions()
 		if err := profiler.Start(profiler.Config{
 			Service:        service,
 			ServiceVersion: meta.Commit,
 			ProjectID:      cloud.GCP.ProjectID,
+			DebugLogging:   dev,
 		}, opts...); err != nil {
 			return err
 		}

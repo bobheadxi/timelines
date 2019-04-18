@@ -32,7 +32,7 @@ func newWorkerCmd() *cobra.Command {
 			l = l.Named(monitor.Service).With("build.version", meta.Commit)
 
 			if monitor.Profile {
-				if err := monitoring.StartProfiler(l, monitor.Service, meta); err != nil {
+				if err := monitoring.StartProfiler(l, monitor.Service, meta, devMode); err != nil {
 					return fmt.Errorf("failed to start profiler: %v", err)
 				}
 			}

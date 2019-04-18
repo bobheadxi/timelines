@@ -20,14 +20,15 @@ func AttachErrorLogging(l *zap.SugaredLogger, service string, meta config.BuildM
 		return nil, errors.New("error logging only supported for GCP")
 	}
 
-	l.Info("setting up GCP error reporting")
+	l.Infow("setting up GCP error reporting",
+		"project_id", cloud.GCP.ProjectID)
 	opts := config.NewGCPConnectionOptions()
 	reporter, err := errorreporting.NewClient(
 		context.Background(),
 		cloud.GCP.ProjectID, errorreporting.Config{
 			ServiceName:    service,
 			ServiceVersion: meta.Commit,
-			OnError:        func(error) {},
+			OnError:        func(e error) { l.Named("gcp.errors").Error(e.Error()) },
 		},
 		opts...)
 	if err != nil {
