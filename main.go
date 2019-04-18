@@ -7,12 +7,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/bobheadxi/timelines/cmd"
+	"github.com/bobheadxi/timelines/config"
 )
 
 func main() {
 	var envFiles []string
 	root := &cobra.Command{
-		Use: "timelines",
+		Use:     "timelines",
+		Version: config.NewBuildMeta().Commit,
 		PersistentPreRun: func(*cobra.Command, []string) {
 			godotenv.Load()
 			if len(envFiles) > 0 {

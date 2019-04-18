@@ -1,6 +1,8 @@
+COMMIT=`git rev-parse HEAD`
 
 all:
-	go build
+	@echo Version $(COMMIT)
+	go build -ldflags "-X github.com/bobheadxi/timelines/config.Commit=$(COMMIT)"
 
 .PHONY: clean
 clean:
@@ -56,3 +58,8 @@ pg-init:
 herokupg:
 	heroku pg:psql --app timelines-server < db/sql/reset.sql
 	heroku pg:psql --app timelines-server < db/sql/repos.sql
+
+GOOGLE_APPLICATION_CREDENTIALS=`< gcp.json`
+.PHONY: herokugcp
+herokugcp:
+	heroku config:set GOOGLE_APPLICATION_CREDENTIALS="$(GOOGLE_APPLICATION_CREDENTIALS)"

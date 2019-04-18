@@ -3,8 +3,8 @@ module github.com/bobheadxi/timelines
 go 1.12
 
 require (
+	cloud.google.com/go v0.37.4
 	github.com/99designs/gqlgen v0.8.0
-	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/Jeffail/tunny v0.0.0-20180304204616-59cfa8fcb19f // indirect
 	github.com/antchfx/xpath v0.0.0-20180922041825-3de91f3991a1 // indirect
 	github.com/bobheadxi/res v0.0.0-20190326234649-a658daa8699a
@@ -15,7 +15,6 @@ require (
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/go-chi/cors v1.0.0
 	github.com/go-redis/redis v6.15.2+incompatible
-	github.com/gogo/protobuf v1.1.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.1.0
@@ -33,8 +32,6 @@ require (
 	github.com/minio/highwayhash v0.0.0-20180501080913-85fc8a2dacad // indirect
 	github.com/moovweb/rubex v0.0.0-20160224233712-cb849acea614 // indirect
 	github.com/neurosnap/sentences v1.0.6 // indirect
-	github.com/onsi/ginkgo v1.7.0 // indirect
-	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24 // indirect
 	github.com/spf13/cobra v0.0.3
@@ -46,13 +43,9 @@ require (
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1
-	golang.org/x/crypto v0.0.0-20190122013713-64072686203f // indirect
-	golang.org/x/net v0.0.0-20190119204137-ed066c81e75e // indirect
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	golang.org/x/sys v0.0.0-20190228124157-a34e9553db1e // indirect
-	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2 // indirect
-	google.golang.org/genproto v0.0.0-20190122204518-eef12c790cc0 // indirect
-	google.golang.org/grpc v1.18.0 // indirect
+	google.golang.org/api v0.3.2 // indirect
 	gopkg.in/bblfsh/client-go.v3 v3.2.0 // indirect
 	gopkg.in/bblfsh/sdk.v1 v1.16.1 // indirect
 	gopkg.in/bblfsh/sdk.v2 v2.14.1 // indirect
