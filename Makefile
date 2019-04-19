@@ -39,7 +39,6 @@ devmonitoring:
 .PHONY: graphql
 graphql:
 	$(MAKE) -C graphql go
-	$(MAKE) -C graphql ts
 
 # PG utils
 
