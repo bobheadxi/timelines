@@ -6,14 +6,6 @@ import (
 	"github.com/google/go-github/github"
 )
 
-// Host denotes supported hosts
-type Host string
-
-const (
-	// HostGitHub is GitHub
-	HostGitHub Host = "github"
-)
-
 // ItemType denotes supported host item types
 type ItemType string
 
