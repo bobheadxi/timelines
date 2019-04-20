@@ -133,6 +133,7 @@ func (r *ReposDatabase) GetRepositories(ctx context.Context, h host.Host, owner 
 		}
 		return nil, err
 	}
+
 	var repos = make([]models.Repository, 0)
 	for rows.Next() {
 		var repo models.Repository
@@ -140,6 +141,10 @@ func (r *ReposDatabase) GetRepositories(ctx context.Context, h host.Host, owner 
 			return nil, err
 		}
 		repos = append(repos, repo)
+	}
+
+	if len(repos) == 0 {
+		return nil, errNotFound()
 	}
 	return repos, nil
 }
