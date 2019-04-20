@@ -20,7 +20,7 @@ func TestManager(t *testing.T) {
 	)
 
 	// try without auth
-	repo, err := m.Download(ctx, "https://gh.com/bobheadxi/calories.git", DownloadOpts{})
+	repo, err := m.Download(ctx, "https://github.com/bobheadxi/calories.git", DownloadOpts{})
 	assert.NoError(t, err)
 	name, err := repo.Name()
 	assert.NoError(t, err)
@@ -41,7 +41,7 @@ func TestManager(t *testing.T) {
 	if !assert.NoError(t, err) {
 		t.Fatal()
 	}
-	repo, err = m.Download(ctx, "https://gh.com/bobheadxi/calories.git", DownloadOpts{
+	repo, err = m.Download(ctx, "https://github.com/bobheadxi/calories.git", DownloadOpts{
 		AccessToken: ic.InstallationToken(),
 	})
 	assert.NoError(t, err)
