@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/bobheadxi/timelines/config"
+	"github.com/bobheadxi/timelines/host"
 )
 
 var (
@@ -19,6 +20,14 @@ var (
 		Port:     "5431",
 		Database: "timelines-dev",
 		User:     "bobheadxi",
+	}
+
+	// SampleRepo is a demo repo
+	SampleRepo = &host.BaseRepo{
+		Host:        host.HostGitHub,
+		Owner:       "bobheadxi",
+		Name:        "calories",
+		Description: ":poultry_leg: a Facebook Messenger bot in Golang for all your calorie-tracking needs",
 	}
 )
 

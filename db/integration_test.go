@@ -30,12 +30,7 @@ func TestDatabase_integration(t *testing.T) {
 
 	// make a repo
 	var repos = client.Repos()
-	err = repos.NewRepository(ctx, installation, &host.BaseRepo{
-		Host:        host.HostGitHub,
-		Owner:       "bobheadxi",
-		Name:        "calories",
-		Description: ":poultry_leg: a Facebook Messenger bot in Golang for all your calorie-tracking needs",
-	})
+	err = repos.NewRepository(ctx, installation, dev.SampleRepo)
 	require.NoError(t, err)
 	// get that repo id
 	repo, err := repos.GetRepository(ctx, host.HostGitHub, "bobheadxi", "calories")

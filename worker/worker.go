@@ -82,7 +82,8 @@ func (w *worker) processJobs(stop <-chan bool, errC chan<- error) {
 			)
 
 			// check for entry in DB
-			repo, err := w.db.Repos().GetRepository(ctx, job.Owner, job.Repo)
+			// TODO: add host to metadata
+			repo, err := w.db.Repos().GetRepository(ctx, host.HostGitHub, job.Owner, job.Repo)
 			if err != nil || repo.ID == 0 {
 				// repo must exist at this point, since server must create it first
 				w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
@@ -265,8 +266,9 @@ func (w *worker) githubSync(ctx context.Context, repoID int, job *store.RepoJob,
 		defer func() {
 			// if the first item of buffer is non-nil, there are some number of items
 			// that needs to be dumped
+			// TODO: track what host we are working with
 			if buf[0] != nil {
-				if err := repos.InsertHostItems(ctx, repoID, buf); err != nil {
+				if err := repos.InsertHostItems(ctx, host.HostGitHub, repoID, buf); err != nil {
 					l.Errorw("failed to clear github items", "error", err)
 					atomic.AddInt32(&errorCount, 1)
 					return
@@ -285,11 +287,12 @@ func (w *worker) githubSync(ctx context.Context, repoID int, job *store.RepoJob,
 
 				// if we're at buffer limit, dump buffer
 				if cur >= bufsize {
-					var err = repos.InsertHostItems(ctx, repoID, buf)
+					err := repos.InsertHostItems(ctx, host.HostGitHub, repoID, buf)
 					// clear buffer straight away to prevent defer from double-inserting
 					cur = 0
 					buf = nil
 					buf = make([]*host.Item, bufsize)
+					// check error
 					if err != nil {
 						l.Errorw("failed to insert github items", "error", err)
 						atomic.AddInt32(&errorCount, 1)

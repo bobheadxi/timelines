@@ -103,10 +103,8 @@ func (h *webhookHandler) handleInstall(
 	for _, repo := range added {
 		if err := h.db.Repos().NewRepository(
 			ctx,
-			repo.GetHost(),
 			install.GetID(),
-			repo.GetOwner(),
-			repo.GetName(),
+			repo,
 		); err != nil {
 			if !db.IsNotFound(err) {
 				errSet[repo.GetOwner()+"/"+repo.GetName()] = err
@@ -125,7 +123,11 @@ func (h *webhookHandler) handleInstall(
 		})
 	}
 	for _, repo := range removed {
-		dbr, err := h.db.Repos().GetRepository(ctx, repo.GetOwner(), repo.GetName())
+		dbr, err := h.db.Repos().GetRepository(
+			ctx,
+			repo.GetHost(),
+			repo.GetOwner(),
+			repo.GetName())
 		if err != nil {
 			if !db.IsNotFound(err) {
 				errSet[repo.GetOwner()+"/"+repo.GetName()] = err

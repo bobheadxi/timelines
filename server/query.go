@@ -9,6 +9,7 @@ import (
 
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
+	"github.com/bobheadxi/timelines/host"
 )
 
 type queryResolver struct {
@@ -18,11 +19,8 @@ type queryResolver struct {
 }
 
 func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.RepositoryHost) (*models.Repository, error) {
-	if h == nil {
-		*h = models.RepositoryHostGithub
-	}
-
-	repo, err := q.db.Repos().GetRepository(ctx, owner, name)
+	hostService := modelToHost(h)
+	repo, err := q.db.Repos().GetRepository(ctx, hostService, owner, name)
 	if err != nil {
 		if !db.IsNotFound(err) {
 			q.l.Errorw(err.Error(),
@@ -35,11 +33,8 @@ func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.
 }
 
 func (q *queryResolver) Repos(ctx context.Context, owner string, h *models.RepositoryHost) ([]models.Repository, error) {
-	if h == nil {
-		*h = models.RepositoryHostGithub
-	}
-
-	repos, err := q.db.Repos().GetRepositories(ctx, owner)
+	hostService := modelToHost(h)
+	repos, err := q.db.Repos().GetRepositories(ctx, hostService, owner)
 	if err != nil {
 		q.l.Errorw(err.Error(),
 			"owner", owner)
@@ -72,4 +67,11 @@ func (q *queryResolver) Burndown(ctx context.Context, id int, t *models.Burndown
 	default:
 		return nil, fmt.Errorf("invalid burndown type '%v'", t)
 	}
+}
+
+func modelToHost(h *models.RepositoryHost) host.Host {
+	if h == nil {
+		return host.HostGitHub
+	}
+	return host.Host(h.String())
 }

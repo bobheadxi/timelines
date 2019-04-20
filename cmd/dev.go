@@ -12,7 +12,6 @@ import (
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/dev"
-	"github.com/bobheadxi/timelines/host"
 	"github.com/bobheadxi/timelines/log"
 	"github.com/bobheadxi/timelines/store"
 )
@@ -62,12 +61,14 @@ func newPGCommand() *cobra.Command {
 					return err
 				}
 
-				c.Repos().NewRepository(context.Background(),
-					host.HostGitHub,
+				c.Repos().NewRepository(
+					context.Background(),
 					dev.GetTestInstallationID(),
-					"bobheadxi", "calories")
-				repo, err := c.Repos().GetRepository(context.Background(),
-					"bobheadxi", "calories")
+					dev.SampleRepo)
+				repo, err := c.Repos().GetRepository(
+					context.Background(),
+					dev.SampleRepo.Host,
+					dev.SampleRepo.Owner, dev.SampleRepo.Name)
 				if err != nil {
 					return err
 				}

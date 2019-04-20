@@ -67,3 +67,6 @@ GOOGLE_APPLICATION_CREDENTIALS_RAW=`< gcp.json`
 .PHONY: herokugcp
 herokugcp:
 	heroku config:set GOOGLE_APPLICATION_CREDENTIALS_RAW="$(GOOGLE_APPLICATION_CREDENTIALS_RAW)"
+
+herokulogs:
+	heroku logs --source app
