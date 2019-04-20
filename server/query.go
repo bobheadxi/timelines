@@ -10,6 +10,7 @@ import (
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
 	"github.com/bobheadxi/timelines/host"
+	"github.com/bobheadxi/timelines/log"
 )
 
 type queryResolver struct {
@@ -19,6 +20,7 @@ type queryResolver struct {
 }
 
 func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.RepositoryHost) (*models.Repository, error) {
+	var l = q.l.With(log.LogKeyRID, log.RequestID(ctx))
 	hostService, err := modelToHost(h)
 	if err != nil {
 		return nil, err
@@ -27,7 +29,7 @@ func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.
 	repo, err := q.db.Repos().GetRepository(ctx, hostService, owner, name)
 	if err != nil {
 		if !db.IsNotFound(err) {
-			q.l.Errorw(err.Error(),
+			l.Errorw(err.Error(),
 				"owner", owner,
 				"name", name)
 		}
@@ -37,6 +39,7 @@ func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.
 }
 
 func (q *queryResolver) Repos(ctx context.Context, owner string, h *models.RepositoryHost) ([]models.Repository, error) {
+	var l = q.l.With(log.LogKeyRID, log.RequestID(ctx))
 	hostService, err := modelToHost(h)
 	if err != nil {
 		return nil, err
@@ -44,7 +47,7 @@ func (q *queryResolver) Repos(ctx context.Context, owner string, h *models.Repos
 
 	repos, err := q.db.Repos().GetRepositories(ctx, hostService, owner)
 	if err != nil {
-		q.l.Errorw(err.Error(),
+		l.Errorw(err.Error(),
 			"owner", owner)
 		return nil, fmt.Errorf("could not find repositories for '%s'", owner)
 	}
@@ -55,7 +58,7 @@ func (q *queryResolver) Burndown(ctx context.Context, id int, t *models.Burndown
 	if t == nil {
 		*t = models.BurndownTypeGlobal
 	}
-	l := q.l.With("repo", id, "type", *t)
+	l := q.l.With("repo", id, "type", *t, log.LogKeyRID, log.RequestID(ctx))
 
 	switch *t {
 	case models.BurndownTypeFile:

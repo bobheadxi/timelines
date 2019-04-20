@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	stdlog "log"
 	"runtime"
 	"strings"
 
@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/bobheadxi/timelines/config"
+	"github.com/bobheadxi/timelines/log"
 )
 
 // AttachErrorLogging attaches the GCP Stackdriver Error Reporting client to
@@ -28,7 +29,7 @@ func AttachErrorLogging(l *zap.Logger, service string, meta config.BuildMeta, de
 
 	errHandler := func(error) {}
 	if dev {
-		errHandler = func(e error) { log.Printf("gcp.error-reporter: %v\n", e) }
+		errHandler = func(e error) { stdlog.Printf("gcp.error-reporter: %v\n", e) }
 	}
 	opts := config.NewGCPConnectionOptions()
 	reporter, err := errorreporting.NewClient(
@@ -78,12 +79,24 @@ func (z *gcpErrorReportingZapCore) Write(entry zapcore.Entry, fields []zapcore.F
 		return nil
 	}
 
+	// extract relevant values from fields
+	var requestID string
+	for _, f := range fields {
+		if f.Key == log.LogKeyRID && f.Type == zapcore.StringType {
+			requestID = f.String
+		}
+	}
+
+	// encode everything as the message
 	buf, err := z.enc.EncodeEntry(entry, fields)
 	if err != nil {
 		return fmt.Errorf("failed to encode entry for gcp error reporter: %v", err)
 	}
+
+	// report to GCP
 	z.reporter.Report(errorreporting.Entry{
 		Error: errors.New(buf.String()),
+		User:  requestID,
 
 		// GCP Error Reporting does not like Zap's custom stacktraces (from entry.Stack),
 		// so a custom stacktrace must be taken that conforms to the standard. Ugh.
