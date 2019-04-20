@@ -13,6 +13,7 @@ import (
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/graphql/go/timelines"
+	"github.com/bobheadxi/timelines/log"
 	"github.com/bobheadxi/timelines/store"
 )
 
@@ -53,6 +54,7 @@ func Run(
 	)
 
 	// set up endpoints
+	mux.Use(log.NewHTTPLogger(l.Named("mux")))
 	mux.Handle("/playground", handler.Playground("timelines API Playground", "/query"))
 	mux.Route("/query", func(r chi.Router) {
 		// TODO: improve configuration
