@@ -3,6 +3,8 @@ import { match } from 'react-router-dom';
 
 import Loading from '../../components/Loading/Loading';
 import CardSet, { Card } from '../../components/CardSet/CardSet';
+import { Error } from '../../components/alerts';
+
 import { getHostTypeFromHost } from '../../lib';
 import { ReposQuery, REPOS_QUERY } from '../../lib/queries/repos';
 
@@ -28,16 +30,7 @@ class Owner extends Component<{
           <ReposQuery query={REPOS_QUERY} variables={{ owner, host: hostArg }}>
             {({ loading, error, data }): ReactElement => {
               if (loading) return <Loading />;
-
-              // TODO: create prettier componenets
-              if (error) {
-                return (
-                  <p>
-                    Error :(
-                    {error.message}
-                  </p>
-                );
-              }
+              if (error) return <Error message={`Error :( ${error.message}`} />;
 
               if (!data || !data.repos) return <p>No data found</p>;
               const { repos } = data;

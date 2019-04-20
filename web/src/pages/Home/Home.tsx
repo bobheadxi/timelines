@@ -3,6 +3,7 @@ import { RouteComponentProps } from 'react-router-dom';
 
 import CardSet from '../../components/CardSet/CardSet';
 import Contact from '../../components/netlify-forms/Contact/Contact';
+import { Error } from '../../components/alerts';
 
 import banner from '../../assets/banner.png';
 
@@ -16,6 +17,8 @@ class Home extends Component<{} & RouteComponentProps> {
           </header>
 
           <div className="margin-sides-168">
+
+            <Error message="WARNING: this project is a work in progress - nothing really works!" />
 
             <hr className="uk-divider-icon" />
             <CardSet cards={[
