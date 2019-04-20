@@ -60,13 +60,18 @@ pg-init:
 
 .PHONY: herokupg
 herokupg:
-	heroku pg:psql --app timelines-server < db/sql/reset.sql
-	heroku pg:psql --app timelines-server < db/sql/repos.sql
+	heroku pg:psql --app timelines-api < db/sql/reset.sql
+	heroku pg:psql --app timelines-api < db/sql/repos.sql
 
 GOOGLE_APPLICATION_CREDENTIALS_RAW=`< gcp.json`
 .PHONY: herokugcp
 herokugcp:
 	heroku config:set GOOGLE_APPLICATION_CREDENTIALS_RAW="$(GOOGLE_APPLICATION_CREDENTIALS_RAW)"
 
+.PHONY: herokulogs
 herokulogs:
 	heroku logs --source app
+
+.PHONY: herokupgcreds
+herokupgcreds:
+	heroku pg:credentials:url DATABASE
