@@ -40,8 +40,15 @@ class About extends Component<{
                 alt="GitHub last commit (master)"
               />
             </a>
+            &nbsp;
+            <a href="https://join.slack.com/t/timelines-app/shared_invite/enQtNjEzMDE1NDk5NjAwLWZlN2ViZTE0NTNlNDZjZTNlOTNiNzZhZTZmNzgzZGVmNzcwZGE2NGJiN2QwNDQ0NzIyNmJlM2QzOTE4ZjQ3ZGE">
+              <img
+                src="https://img.shields.io/badge/slack-grey.svg?logo=slack"
+                alt="Join the Slack community"
+              />
+            </a>
           </div>
-          <p>Timelines is a web application.</p>
+          <p>Timelines is a web application! More details coming soon.</p>
         </article>
 
       </div>
