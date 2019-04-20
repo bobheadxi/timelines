@@ -59,9 +59,10 @@ type ComplexityRoot struct {
 	}
 
 	Repository struct {
-		ID    func(childComplexity int) int
-		Owner func(childComplexity int) int
-		Name  func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Owner       func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Description func(childComplexity int) int
 	}
 }
 
@@ -171,6 +172,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Repository.Name(childComplexity), true
 
+	case "Repository.Description":
+		if e.complexity.Repository.Description == nil {
+			break
+		}
+
+		return e.complexity.Repository.Description(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -267,6 +275,7 @@ type Repository {
   id: Int!
   owner: String!
   name: String!
+  description: String!,
 }
 
 enum RepositoryHost {
@@ -728,6 +737,32 @@ func (ec *executionContext) _Repository_name(ctx context.Context, field graphql.
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Repository_description(ctx context.Context, field graphql.CollectedField, obj *models.Repository) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Repository",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1692,6 +1727,11 @@ func (ec *executionContext) _Repository(ctx context.Context, sel ast.SelectionSe
 			}
 		case "name":
 			out.Values[i] = ec._Repository_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "description":
+			out.Values[i] = ec._Repository_description(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

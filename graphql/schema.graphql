@@ -30,6 +30,7 @@ type Repository {
   id: Int!
   owner: String!
   name: String!
+  description: String!,
 }
 
 enum RepositoryHost {
