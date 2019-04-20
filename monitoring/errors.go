@@ -51,12 +51,17 @@ func AttachErrorLogging(l *zap.Logger, service string, meta config.BuildMeta, de
 		Sugar(), nil
 }
 
+type gcpReporter interface {
+	Report(e errorreporting.Entry)
+	Flush()
+}
+
 type gcpErrorReportingZapCore struct {
-	reporter *errorreporting.Client
+	reporter gcpReporter
 	enc      zapcore.Encoder
 }
 
-func gcpErrorsWrapCore(reporter *errorreporting.Client) zapcore.Core {
+func gcpErrorsWrapCore(reporter gcpReporter) zapcore.Core {
 	return &gcpErrorReportingZapCore{reporter, zapcore.NewJSONEncoder(zapcore.EncoderConfig{
 		NameKey:    "logger",
 		MessageKey: "msg",
@@ -75,10 +80,6 @@ func (z *gcpErrorReportingZapCore) Enabled(l zapcore.Level) bool {
 }
 
 func (z *gcpErrorReportingZapCore) Write(entry zapcore.Entry, fields []zapcore.Field) error {
-	if entry.Stack == "" {
-		return nil
-	}
-
 	// extract relevant values from fields
 	var requestID string
 	for _, f := range fields {
