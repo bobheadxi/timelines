@@ -6,6 +6,7 @@ import (
 
 	"github.com/99designs/gqlgen/handler"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
@@ -54,12 +55,19 @@ func Run(
 	)
 
 	// set up endpoints
-	mux.Use(log.NewHTTPLogger(l.Named("mux")))
+	mux.Use(
+		middleware.RequestID,
+		middleware.RealIP,
+		log.NewHTTPLogger(l.Named("mux")),
+		middleware.Recoverer,
+	)
 	mux.Handle("/playground", handler.Playground("timelines API Playground", "/query"))
 	mux.Route("/query", func(r chi.Router) {
 		// TODO: improve configuration
 		r.Use(cors.New(cors.Options{
 			AllowedOrigins:   []string{"*"},
+			AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"},
+			AllowedHeaders:   []string{"*"},
 			AllowCredentials: true,
 		}).Handler)
 		r.Handle("/", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
