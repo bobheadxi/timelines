@@ -19,7 +19,11 @@ type queryResolver struct {
 }
 
 func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.RepositoryHost) (*models.Repository, error) {
-	hostService := modelToHost(h)
+	hostService, err := modelToHost(h)
+	if err != nil {
+		return nil, err
+	}
+
 	repo, err := q.db.Repos().GetRepository(ctx, hostService, owner, name)
 	if err != nil {
 		if !db.IsNotFound(err) {
@@ -33,7 +37,11 @@ func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.
 }
 
 func (q *queryResolver) Repos(ctx context.Context, owner string, h *models.RepositoryHost) ([]models.Repository, error) {
-	hostService := modelToHost(h)
+	hostService, err := modelToHost(h)
+	if err != nil {
+		return nil, err
+	}
+
 	repos, err := q.db.Repos().GetRepositories(ctx, hostService, owner)
 	if err != nil {
 		q.l.Errorw(err.Error(),
@@ -69,9 +77,15 @@ func (q *queryResolver) Burndown(ctx context.Context, id int, t *models.Burndown
 	}
 }
 
-func modelToHost(h *models.RepositoryHost) host.Host {
+func modelToHost(h *models.RepositoryHost) (host.Host, error) {
 	if h == nil {
-		return host.HostGitHub
+		return host.HostGitHub, nil
 	}
-	return host.Host(h.String())
+	hostService := host.Host(h.String())
+	switch hostService {
+	case host.HostGitHub, host.HostGitLab, host.HostBitbucket:
+		return hostService, nil
+	default:
+		return "", fmt.Errorf("unknown host '%v'", h)
+	}
 }
