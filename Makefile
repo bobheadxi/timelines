@@ -45,6 +45,11 @@ graphql:
 .PHONY: devpg
 devpg: pg-reset pg-init
 
+.PHONY: devpgweb
+devpgweb:
+	# https://github.com/sosedoff/pgweb
+	pgweb --port 5431 --db timelines-dev --user bobheadxi
+
 .PHONY: pg-reset
 pg-reset:
 	docker exec -i postgres psql -U bobheadxi timelines-dev < db/sql/reset.sql
