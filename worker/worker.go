@@ -209,25 +209,47 @@ func (w *worker) githubSync(ctx context.Context, repoID int, job *store.RepoJob,
 
 	var (
 		l = w.l.
-			With("job.id", job.ID, "job.repo", job.Owner+"/"+job.Repo, "job.repo_id", repoID).
+			With(
+				"job.id", job.ID,
+				"job.repo", job.Owner+"/"+job.Repo,
+				"job.repo_id", repoID,
+				"job.installation_id", job.InstallationID,
+			).
 			Named("github_sync")
 		start = time.Now()
 		repos = w.db.Repos()
 	)
 
-	// set up client
-	client, err := w.hub.GetInstallationClient(ctx, job.InstallationID)
-	if err != nil {
+	// set up error reporting stuff
+	errL := l.Desugar().WithOptions(zap.AddCallerSkip(1))
+	errFunc := func(message string) {
 		w.store.RepoJobs().SetState(job.ID, &store.RepoJobState{
 			Analysis: &store.StateMeta{
 				State:   store.StateError,
-				Message: fmt.Sprintf("github_sync.new_client: %v", err),
+				Message: message,
 				Meta:    map[string]interface{}{"installation": job.InstallationID},
 			},
 		})
-		l.Errorw("failed to authenticate for installation",
-			"error", err,
-			"github.installation_id", job.InstallationID)
+		errL.Error(message)
+	}
+
+	// set up client
+	client, err := w.hub.GetInstallationClient(ctx, job.InstallationID)
+	if err != nil {
+		errFunc(fmt.Sprintf("github_sync.new_client: %v", err))
+		return
+	}
+
+	// update repo metadata
+	ghRepo, err := client.GetRepository(ctx, job.Owner, job.Repo)
+	if err != nil {
+		errFunc(fmt.Sprintf("github_sync.get_repo: %v", err))
+		return
+	}
+	if err := repos.UpdateRepository(ctx, repoID, db.RepoMD{
+		Description: ghRepo.GetDescription(),
+	}); err != nil {
+		errFunc(fmt.Sprintf("github_sync.get_repo: %v", err))
 		return
 	}
 

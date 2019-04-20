@@ -207,3 +207,14 @@ func (c *Client) GetPullRequests(
 
 	return nil
 }
+
+// GetRepository fetches the given repository
+func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*github.Repository, error) {
+	r, resp, err := c.gh.Repositories.Get(ctx, owner, repo)
+	if err != nil {
+		c.l.Errorw("repo fetch failed",
+			"response", resp)
+		return nil, err
+	}
+	return r, nil
+}
