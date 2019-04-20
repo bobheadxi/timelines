@@ -56,22 +56,31 @@ func (r *ReposDatabase) init() {
 // NewRepository creates a new repository entry
 func (r *ReposDatabase) NewRepository(
 	ctx context.Context,
-	h host.Host,
-	installation, owner, name string,
+	installation string,
+	repo host.Repo,
 ) error {
 	if installation == "" {
 		return errors.New("installation required")
 	}
+	var (
+		owner = repo.GetOwner()
+		name  = repo.GetName()
+		h     = string(repo.GetHost())
+	)
 	if owner == "" || name == "" {
 		return errors.New("repository identifiers (owner and name) required")
 	}
 	_, err := r.db.pg.ExecEx(ctx, `
 		INSERT INTO 
-			repositories (installation_id, type, owner, name)
+			repositories (
+				installation_id, host_type, owner, name, description, service_stats
+			)
 		VALUES
-			($1, $2, $3, $4)
+			($1, $2, $3, $4, $5, $6)
 		`, &pgx.QueryExOptions{},
-		installation, string(h), owner, name)
+		installation, h, owner, name, repo.GetDescription(), map[string]interface{}{
+			"github_id": repo.GetID(),
+		})
 	if err == nil {
 		r.l.Infow("created new entry for repo", "repo", owner+"/"+name)
 	} else {
@@ -86,18 +95,20 @@ func (r *ReposDatabase) NewRepository(
 }
 
 // GetRepository fetches a specific repository
-func (r *ReposDatabase) GetRepository(ctx context.Context, owner, name string) (*models.Repository, error) {
+func (r *ReposDatabase) GetRepository(ctx context.Context, h host.Host, owner, name string) (*models.Repository, error) {
 	row := r.db.pg.QueryRowEx(ctx, `
 		SELECT
-			id, owner, name
+			id, owner, name, description
 		FROM
 			repositories
 		WHERE
-			owner=$1 AND name=$2`,
+			owner=$1
+			AND name=$2
+			AND host_type=$3`,
 		&pgx.QueryExOptions{},
-		owner, name)
+		owner, name, string(h))
 	var repo models.Repository
-	if err := row.Scan(&repo.ID, &repo.Owner, &repo.Name); err != nil {
+	if err := row.Scan(&repo.ID, &repo.Owner, &repo.Name, &repo.Description); err != nil {
 		if isPgxNotFound(err) {
 			return nil, errNotFound()
 		}
@@ -106,16 +117,16 @@ func (r *ReposDatabase) GetRepository(ctx context.Context, owner, name string) (
 }
 
 // GetRepositories fetches all repositories associated with the given owner
-func (r *ReposDatabase) GetRepositories(ctx context.Context, owner string) ([]models.Repository, error) {
+func (r *ReposDatabase) GetRepositories(ctx context.Context, h host.Host, owner string) ([]models.Repository, error) {
 	rows, err := r.db.pg.QueryEx(ctx, `
 		SELECT
-			id, owner, name
+			id, owner, name, description
 		FROM
 			repositories
 		WHERE
-			owner=$1`,
+			owner=$1 AND host_type=$2`,
 		&pgx.QueryExOptions{},
-		owner)
+		owner, string(h))
 	if err != nil {
 		if isPgxNotFound(err) {
 			return nil, errNotFound()
@@ -125,7 +136,7 @@ func (r *ReposDatabase) GetRepositories(ctx context.Context, owner string) ([]mo
 	var repos = make([]models.Repository, 0)
 	for rows.Next() {
 		var repo models.Repository
-		if err := rows.Scan(&repo.ID, &repo.Owner, &repo.Name); err != nil {
+		if err := rows.Scan(&repo.ID, &repo.Owner, &repo.Name, &repo.Description); err != nil {
 			return nil, err
 		}
 		repos = append(repos, repo)
@@ -293,19 +304,21 @@ func (r *ReposDatabase) InsertGitBurndownResult(
 // InsertHostItems executes a batch insert on all given items
 func (r *ReposDatabase) InsertHostItems(
 	ctx context.Context,
+	h host.Host,
 	repoID int,
 	items []*host.Item,
 ) error {
 	var (
 		l     = r.l.Named("insert_host_items").With("repo_id", repoID)
-		cp    = copyFromItems(repoID, items)
+		cp    = copyFromItems(repoID, h, items)
 		start = time.Now()
 	)
 
 	count, err := r.db.pg.CopyFrom(
 		pgx.Identifier{"host_items"},
 		[]string{
-			"fk_repo_id", "type", "host_id", "number",
+			"fk_repo_id", "host_type", "host_id",
+			"type", "number",
 			"author", "open_date", "close_date",
 			"title", "body",
 			"labels", "reactions", "details",

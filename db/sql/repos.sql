@@ -2,9 +2,10 @@ CREATE TYPE host_service AS ENUM ('unknown', 'github', 'gitlab');
 CREATE TABLE repositories (
   id              SERIAL PRIMARY KEY,
   installation_id TEXT UNIQUE,
-  type            host_service,
+  host_type       host_service,
   owner           TEXT,
   name            TEXT,
+  description     TEXT,
   service_stats   JSONB NULL,
 
   UNIQUE(owner, name)
@@ -13,8 +14,9 @@ CREATE TABLE repositories (
 CREATE TYPE host_item_type AS ENUM ('unknown', 'issue', 'pull_request');
 CREATE TABLE host_items (
   fk_repo_id   INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
-  type         host_item_type,
+  host_type    host_service,
   host_id      INTEGER,
+  type         host_item_type,
   number       INTEGER,
 
   author       TEXT,

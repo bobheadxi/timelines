@@ -8,13 +8,14 @@ import (
 )
 
 type rowsItems struct {
-	repo int
-	rows []*host.Item
-	idx  int
+	repoID int
+	host   string
+	rows   []*host.Item
+	idx    int
 }
 
-func copyFromItems(repo int, items []*host.Item) *rowsItems {
-	return &rowsItems{repo: repo, rows: items, idx: -1}
+func copyFromItems(repoID int, h host.Host, items []*host.Item) *rowsItems {
+	return &rowsItems{repoID, string(h), items, -1}
 }
 
 func (r *rowsItems) Next() bool {
@@ -25,7 +26,8 @@ func (r *rowsItems) Next() bool {
 func (r *rowsItems) Values() ([]interface{}, error) {
 	v := r.rows[r.idx]
 	return []interface{}{
-		r.repo, string(v.Type), v.GitHubID, v.Number,
+		r.repoID, r.host, v.GitHubID,
+		string(v.Type), v.Number,
 		v.Author, v.Opened, v.Closed,
 		v.Title, v.Body,
 		v.Labels, v.Reactions, v.Details,

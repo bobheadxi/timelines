@@ -30,11 +30,15 @@ func TestDatabase_integration(t *testing.T) {
 
 	// make a repo
 	var repos = client.Repos()
-	err = repos.NewRepository(ctx, host.HostGitHub,
-		installation, "bobheadxi", "calories")
+	err = repos.NewRepository(ctx, installation, &host.BaseRepo{
+		Host:        host.HostGitHub,
+		Owner:       "bobheadxi",
+		Name:        "calories",
+		Description: ":poultry_leg: a Facebook Messenger bot in Golang for all your calorie-tracking needs",
+	})
 	require.NoError(t, err)
 	// get that repo id
-	repo, err := repos.GetRepository(ctx, "bobheadxi", "calories")
+	repo, err := repos.GetRepository(ctx, host.HostGitHub, "bobheadxi", "calories")
 	require.NoError(t, err)
 	assert.NotZero(t, repo.ID)
 	t.Log("bobheadxi/calories created as ID:", repo.ID)
@@ -42,7 +46,14 @@ func TestDatabase_integration(t *testing.T) {
 
 	// run tests
 	t.Run("test host items", func(t *testing.T) {
-		assert.NoError(t, repos.InsertHostItems(ctx, repo.ID, []*host.Item{
+		assert.NoError(t, repos.InsertHostItems(ctx, host.HostGitHub, repo.ID, []*host.Item{
+			{
+				GitHubID: 12,
+				Number:   69,
+				Type:     host.ItemTypePR,
+			},
+		}))
+		assert.NoError(t, repos.InsertHostItems(ctx, host.HostGitHub, repo.ID, []*host.Item{
 			{
 				GitHubID: 1234,
 				Number:   25,
@@ -51,7 +62,12 @@ func TestDatabase_integration(t *testing.T) {
 					"some_detail": 23847125,
 				},
 			},
-			// it is possible to have nil items pad the end
+			{
+				GitHubID: 1235,
+				Number:   28,
+				Type:     host.ItemTypeIssue,
+			},
+			// it is possible to have nil items pad the end, so this shouldn't error
 			nil,
 			nil,
 		}))
