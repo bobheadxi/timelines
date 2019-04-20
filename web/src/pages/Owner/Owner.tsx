@@ -45,7 +45,7 @@ class Owner extends Component<{
               return (
                 <CardSet cards={repos.map((r): Card => ({
                   title: r.name,
-                  body: 'Hello world',
+                  body: r.description,
                   button: {
                     href: `${host}/${owner}`,
                     text: 'View Project',

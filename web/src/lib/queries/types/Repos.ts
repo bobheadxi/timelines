@@ -12,6 +12,7 @@ export interface Repos_repos {
   __typename: "Repository";
   id: number;
   name: string;
+  description: string;
 }
 
 export interface Repos {

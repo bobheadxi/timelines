@@ -8,6 +8,7 @@ query Repos($owner: String!, $host: RepositoryHost) {
   repos(owner: $owner, host: $host) {
     id
     name
+    description
   }
 }`;
 
