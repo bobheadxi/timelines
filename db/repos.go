@@ -73,12 +73,12 @@ func (r *ReposDatabase) NewRepository(
 	_, err := r.db.pg.ExecEx(ctx, `
 		INSERT INTO 
 			repositories (
-				installation_id, host_type, owner, name, description, service_stats
+				installation_id, host_type, owner, name, service_stats
 			)
 		VALUES
-			($1, $2, $3, $4, $5, $6)
+			($1, $2, $3, $4, $5)
 		`, &pgx.QueryExOptions{},
-		installation, h, owner, name, repo.GetDescription(), map[string]interface{}{
+		installation, h, owner, name, map[string]interface{}{
 			"github_id": repo.GetID(),
 		})
 	if err == nil {

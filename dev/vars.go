@@ -24,10 +24,9 @@ var (
 
 	// SampleRepo is a demo repo
 	SampleRepo = &host.BaseRepo{
-		Host:        host.HostGitHub,
-		Owner:       "bobheadxi",
-		Name:        "calories",
-		Description: ":poultry_leg: a Facebook Messenger bot in Golang for all your calorie-tracking needs",
+		Host:  host.HostGitHub,
+		Owner: "bobheadxi",
+		Name:  "calories",
 	}
 )
 

@@ -13,6 +13,7 @@ import (
 	"github.com/bobheadxi/res"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/host"
+	"github.com/bobheadxi/timelines/host/gh"
 	"github.com/bobheadxi/timelines/store"
 )
 
@@ -51,8 +52,8 @@ func (h *webhookHandler) handleGitHub(w http.ResponseWriter, r *http.Request) {
 		h.l.Infof("received installation %#v", install)
 		if err := h.handleInstall(r.Context(),
 			host.InstallationFromGitHub(install),
-			host.ReposFromGitHub(event.RepositoriesAdded),
-			host.ReposFromGitHub(event.RepositoriesRemoved),
+			gh.ReposFromGitHub(event.RepositoriesAdded),
+			gh.ReposFromGitHub(event.RepositoriesRemoved),
 		); err != nil {
 			res.R(w, r, res.ErrBadRequest("unexpected error encountered",
 				"error", err))
