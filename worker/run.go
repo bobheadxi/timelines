@@ -9,7 +9,7 @@ import (
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/git"
-	"github.com/bobheadxi/timelines/host/github"
+	"github.com/bobheadxi/timelines/host/gh"
 	"github.com/bobheadxi/timelines/store"
 )
 
@@ -44,7 +44,7 @@ func Run(
 	}
 	defer database.Close()
 
-	hub, err := github.NewSigningClient(l.Named("github-signer"), github.NewEnvAuth())
+	hub, err := gh.NewSigningClient(l.Named("github-signer"), gh.NewEnvAuth())
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-package github
+package gh
 
 // Event denotes basic event metadata
 type Event struct {

@@ -13,7 +13,7 @@ import (
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/git"
 	"github.com/bobheadxi/timelines/host"
-	"github.com/bobheadxi/timelines/host/github"
+	"github.com/bobheadxi/timelines/host/gh"
 	"github.com/bobheadxi/timelines/store"
 )
 
@@ -23,7 +23,7 @@ type worker struct {
 	store *store.Client
 	db    *db.Database
 
-	hub *github.SigningClient
+	hub *gh.SigningClient
 	git *git.Manager
 
 	errC chan<- error
@@ -36,7 +36,7 @@ func newWorker(
 	l *zap.SugaredLogger,
 	store *store.Client,
 	db *db.Database,
-	hub *github.SigningClient,
+	hub *gh.SigningClient,
 	git *git.Manager,
 	errC chan<- error,
 ) *worker {
@@ -232,16 +232,16 @@ func (w *worker) githubSync(ctx context.Context, repoID int, job *store.RepoJob,
 	}
 
 	// init syncer
-	var syncer = github.NewSyncer(
+	var syncer = gh.NewSyncer(
 		l.Named("syncer"),
 		client,
-		github.SyncOptions{
-			Repo: github.Repo{
+		gh.SyncOptions{
+			Repo: gh.Repo{
 				Owner: job.Owner,
 				Name:  job.Repo,
 			},
-			Filter: github.ItemFilter{
-				State:    github.IssueStateAll,
+			Filter: gh.ItemFilter{
+				State:    gh.IssueStateAll,
 				Interval: time.Second,
 			},
 			DetailsFetchWorkers: 3,

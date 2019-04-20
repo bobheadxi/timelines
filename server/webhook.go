@@ -99,20 +99,20 @@ func (h *webhookHandler) handleInstall(
 	install host.Installation,
 	added, removed []host.Repo,
 ) error {
-	errSet := map[string]error{}
+	var errSet = make(map[string]error)
+
+	// add new repos
 	for _, repo := range added {
 		if err := h.db.Repos().NewRepository(
 			ctx,
 			install.GetID(),
 			repo,
 		); err != nil {
-			if !db.IsNotFound(err) {
-				errSet[repo.GetOwner()+"/"+repo.GetName()] = err
+			if db.IsNotFound(err) {
+				h.l.Warnw("installation"+install.GetID()+": unexpected not-found error",
+					"repo", repo, "install", install, "error", err)
 			} else {
-				h.l.Errorw("unexpected not-found error",
-					"repo", repo,
-					"install", install,
-					"error", err)
+				errSet[repo.GetOwner()+"/"+repo.GetName()] = err
 			}
 		}
 		h.store.RepoJobs().Queue(&store.RepoJob{
@@ -122,6 +122,8 @@ func (h *webhookHandler) handleInstall(
 			InstallationID: install.GetID(), // TODO: not needed?
 		})
 	}
+
+	// remove uninstalled repos
 	for _, repo := range removed {
 		dbr, err := h.db.Repos().GetRepository(
 			ctx,
@@ -129,13 +131,11 @@ func (h *webhookHandler) handleInstall(
 			repo.GetOwner(),
 			repo.GetName())
 		if err != nil {
-			if !db.IsNotFound(err) {
-				errSet[repo.GetOwner()+"/"+repo.GetName()] = err
+			if db.IsNotFound(err) {
+				h.l.Warnw("installation"+install.GetID()+": unexpected not-found error",
+					"repo", repo, "install", install, "error", err)
 			} else {
-				h.l.Errorw("unexpected not-found error",
-					"repo", repo,
-					"install", install,
-					"error", err)
+				errSet[repo.GetOwner()+"/"+repo.GetName()] = err
 			}
 			continue
 		}
@@ -145,7 +145,7 @@ func (h *webhookHandler) handleInstall(
 		}
 	}
 	if len(errSet) > 0 {
-		h.l.Errorw("error(s) occured on installation handling",
+		h.l.Errorw("errors occured on installation handling",
 			"errors", errSet)
 		return fmt.Errorf("errors: %+v", errSet)
 	}

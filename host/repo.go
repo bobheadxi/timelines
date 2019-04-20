@@ -3,6 +3,7 @@ package host
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/google/go-github/github"
 )
@@ -13,6 +14,7 @@ type Repo interface {
 	GetOwner() string
 	GetName() string
 	GetDescription() string
+	IsPrivate() bool
 	fmt.Stringer
 }
 
@@ -23,6 +25,7 @@ type BaseRepo struct {
 	Owner       string
 	Name        string
 	Description string
+	Private     bool
 }
 
 // GetHost returns the repo's host
@@ -39,6 +42,9 @@ func (b *BaseRepo) GetName() string { return b.Name }
 
 // GetDescription returns the repo's description
 func (b *BaseRepo) GetDescription() string { return b.Description }
+
+// IsPrivate indicates whether the repo is private of not
+func (b *BaseRepo) IsPrivate() bool { return b.Private }
 
 func (b *BaseRepo) String() string { return fmt.Sprintf("%s:%s/%s", b.Host, b.Owner, b.Name) }
 
@@ -64,4 +70,5 @@ func ReposFromGitHub(rs []*github.Repository) []Repo {
 
 func (g *githubRepo) GetHost() Host    { return HostGitHub }
 func (g *githubRepo) GetID() string    { return strconv.Itoa(int(g.Repository.GetID())) }
-func (g *githubRepo) GetOwner() string { return g.Repository.GetOwner().GetName() }
+func (g *githubRepo) GetOwner() string { return strings.Split(g.Repository.GetFullName(), "/")[0] }
+func (g *githubRepo) IsPrivate() bool  { return g.Repository.GetPrivate() }
