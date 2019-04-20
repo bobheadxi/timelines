@@ -30,7 +30,7 @@ func (l loggerMiddleware) Handler(next http.Handler) http.Handler {
 		if reqID := r.Context().Value(middleware.RequestIDKey); reqID != nil {
 			requestID = reqID.(string)
 		}
-		l.l.Info("request completed",
+		l.l.Info(r.Method+" "+r.URL.Path+": request completed",
 			// request metadata
 			zap.String("path", r.URL.Path),
 			zap.String("query", r.URL.RawQuery),
