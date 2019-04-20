@@ -23,14 +23,6 @@ const (
 	tableGitBurndownContributors = "git_burndowns_contributors"
 )
 
-// Repository represents a stored repository. TODO
-type Repository struct {
-	ID           int
-	Installation string
-
-	GitBurndowns []*GitBurndown
-}
-
 // GitBurndown represents one sample per entry
 type GitBurndown struct {
 	ID     int
@@ -162,6 +154,35 @@ func (r *ReposDatabase) DeleteRepository(ctx context.Context, id int) error {
 		return err
 	}
 	if res.RowsAffected() < 1 {
+		return errNotFound()
+	}
+	return nil
+}
+
+// RepoMD is additional information to include about a repository.
+// Since a lot of stuff isn't include in the initial installation event, this
+// is a separate update.
+type RepoMD struct {
+	Description string
+}
+
+// UpdateRepository updates a given repository
+func (r *ReposDatabase) UpdateRepository(
+	ctx context.Context, id int, meta RepoMD,
+) error {
+	t, err := r.db.pg.ExecEx(ctx, `
+		UPDATE
+			repositories
+		SET
+			description=$1
+		WHERE
+			id=$2
+	`, &pgx.QueryExOptions{},
+		meta.Description, id)
+	if err != nil {
+		return err
+	}
+	if t.RowsAffected() < 1 {
 		return errNotFound()
 	}
 	return nil

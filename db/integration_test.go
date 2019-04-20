@@ -39,6 +39,10 @@ func TestDatabase_integration(t *testing.T) {
 	t.Log("bobheadxi/calories created as ID:", repo.ID)
 	defer repos.DeleteRepository(ctx, repo.ID)
 
+	assert.NoError(t, repos.UpdateRepository(ctx, repo.ID, db.RepoMD{
+		Description: "hello world",
+	}))
+
 	// run tests
 	t.Run("test host items", func(t *testing.T) {
 		assert.NoError(t, repos.InsertHostItems(ctx, host.HostGitHub, repo.ID, []*host.Item{
