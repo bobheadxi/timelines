@@ -33,7 +33,11 @@ func newWebhookHandler(
 }
 
 func (h *webhookHandler) handleGitHub(w http.ResponseWriter, r *http.Request) {
-	t := github.WebHookType(r)
+	var (
+		ctx = r.Context()
+		t   = github.WebHookType(r)
+		l   = h.l.With("github.event_type", t)
+	)
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		res.R(w, r, res.ErrBadRequest("unable to read request", "error", err))
@@ -49,7 +53,7 @@ func (h *webhookHandler) handleGitHub(w http.ResponseWriter, r *http.Request) {
 	case *github.InstallationRepositoriesEvent:
 		// https://developer.github.com/v3/activity/events/types/#installationevent
 		install := event.GetInstallation()
-		h.l.Infof("received installation %#v", install)
+		l.Infof("received installation %#v", install)
 		if err := h.handleInstall(r.Context(),
 			host.InstallationFromGitHub(install),
 			gh.ReposFromGitHub(event.RepositoriesAdded),
@@ -71,21 +75,49 @@ func (h *webhookHandler) handleGitHub(w http.ResponseWriter, r *http.Request) {
 		// https://developer.github.com/v3/activity/events/types/#createevent
 		// https://developer.github.com/v3/activity/events/types/#milestoneevent
 		// https://developer.github.com/v3/activity/events/types/#releaseevent
-		h.l.Infof("received %#v", event)
+		l.Infof("received %#v", event)
 		// TODO handle tag, milestone sync here - call these "milestones" or something
 		res.R(w, r, res.MsgOK("event acknowledged but not processed - not implemented",
 			"type", t))
 
 	case *github.IssuesEvent, *github.PullRequest:
-		h.l.Infof("received %#v", event)
+		l.Infof("received %#v", event)
 		// TODO manage issue, pull request updates - aka "items"
 		res.R(w, r, res.MsgOK("event acknowledged but not processed - not implemented",
 			"type", t))
 
 	case *github.PushEvent:
-		h.l.Infof("received %#v", event)
+		eventRepo := event.GetRepo()
+		l = l.With("repository", eventRepo.GetFullName())
+
+		var repos = h.db.Repos()
+		dbRepo, err := repos.GetRepository(
+			ctx, host.HostGitHub,
+			eventRepo.GetOwner().GetName(), eventRepo.GetName())
+		if err != nil {
+			if db.IsNotFound(err) {
+				res.R(w, r, res.ErrNotFound("could not find repository indicated event",
+					"repository", eventRepo.GetFullName()))
+			} else {
+				l.Error(err)
+				res.R(w, r, res.ErrInternalServer("unexpected error when updating repository", err,
+					"repository", eventRepo.GetFullName()))
+			}
+			return
+		}
+
+		// update metadata
+		if err := h.db.Repos().UpdateRepository(ctx, dbRepo.ID, db.RepoMD{
+			Description: event.GetRepo().GetName(),
+		}); err != nil {
+			l.Error(err)
+			res.R(w, r, res.ErrInternalServer("unexpected error when updating repository", err,
+				"repository", eventRepo.GetFullName()))
+			return
+		}
+
 		// TODO manage job queues here for repository updates
-		res.R(w, r, res.MsgOK("event acknowledged but not processed - not implemented",
+		res.R(w, r, res.MsgOK("event acknowledged but only partially processed",
 			"type", t))
 
 	default:
@@ -103,8 +135,9 @@ func (h *webhookHandler) handleInstall(
 	var errSet = make(map[string]error)
 
 	// add new repos
+	repos := h.db.Repos()
 	for _, repo := range added {
-		if err := h.db.Repos().NewRepository(
+		if err := repos.NewRepository(
 			ctx,
 			install.GetID(),
 			repo,
@@ -126,7 +159,7 @@ func (h *webhookHandler) handleInstall(
 
 	// remove uninstalled repos
 	for _, repo := range removed {
-		dbr, err := h.db.Repos().GetRepository(
+		dbr, err := repos.GetRepository(
 			ctx,
 			repo.GetHost(),
 			repo.GetOwner(),
