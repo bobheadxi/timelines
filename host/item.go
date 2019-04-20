@@ -11,9 +11,9 @@ type ItemType string
 
 const (
 	// ItemTypeIssue is an issue
-	ItemTypeIssue ItemType = "issue"
+	ItemTypeIssue ItemType = "ISSUE"
 	// ItemTypePR is a pull request
-	ItemTypePR ItemType = "pull_request"
+	ItemTypePR ItemType = "PULL_REQUEST"
 )
 
 // Item is a GitHub item due for indexing

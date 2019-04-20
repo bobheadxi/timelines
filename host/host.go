@@ -4,8 +4,12 @@ package host
 type Host string
 
 const (
-	// HostGitHub is GitHub
-	HostGitHub Host = "github"
+	// HostGitHub is github.com
+	HostGitHub Host = "GITHUB"
+	// HostGitLab is gitlab.com
+	HostGitLab Host = "GITLAB"
+	// HostBitbucket is bitbucket.org
+	HostBitbucket Host = "BITBUCKET"
 )
 
 // Hosted defines a common interface for all host struct types
