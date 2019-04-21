@@ -20,7 +20,7 @@ type queryResolver struct {
 }
 
 func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.RepositoryHost) (*models.Repository, error) {
-	var l = q.l.With(log.LogKeyRID, log.RequestID(ctx))
+	var l = q.l.With(log.LogKeyRID, log.HTTPRequestID(ctx))
 	hostService, err := modelToHost(h)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.
 }
 
 func (q *queryResolver) Repos(ctx context.Context, owner string, h *models.RepositoryHost) ([]models.Repository, error) {
-	var l = q.l.With(log.LogKeyRID, log.RequestID(ctx))
+	var l = q.l.With(log.LogKeyRID, log.HTTPRequestID(ctx))
 	hostService, err := modelToHost(h)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (q *queryResolver) Burndown(ctx context.Context, id int, t *models.Burndown
 	if t == nil {
 		*t = models.BurndownTypeGlobal
 	}
-	l := q.l.With("repo", id, "type", *t, log.LogKeyRID, log.RequestID(ctx))
+	l := q.l.With("repo", id, "type", *t, log.LogKeyRID, log.HTTPRequestID(ctx))
 
 	switch *t {
 	case models.BurndownTypeFile:

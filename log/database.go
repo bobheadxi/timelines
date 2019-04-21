@@ -18,7 +18,7 @@ func NewDatabaseLogger(l *zap.SugaredLogger) pgx.Logger {
 }
 
 func (d *databaseLogger) Log(lv pgx.LogLevel, msg string, context map[string]interface{}) {
-	var zapData = zap.Any("context", context)
+	var zapData = zap.Any("pgx.context", context)
 	switch lv {
 	case pgx.LogLevelDebug:
 		d.l.Debug(msg, zapData)

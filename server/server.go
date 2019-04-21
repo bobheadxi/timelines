@@ -58,24 +58,33 @@ func Run(
 	mux.Use(
 		middleware.RequestID,
 		middleware.RealIP,
-		log.NewHTTPLogger(l.Named("mux")),
-		middleware.Recoverer,
-	)
-	mux.Handle("/playground", handler.Playground("timelines API Playground", "/query"))
+		middleware.Recoverer)
 	mux.Route("/query", func(r chi.Router) {
 		// TODO: improve configuration
-		r.Use(cors.New(cors.Options{
-			AllowedOrigins:   []string{"*"},
-			AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"},
-			AllowedHeaders:   []string{"*"},
-			AllowCredentials: true,
-		}).Handler)
-		r.Handle("/", handler.GraphQL(timelines.NewExecutableSchema(timelines.Config{
-			Resolvers: resolver,
-		})))
+		r.Use(
+			cors.New(cors.Options{
+				AllowedOrigins:   []string{"*"},
+				AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"},
+				AllowedHeaders:   []string{"*"},
+				AllowCredentials: true,
+			}).Handler,
+			log.GraphCtxHandler)
+		r.Handle("/", handler.GraphQL(
+			timelines.NewExecutableSchema(timelines.Config{
+				Resolvers:  resolver,
+				Directives: timelines.DirectiveRoot{},
+			}),
+			handler.RequestMiddleware(log.NewGraphLogger(
+				l.Desugar().Named("graph"),
+			))))
 	})
 	mux.Route("/webhooks", func(r chi.Router) {
+		r.Use(log.NewHTTPLogger(l.Named("webhooks")))
 		r.HandleFunc("/github", webhook.handleGitHub)
+	})
+	mux.Route("/playground", func(r chi.Router) {
+		r.Use(log.NewHTTPLogger(l.Named("playground")))
+		r.Handle("/", handler.Playground("timelines API Playground", "/query"))
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		res.R(w, r, res.MsgOK("API server is online!"))

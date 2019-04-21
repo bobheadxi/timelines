@@ -34,25 +34,20 @@ func (l loggerMiddleware) Handler(next http.Handler) http.Handler {
 
 		l.l.Info(r.Method+" "+r.URL.Path+": request completed",
 			// request metadata
-			zap.String("path", r.URL.Path),
-			zap.String("query", r.URL.RawQuery),
-			zap.String("method", r.Method),
-			zap.String("user_agent", r.UserAgent()),
+			zap.String("req.path", r.URL.Path),
+			zap.String("req.query", r.URL.RawQuery),
+			zap.String("req.method", r.Method),
+			zap.String("req.ip", r.RemoteAddr),
+			zap.String("req.user_agent", r.UserAgent()),
 
 			// response metadata
-			zap.Int("status", ww.Status()),
-			zap.Duration("took", time.Since(start)),
+			zap.Int("resp.status", ww.Status()),
 
 			// additional metadata
-			zap.String("real_ip", r.RemoteAddr),
-			zap.String(LogKeyRID, RequestID(r.Context())))
+			zap.Duration("duration", time.Since(start)),
+			zap.String(LogKeyRID, HTTPRequestID(r.Context())))
 	})
 }
 
-// RequestID returns the request ID injected by the chi requestID middleware
-func RequestID(ctx context.Context) string {
-	if reqID := ctx.Value(middleware.RequestIDKey); reqID != nil {
-		return reqID.(string)
-	}
-	return ""
-}
+// HTTPRequestID returns the request ID injected by the chi requestID middleware
+func HTTPRequestID(ctx context.Context) string { return ctxString(ctx, middleware.RequestIDKey) }
