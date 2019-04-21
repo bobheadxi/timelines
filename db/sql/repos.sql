@@ -1,11 +1,11 @@
 CREATE TYPE host_service AS ENUM ('UNKNOWN', 'GITHUB', 'GITLAB', 'BITBUCKET');
 CREATE TABLE repositories (
   id              SERIAL PRIMARY KEY,
-  installation_id TEXT UNIQUE,
+  installation_id TEXT UNIQUE NOT NULL,
   host_type       host_service,
-  owner           TEXT,
-  name            TEXT,
-  description     TEXT,
+  owner           TEXT NOT NULL,
+  name            TEXT NOT NULL,
+  description     TEXT DEFAULT '',
   service_stats   JSONB NULL,
 
   UNIQUE(owner, name)
