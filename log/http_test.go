@@ -32,14 +32,14 @@ func Test_loggerMiddleware(t *testing.T) {
 		want []string
 	}{
 		{
-			"GET with requestID",
+			"GET with request iD",
 			args{"GET", "/", nil, []func(http.Handler) http.Handler{middleware.RequestID}},
 			[]string{"path", LogKeyRID},
 		},
 		{
-			"GET with realIP",
+			"GET with req.ip",
 			args{"GET", "/", nil, []func(http.Handler) http.Handler{middleware.RealIP}},
-			[]string{"path", "real_ip"},
+			[]string{"path", "req.ip"},
 		},
 	}
 	for _, tt := range tests {
