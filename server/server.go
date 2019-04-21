@@ -23,6 +23,8 @@ type RunOpts struct {
 	Port     string
 	Store    config.Store
 	Database config.Database
+
+	Build string
 }
 
 // Run spins up the server
@@ -87,7 +89,8 @@ func Run(
 		r.Handle("/", handler.Playground("timelines API Playground", "/query"))
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		res.R(w, r, res.MsgOK("API server is online!"))
+		res.R(w, r, res.MsgOK("API server is online!",
+			"build", opts.Build))
 	})
 
 	// let's go!
