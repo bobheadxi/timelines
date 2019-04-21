@@ -20,7 +20,8 @@ type queryResolver struct {
 }
 
 func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.RepositoryHost) (*models.Repository, error) {
-	var l = q.l.With(log.LogKeyRID, log.HTTPRequestID(ctx))
+	var l = q.l.With(log.LogKeyRID, log.HTTPRequestID(ctx),
+		"owner", owner, "name", name)
 	hostService, err := modelToHost(h)
 	if err != nil {
 		return nil, err
@@ -29,9 +30,7 @@ func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.
 	repo, err := q.db.Repos().GetRepository(ctx, hostService, owner, name)
 	if err != nil {
 		if !db.IsNotFound(err) {
-			l.Errorw(err.Error(),
-				"owner", owner,
-				"name", name)
+			l.Errorw(err.Error())
 		}
 		return nil, fmt.Errorf("could not find repository for '%s/%s'", owner, name)
 	}
@@ -39,7 +38,8 @@ func (q *queryResolver) Repo(ctx context.Context, owner, name string, h *models.
 }
 
 func (q *queryResolver) Repos(ctx context.Context, owner string, h *models.RepositoryHost) ([]models.Repository, error) {
-	var l = q.l.With(log.LogKeyRID, log.HTTPRequestID(ctx))
+	var l = q.l.With(log.LogKeyRID, log.HTTPRequestID(ctx),
+		"owner", owner)
 	hostService, err := modelToHost(h)
 	if err != nil {
 		return nil, err
@@ -47,8 +47,9 @@ func (q *queryResolver) Repos(ctx context.Context, owner string, h *models.Repos
 
 	repos, err := q.db.Repos().GetRepositories(ctx, hostService, owner)
 	if err != nil {
-		l.Errorw(err.Error(),
-			"owner", owner)
+		if !db.IsNotFound(err) {
+			l.Errorw(err.Error())
+		}
 		return nil, fmt.Errorf("could not find repositories for '%s'", owner)
 	}
 	return repos, nil
@@ -68,7 +69,9 @@ func (q *queryResolver) Burndown(ctx context.Context, id int, t *models.Burndown
 	case models.BurndownTypeGlobal:
 		deltas, err := q.db.Repos().GetGlobalBurndown(ctx, id)
 		if err != nil {
-			l.Error(err.Error())
+			if !db.IsNotFound(err) {
+				l.Errorw(err.Error())
+			}
 			return nil, fmt.Errorf("could not find '%s' burndowns for repo '%d'", t, id)
 		}
 		return &models.Burndown{
