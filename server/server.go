@@ -76,7 +76,7 @@ func Run(
 				Resolvers:  resolver,
 				Directives: timelines.DirectiveRoot{},
 			}),
-			handler.RequestMiddleware(log.NewGraphLogger(
+			handler.ResolverMiddleware(log.NewGraphLogger(
 				l.Desugar().Named("graph"),
 			))))
 	})

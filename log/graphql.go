@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -29,18 +30,28 @@ func GraphCtxHandler(next http.Handler) http.Handler {
 }
 
 // NewGraphLogger returns a logger for use with GraphQL queries
-func NewGraphLogger(l *zap.Logger) graphql.RequestMiddleware {
-	return func(ctx context.Context, next func(context.Context) []byte) []byte {
+// graphql.FieldMiddleware is super verbose, and things like introspection
+// seem to cause the log to blow up. not sure how useful this is, though on the
+// other hand graphql.RequestMiddleware isn't very informative
+func NewGraphLogger(l *zap.Logger) graphql.FieldMiddleware {
+	return func(ctx context.Context, next graphql.Resolver) (interface{}, error) {
 		// call handler
+		res := graphql.GetResolverContext(ctx)
+		if strings.HasPrefix(res.Object, "__") || !res.IsMethod {
+			return next(ctx)
+		}
+
 		start := time.Now()
-		response := next(ctx)
+		response, err := next(ctx)
 
 		// log request
 		// TODO: could implement more advanced tracing, hm, via RequestContext.Trace
 		req := graphql.GetRequestContext(ctx)
 		// TODO: log message not very informative
 		// TODO: evaluate usefulness of logged fields
-		l.Info("graph query completed",
+		l.Info(res.Object+": graph query completed",
+			zap.Bool("ismethod", res.IsMethod),
+			zap.Any("path", res.Path()),
 			// request metadata
 			zap.Int("req.complexity", req.OperationComplexity),
 			zap.Any("req.variables", req.Variables),
@@ -50,13 +61,13 @@ func NewGraphLogger(l *zap.Logger) graphql.RequestMiddleware {
 			zap.String("req.user_agent", ctxString(ctx, httpCtxKeyUserAgent)),
 
 			// response metadata
-			zap.Int("resp.size", len(response)),
+			zap.NamedError("resp.err", err),
 
 			// additional metadata
 			zap.Duration("duration", time.Since(start)),
 			zap.String(LogKeyRID, HTTPRequestID(ctx)))
 
-		return response
+		return response, err
 	}
 }
 
