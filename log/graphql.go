@@ -55,13 +55,11 @@ func NewGraphLogger(l *zap.Logger) graphql.FieldMiddleware {
 			// request metadata
 			zap.Int("req.complexity", req.OperationComplexity),
 			zap.Any("req.variables", req.Variables),
-			zap.Any("req.errors", req.Errors),
-			zap.Any("req.extensions", req.Extensions),
 			zap.String("req.ip", ctxString(ctx, httpCtxKeyRemoteAddr)),
 			zap.String("req.user_agent", ctxString(ctx, httpCtxKeyUserAgent)),
 
 			// response metadata
-			zap.NamedError("resp.err", err),
+			zap.Bool("resp.errored", len(req.Errors) > 0),
 
 			// additional metadata
 			zap.Duration("duration", time.Since(start)),
