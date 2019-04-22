@@ -18,15 +18,16 @@ func NewDatabaseLogger(l *zap.SugaredLogger) pgx.Logger {
 }
 
 func (d *databaseLogger) Log(lv pgx.LogLevel, msg string, context map[string]interface{}) {
-	var zapData = zap.Any("pgx.context", context)
+	var (
+		zapData  = zap.Any("pgx.context", context)
+		zapLevel = zap.String("pgx.level", lv.String())
+	)
 	switch lv {
-	case pgx.LogLevelDebug:
-		d.l.Debug(msg, zapData)
+	case pgx.LogLevelDebug, pgx.LogLevelTrace, pgx.LogLevelInfo:
+		d.l.Debug(msg, zapLevel, zapData)
 	case pgx.LogLevelWarn:
-		d.l.Warn(msg, zapData)
+		d.l.Warn(msg, zapLevel, zapData)
 	case pgx.LogLevelError:
-		d.l.Error(msg, zapData)
-	default:
-		d.l.Info(msg, zapData)
+		d.l.Error(msg, zapLevel, zapData)
 	}
 }

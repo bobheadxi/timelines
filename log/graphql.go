@@ -44,12 +44,11 @@ func NewGraphLogger(l *zap.Logger) graphql.RequestMiddleware {
 			// request metadata
 			zap.Int("req.complexity", req.OperationComplexity),
 			zap.Any("req.variables", req.Variables),
-			zap.Any("req.errors", req.Errors),
-			zap.Any("req.extensions", req.Extensions),
 			zap.String("req.ip", ctxString(ctx, httpCtxKeyRemoteAddr)),
 			zap.String("req.user_agent", ctxString(ctx, httpCtxKeyUserAgent)),
 
 			// response metadata
+			zap.Bool("resp.errored", len(req.Errors) > 0),
 			zap.Int("resp.size", len(response)),
 
 			// additional metadata
