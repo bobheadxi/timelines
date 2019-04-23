@@ -5,13 +5,19 @@
 [![slack](https://img.shields.io/badge/slack-grey.svg?logo=slack)](https://join.slack.com/t/timelines-app/shared_invite/enQtNjEzMDE1NDk5NjAwLWZlN2ViZTE0NTNlNDZjZTNlOTNiNzZhZTZmNzgzZGVmNzcwZGE2NGJiN2QwNDQ0NzIyNmJlM2QzOTE4ZjQ3ZGE)
 
 * [Development](#development)
-  * [Commits](#commits)
+  * [Housekeeping](#housekeeping)
+    * [Commits](#commits)
+    * [Branching](#branching)
   * [Web](#web)
   * [Backend](#backend)
+    * [Code Style](#code-style)
+    * [Development Environment](#development-environment)
 
 ## Development
 
-### Commits
+### Housekeeping
+
+#### Commits
 
 Commits should include a single functional change, and the message should be
 prefixed with the primary component being changed. For example:
@@ -29,12 +35,19 @@ chore: set up eslint for web
 closes #40
 ```
 
+#### Branching
+
+Branch names should be prefixed with the primary component being changed as well.
+For example:
+
+```
+git checkout -b log/resolver-middleware
+```
+
 ### Web
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/b56788d9-0743-4b39-a307-66e2c99bd428/deploy-status)](https://app.netlify.com/sites/timelines-bobheadxi/deploys)
-
 Development documentation for the Timelines web app can be found in
-[`./web/README.md`](./web/README.md)
+[`./web/README.md`](./web/README.md).
 
 ### Backend
 
@@ -47,4 +60,36 @@ same binary, `timelines`, that you can build using:
 ```
 make
 ./timelines --help
+```
+
+Note that you'll want [Modules](https://github.com/golang/go/wiki/Modules)
+enabled using `GO111MODULE=on` or by cloning this repository outside your `GOPATH`.
+The minimum Go version is defined in [`go.mod`](./go.mod).
+
+#### Code Style
+
+All Go code should satisfy [`gofmt`](https://golang.org/cmd/gofmt/) and
+[`golint`](https://github.com/golang/lint).
+
+#### Development Environment
+
+Install and run [Docker](https://www.docker.com/products/docker-desktop), then
+use the provided [`Makefile`](./Makefile):
+
+```
+make devenv
+make devpg  # initialize postgres database
+```
+
+To deploy `timelines` components using `devenv` assets, use the `--dev` flag:
+
+```
+./timelines server --dev
+./timelines worker --dev
+```
+
+Utility functions for development are available as well under the `dev` command:
+
+```
+./timelines dev --help
 ```
