@@ -122,4 +122,4 @@ To generate all code in the project, including `web` code, run:
 make generate
 ```
 
-See [tools](./tools/README.md) for more details.
+See [gotools](./gotools/README.md) for more details.
