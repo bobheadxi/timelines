@@ -20,8 +20,9 @@
 
 #### Git Hooks
 
-A [pre-commit hook](./.scripts/lint.sh) is available that runs some basic checks
-over staged changes to keep things clean and tidy. It can be installed by running:
+A [pre-commit hook](./.scripts/pre-commit.sh) is available that runs some basic
+checks over staged changes to keep things clean and tidy. It can be installed by
+running:
 
 ```
 make .scripts
