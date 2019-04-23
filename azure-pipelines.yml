@@ -37,8 +37,7 @@ steps:
 
 - script: |
     go version
-    go mod vendor
-    go get -u golang.org/x/lint/golint
+    go mod download
   workingDirectory: '$(modulePath)'
   displayName: 'Get dependencies'
 

@@ -13,6 +13,7 @@
   * [Backend](#backend)
     * [Code Style](#code-style)
     * [Development Environment](#development-environment)
+    * [Generated Code](#generated-code)
 
 ## Development
 
@@ -106,3 +107,19 @@ Utility functions for development are available as well under the `dev` command:
 ```
 ./timelines dev --help
 ```
+
+#### Generated Code
+
+All Go code generation tasks should be able to be triggered by `go generate`:
+
+```
+go generate ./...
+```
+
+To generate all code in the project, including `web` code, run:
+
+```
+make generate
+```
+
+See [tools](./tools/README.md) for more details.

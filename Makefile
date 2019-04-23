@@ -36,9 +36,9 @@ devmonitoring:
 
 # Codegen
 
-.PHONY: graphql
-graphql:
-	$(MAKE) -C graphql go
+.PHONY: generate
+generate:
+	go generate ./...
 	cd web && npm run graphql
 
 # PG utils

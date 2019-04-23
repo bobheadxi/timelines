@@ -19,7 +19,7 @@ if [[ "$STAGED_GO_FILES" != "" ]]; then
     if [[ $? == 1 ]]; then
       PASS=1
     fi
-    golint "-set_exit_status" "$FILE"
+    go run golang.org/x/lint/golint "-set_exit_status" "$FILE"
     if [[ $? == 1 ]]; then
       PASS=1
     fi

@@ -1,11 +1,11 @@
 # Refer to https://gqlgen.com/config/ for detailed .gqlgen.yml documentation.
 
 schema:
- - "../../schema.graphql"
+ - "../schema.graphql"
 exec:
-  filename: ./exec.go
+  filename: ./timelines/exec.go
 model:
-  filename: ./models/models.go
+  filename: ./timelines/models/models.go
 
 # Must force nested resolvers. See https://github.com/99designs/gqlgen/issues/350
 models:

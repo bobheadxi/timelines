@@ -3,6 +3,12 @@
 This document outlines development notes for Timelines' web interface. It is
 currently deployed using [Netlify](https://www.netlify.com/).
 
+* [Code Style](#code-style)
+* [GraphQL Queries](#graphql-queries)
+* [Styling](#styling)
+  * [UIkit](#uikit)
+  * [SCSS](#scss)
+
 ## Code Style
 
 Styles are enforced by [eslint](https://eslint.org/), with rules defined in
@@ -17,7 +23,7 @@ npm i -g eslint
 npm run lint
 ```
 
-## Queries
+## GraphQL Queries
 
 The web app connects to the backend server using GraphQL, with a client powered by
 [Apollo](https://github.com/apollographql/apollo-client). Relevant documentation:
@@ -25,7 +31,7 @@ The web app connects to the backend server using GraphQL, with a client powered 
 
 The API schema is defined in [`../graphql/schema.graphql`](../graphql/schema.graphql).
 
-Typescript definitions for the web app are generated using
+GraphQL API Typescript definitions for the web app are generated using
 [Apollo-Tooling](https://github.com/apollographql/apollo-tooling), though the
 generated code still needs a small wrapper layer on top - see
 [`./src/lib/queries/repos.tsx`](src/lib/queries/repos.tsx). To update the generated
