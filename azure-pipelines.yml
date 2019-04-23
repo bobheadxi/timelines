@@ -39,14 +39,12 @@ steps:
     go version
     go mod vendor
     go get -u golang.org/x/lint/golint
-    go build -v .
   workingDirectory: '$(modulePath)'
   displayName: 'Get dependencies'
 
 - script: |
-    go build -v
     make lint
-    go vet ./...
+    go build -v
   workingDirectory: '$(modulePath)'
   displayName: 'Build and run static analysis'
 
