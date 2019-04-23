@@ -6,6 +6,7 @@
 
 * [Development](#development)
   * [Housekeeping](#housekeeping)
+    * [Git Hooks](#git-hooks)
     * [Commits](#commits)
     * [Branching](#branching)
   * [Web](#web)
@@ -16,6 +17,17 @@
 ## Development
 
 ### Housekeeping
+
+#### Git Hooks
+
+A [pre-commit hook](./.scripts/lint.sh) is available that runs some basic checks
+over staged changes to keep things clean and tidy. It can be installed by running:
+
+```
+make .scripts
+```
+
+Learn more about git hooks [here](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks).
 
 #### Commits
 
