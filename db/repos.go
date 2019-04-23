@@ -7,13 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
-
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/analysis"
+	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
 	"github.com/bobheadxi/timelines/host"
 )
 
