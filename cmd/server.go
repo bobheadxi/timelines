@@ -56,7 +56,8 @@ func newServerCmd() *cobra.Command {
 					Port:     port,
 					Store:    storeCfg,
 					Database: dbCfg,
-					Build:    meta.Commit,
+					Meta:     meta,
+					Dev:      devMode,
 				})
 		},
 	}
