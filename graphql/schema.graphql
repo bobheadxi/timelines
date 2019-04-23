@@ -3,23 +3,41 @@ schema {
 }
 
 scalar Time
-scalar Long
 
-# Query defines all API queries
+#########
+# Query #
+#########
+
 type Query {
+  # Query for specific repository and associated analytics
   repo(
     owner: String!,
     name: String!,
     host: RepositoryHost = GITHUB,
   ): RepositoryAnalytics
 
+  # Query for repositories by owner
   repos(
     owner: String!,
     host: RepositoryHost = GITHUB,
   ): [Repository!]
+
+  # Query for current service status
+  serviceStatus: ServiceStatus!
 }
 
-# Repositories
+###########
+# Service #
+###########
+
+type ServiceStatus {
+  build: String!
+  deployed: Time!
+}
+
+################
+# Repositories #
+################
 
 type Repository {
   id: Int!
@@ -42,7 +60,9 @@ enum RepositoryHost {
   BITBUCKET
 }
 
-# Burndowns
+#############
+# Burndowns #
+#############
 
 enum BurndownType {
   GLOBAL

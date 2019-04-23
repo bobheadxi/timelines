@@ -54,6 +54,11 @@ type RepositoryAnalytics struct {
 	Burndown   Burndown   `json:"burndown"`
 }
 
+type ServiceStatus struct {
+	Build    string    `json:"build"`
+	Deployed time.Time `json:"deployed"`
+}
+
 type BurndownType string
 
 const (

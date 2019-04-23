@@ -66,8 +66,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Repo  func(childComplexity int, owner string, name string, host *models.RepositoryHost) int
-		Repos func(childComplexity int, owner string, host *models.RepositoryHost) int
+		Repo          func(childComplexity int, owner string, name string, host *models.RepositoryHost) int
+		Repos         func(childComplexity int, owner string, host *models.RepositoryHost) int
+		ServiceStatus func(childComplexity int) int
 	}
 
 	Repository struct {
@@ -81,11 +82,17 @@ type ComplexityRoot struct {
 		Burndown   func(childComplexity int, typeArg *models.BurndownType) int
 		Repository func(childComplexity int) int
 	}
+
+	ServiceStatus struct {
+		Build    func(childComplexity int) int
+		Deployed func(childComplexity int) int
+	}
 }
 
 type QueryResolver interface {
 	Repo(ctx context.Context, owner string, name string, host *models.RepositoryHost) (*models.RepositoryAnalytics, error)
 	Repos(ctx context.Context, owner string, host *models.RepositoryHost) ([]models.Repository, error)
+	ServiceStatus(ctx context.Context) (*models.ServiceStatus, error)
 }
 type RepositoryAnalyticsResolver interface {
 	Burndown(ctx context.Context, obj *models.RepositoryAnalytics, typeArg *models.BurndownType) (models.Burndown, error)
@@ -182,6 +189,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Repos(childComplexity, args["owner"].(string), args["host"].(*models.RepositoryHost)), true
 
+	case "Query.ServiceStatus":
+		if e.complexity.Query.ServiceStatus == nil {
+			break
+		}
+
+		return e.complexity.Query.ServiceStatus(childComplexity), true
+
 	case "Repository.Description":
 		if e.complexity.Repository.Description == nil {
 			break
@@ -228,6 +242,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RepositoryAnalytics.Repository(childComplexity), true
+
+	case "ServiceStatus.Build":
+		if e.complexity.ServiceStatus.Build == nil {
+			break
+		}
+
+		return e.complexity.ServiceStatus.Build(childComplexity), true
+
+	case "ServiceStatus.Deployed":
+		if e.complexity.ServiceStatus.Deployed == nil {
+			break
+		}
+
+		return e.complexity.ServiceStatus.Deployed(childComplexity), true
 
 	}
 	return 0, false
@@ -298,23 +326,41 @@ var parsedSchema = gqlparser.MustLoadSchema(
 }
 
 scalar Time
-scalar Long
 
-# Query defines all API queries
+#########
+# Query #
+#########
+
 type Query {
+  # Query for specific repository and associated analytics
   repo(
     owner: String!,
     name: String!,
     host: RepositoryHost = GITHUB,
   ): RepositoryAnalytics
 
+  # Query for repositories by owner
   repos(
     owner: String!,
     host: RepositoryHost = GITHUB,
   ): [Repository!]
+
+  # Query for current service status
+  serviceStatus: ServiceStatus!
 }
 
-# Repositories
+###########
+# Service #
+###########
+
+type ServiceStatus {
+  build: String!
+  deployed: Time!
+}
+
+################
+# Repositories #
+################
 
 type Repository {
   id: Int!
@@ -337,7 +383,9 @@ enum RepositoryHost {
   BITBUCKET
 }
 
-# Burndowns
+#############
+# Burndowns #
+#############
 
 enum BurndownType {
   GLOBAL
@@ -750,6 +798,33 @@ func (ec *executionContext) _Query_repos(ctx context.Context, field graphql.Coll
 	return ec.marshalORepository2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_serviceStatus(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServiceStatus(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ServiceStatus)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNServiceStatus2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐServiceStatus(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -969,6 +1044,60 @@ func (ec *executionContext) _RepositoryAnalytics_burndown(ctx context.Context, f
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOBurndown2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndown(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceStatus_build(ctx context.Context, field graphql.CollectedField, obj *models.ServiceStatus) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Build, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceStatus_deployed(ctx context.Context, field graphql.CollectedField, obj *models.ServiceStatus) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Deployed, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -2003,6 +2132,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_repos(ctx, field)
 				return res
 			})
+		case "serviceStatus":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_serviceStatus(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -2087,6 +2230,38 @@ func (ec *executionContext) _RepositoryAnalytics(ctx context.Context, sel ast.Se
 				res = ec._RepositoryAnalytics_burndown(ctx, field, obj)
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var serviceStatusImplementors = []string{"ServiceStatus"}
+
+func (ec *executionContext) _ServiceStatus(ctx context.Context, sel ast.SelectionSet, obj *models.ServiceStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, serviceStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceStatus")
+		case "build":
+			out.Values[i] = ec._ServiceStatus_build(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "deployed":
+			out.Values[i] = ec._ServiceStatus_deployed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2394,6 +2569,20 @@ func (ec *executionContext) marshalNInt2ᚕint(ctx context.Context, sel ast.Sele
 
 func (ec *executionContext) marshalNRepository2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx context.Context, sel ast.SelectionSet, v models.Repository) graphql.Marshaler {
 	return ec._Repository(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceStatus2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v models.ServiceStatus) graphql.Marshaler {
+	return ec._ServiceStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceStatus2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v *models.ServiceStatus) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

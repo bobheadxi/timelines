@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -17,13 +18,24 @@ type queryResolver struct {
 	db *db.Database
 
 	l *zap.SugaredLogger
+
+	build    string
+	deployed time.Time
 }
 
 func newQueryResolver(
 	l *zap.SugaredLogger,
 	database *db.Database,
+	build string,
 ) timelines.QueryResolver {
-	return &queryResolver{database, l.Named("query")}
+	return &queryResolver{database, l.Named("query"), build, time.Now()}
+}
+
+func (q *queryResolver) ServiceStatus(context.Context) (*models.ServiceStatus, error) {
+	return &models.ServiceStatus{
+		Build:    q.build,
+		Deployed: q.deployed,
+	}, nil
 }
 
 func (q *queryResolver) Repo(

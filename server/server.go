@@ -24,7 +24,8 @@ type RunOpts struct {
 	Store    config.Store
 	Database config.Database
 
-	Build string
+	Meta config.BuildMeta
+	Dev  bool
 }
 
 // Run spins up the server
@@ -47,7 +48,7 @@ func Run(
 
 	// init handlers
 	var (
-		resolver = newRootResolver(l.Named("resolver"), database, store)
+		resolver = newRootResolver(l.Named("resolver"), database, store, opts.Meta, opts.Dev)
 		webhook  = newWebhookHandler(l.Named("webhooks"), database, store)
 		mux      = chi.NewMux()
 		srv      = http.Server{
@@ -89,7 +90,7 @@ func Run(
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		res.R(w, r, res.MsgOK("API server is online!",
-			"build", opts.Build))
+			"build", opts.Meta.AnnotatedCommit(opts.Dev)))
 	})
 
 	// let's go!
@@ -118,10 +119,13 @@ func newRootResolver(
 	l *zap.SugaredLogger,
 	d *db.Database,
 	s *store.Client,
+
+	meta config.BuildMeta,
+	dev bool,
 ) timelines.ResolverRoot {
 	return &rootResolver{
 		l: l,
-		q: newQueryResolver(l, d),
+		q: newQueryResolver(l, d, meta.AnnotatedCommit(dev)),
 		a: newAnalyticsResolver(l, d, s),
 	}
 }
