@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/99designs/gqlgen-contrib/gqlapollotracing"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -18,14 +17,6 @@ import (
 	"github.com/bobheadxi/timelines/log"
 	"github.com/bobheadxi/timelines/store"
 )
-
-// TODO: when to enable, when to disable, do we even want this?
-func gqlTracers() handler.Option {
-	return func(c *handler.Config) {
-		handler.RequestMiddleware(gqlapollotracing.RequestMiddleware())(c)
-		handler.Tracer(gqlapollotracing.NewTracer())(c)
-	}
-}
 
 // RunOpts denotes server options
 type RunOpts struct {
@@ -85,7 +76,6 @@ func Run(
 				Resolvers:  resolver,
 				Directives: timelines.DirectiveRoot{},
 			}),
-			gqlTracers(),
 			handler.RequestMiddleware(log.NewGraphLogger(l.Desugar().Named("graph"))),
 		))
 	})
