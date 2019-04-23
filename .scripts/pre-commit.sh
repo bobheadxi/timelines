@@ -27,6 +27,20 @@ if [[ "$STAGED_GO_FILES" != "" ]]; then
   echo ">> info: go checks ok"
 fi
 
+# Typescript checks
+STAGED_TS_FILES=$(git diff --cached --name-only | grep ".tsx$" || true)
+if [[ "$STAGED_TS_FILES" != "" ]]; then
+  echo ">> info: typescript files were staged, running typescript checks"
+  echo ">> check: npm run lint"
+  cd web || PASS=1
+  npm run lint
+  if [[ $? == 1 ]]; then
+    PASS=1
+  fi
+  cd ..
+  echo ">> info: typescript checks ok"
+fi
+
 if [[ $PASS == 1 ]]; then
   echo ">> error: some checks failed"
   exit 1
