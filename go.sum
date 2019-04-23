@@ -6,6 +6,8 @@ github.com/99designs/gqlgen v0.8.0 h1:ZBteuSgeeFwn+mztjDqQZQdVa9pqslmPnDeCovcnc0
 github.com/99designs/gqlgen v0.8.0/go.mod h1:st7qHA6ssU3uRZkmv+wzrzgX4srvIqEIdE5iuRW8GhE=
 github.com/99designs/gqlgen v0.8.3 h1:I6bMglXNKkn4KlvkSMzqZw53e1N2FF9Gud4NmsOxqiA=
 github.com/99designs/gqlgen v0.8.3/go.mod h1:aLyJw9xUgdJxZ8EqNQxo2pGFhXXJ/hq8t7J4yn8TgI4=
+github.com/99designs/gqlgen-contrib v0.0.0-20190222015228-c654377d611c h1:6PhFf4boI9ICEsb57Y8GNs+Yhk/y8x8sRvLcc1QTpYc=
+github.com/99designs/gqlgen-contrib v0.0.0-20190222015228-c654377d611c/go.mod h1:YBpBdxshfUEBRQzGDvYsWGKUnbnh+aYyOKwtzJajAq4=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=

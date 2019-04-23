@@ -5,6 +5,7 @@ go 1.12
 require (
 	cloud.google.com/go v0.37.4
 	github.com/99designs/gqlgen v0.8.3
+	github.com/99designs/gqlgen-contrib v0.0.0-20190222015228-c654377d611c
 	github.com/DataDog/zstd v1.4.0 // indirect
 	github.com/Jeffail/tunny v0.0.0-20181108205650-4921fff29480 // indirect
 	github.com/Shopify/sarama v1.22.0 // indirect
