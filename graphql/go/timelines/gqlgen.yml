@@ -1,8 +1,15 @@
 # Refer to https://gqlgen.com/config/ for detailed .gqlgen.yml documentation.
 
 schema:
- - "../../*.graphql"
+ - "../../schema.graphql"
 exec:
-  filename: ./generated.go
+  filename: ./exec.go
 model:
   filename: ./models/models.go
+
+# Must force nested resolvers. See https://github.com/99designs/gqlgen/issues/350
+models:
+  RepositoryAnalytics:
+    fields:
+      burndown:
+        resolver: true

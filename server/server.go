@@ -47,7 +47,7 @@ func Run(
 
 	// init handlers
 	var (
-		resolver = newRootResolver(l.Named("resolver"), database)
+		resolver = newRootResolver(l.Named("resolver"), database, store)
 		webhook  = newWebhookHandler(l.Named("webhooks"), database, store)
 		mux      = chi.NewMux()
 		srv      = http.Server{
@@ -110,20 +110,22 @@ func Run(
 // rootResolver implements the timelines GraphQL API
 type rootResolver struct {
 	l *zap.SugaredLogger
+
 	q timelines.QueryResolver
+	a timelines.RepositoryAnalyticsResolver
 }
 
 func newRootResolver(
 	l *zap.SugaredLogger,
-	database *db.Database,
-) *rootResolver {
+	d *db.Database,
+	s *store.Client,
+) timelines.ResolverRoot {
 	return &rootResolver{
 		l: l,
-		q: &queryResolver{
-			db: database,
-			l:  l.Named("query"),
-		},
+		q: newQueryResolver(l, d),
+		a: newAnalyticsResolver(l, d, s),
 	}
 }
 
-func (r *rootResolver) Query() timelines.QueryResolver { return r.q }
+func (r *rootResolver) Query() timelines.QueryResolver                             { return r.q }
+func (r *rootResolver) RepositoryAnalytics() timelines.RepositoryAnalyticsResolver { return r.a }

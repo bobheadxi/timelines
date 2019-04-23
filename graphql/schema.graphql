@@ -11,17 +11,12 @@ type Query {
     owner: String!,
     name: String!,
     host: RepositoryHost = GITHUB,
-  ): Repository
+  ): RepositoryAnalytics
 
   repos(
     owner: String!,
     host: RepositoryHost = GITHUB,
   ): [Repository!]
-
-  burndown(
-    repoID: Int!,
-    type: BurndownType = GLOBAL,
-  ): Burndown
 }
 
 # Repositories
@@ -30,7 +25,15 @@ type Repository {
   id: Int!
   owner: String!
   name: String!
-  description: String!,
+  description: String!
+}
+
+type RepositoryAnalytics {
+  repository: Repository!
+
+  burndown(
+    type: BurndownType = GLOBAL,
+  ): Burndown
 }
 
 enum RepositoryHost {
@@ -41,16 +44,33 @@ enum RepositoryHost {
 
 # Burndowns
 
-type Burndown {
-  type: BurndownType
-  entries: [BurndownEntry!]
-}
-
 enum BurndownType {
   GLOBAL
   FILE
   AUTHOR
 }
+
+type GlobalBurndown {
+  entries: [BurndownEntry!]
+}
+
+type AuthorBurndown {
+  author(
+    author: String!,
+  ): [BurndownEntry!]
+}
+
+type FileBurndown {
+  file(
+    filename: String!,
+  ): [BurndownEntry!]
+}
+
+type BurndownAlert {
+  alert: String!
+}
+
+union Burndown = GlobalBurndown | AuthorBurndown | FileBurndown | BurndownAlert
 
 type BurndownEntry {
   start: Time!

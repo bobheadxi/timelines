@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -36,15 +37,19 @@ type Config struct {
 
 type ResolverRoot interface {
 	Query() QueryResolver
+	RepositoryAnalytics() RepositoryAnalyticsResolver
 }
 
 type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	Burndown struct {
-		Entries func(childComplexity int) int
-		Type    func(childComplexity int) int
+	AuthorBurndown struct {
+		Author func(childComplexity int, author string) int
+	}
+
+	BurndownAlert struct {
+		Alert func(childComplexity int) int
 	}
 
 	BurndownEntry struct {
@@ -52,10 +57,17 @@ type ComplexityRoot struct {
 		Start func(childComplexity int) int
 	}
 
+	FileBurndown struct {
+		File func(childComplexity int, filename string) int
+	}
+
+	GlobalBurndown struct {
+		Entries func(childComplexity int) int
+	}
+
 	Query struct {
-		Burndown func(childComplexity int, repoID int, typeArg *models.BurndownType) int
-		Repo     func(childComplexity int, owner string, name string, host *models.RepositoryHost) int
-		Repos    func(childComplexity int, owner string, host *models.RepositoryHost) int
+		Repo  func(childComplexity int, owner string, name string, host *models.RepositoryHost) int
+		Repos func(childComplexity int, owner string, host *models.RepositoryHost) int
 	}
 
 	Repository struct {
@@ -64,12 +76,19 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 		Owner       func(childComplexity int) int
 	}
+
+	RepositoryAnalytics struct {
+		Burndown   func(childComplexity int, typeArg *models.BurndownType) int
+		Repository func(childComplexity int) int
+	}
 }
 
 type QueryResolver interface {
-	Repo(ctx context.Context, owner string, name string, host *models.RepositoryHost) (*models.Repository, error)
+	Repo(ctx context.Context, owner string, name string, host *models.RepositoryHost) (*models.RepositoryAnalytics, error)
 	Repos(ctx context.Context, owner string, host *models.RepositoryHost) ([]models.Repository, error)
-	Burndown(ctx context.Context, repoID int, typeArg *models.BurndownType) (*models.Burndown, error)
+}
+type RepositoryAnalyticsResolver interface {
+	Burndown(ctx context.Context, obj *models.RepositoryAnalytics, typeArg *models.BurndownType) (models.Burndown, error)
 }
 
 type executableSchema struct {
@@ -87,19 +106,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Burndown.Entries":
-		if e.complexity.Burndown.Entries == nil {
+	case "AuthorBurndown.Author":
+		if e.complexity.AuthorBurndown.Author == nil {
 			break
 		}
 
-		return e.complexity.Burndown.Entries(childComplexity), true
+		args, err := ec.field_AuthorBurndown_author_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
 
-	case "Burndown.Type":
-		if e.complexity.Burndown.Type == nil {
+		return e.complexity.AuthorBurndown.Author(childComplexity, args["author"].(string)), true
+
+	case "BurndownAlert.Alert":
+		if e.complexity.BurndownAlert.Alert == nil {
 			break
 		}
 
-		return e.complexity.Burndown.Type(childComplexity), true
+		return e.complexity.BurndownAlert.Alert(childComplexity), true
 
 	case "BurndownEntry.Bands":
 		if e.complexity.BurndownEntry.Bands == nil {
@@ -115,17 +139,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.BurndownEntry.Start(childComplexity), true
 
-	case "Query.Burndown":
-		if e.complexity.Query.Burndown == nil {
+	case "FileBurndown.File":
+		if e.complexity.FileBurndown.File == nil {
 			break
 		}
 
-		args, err := ec.field_Query_burndown_args(context.TODO(), rawArgs)
+		args, err := ec.field_FileBurndown_file_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Burndown(childComplexity, args["repoID"].(int), args["type"].(*models.BurndownType)), true
+		return e.complexity.FileBurndown.File(childComplexity, args["filename"].(string)), true
+
+	case "GlobalBurndown.Entries":
+		if e.complexity.GlobalBurndown.Entries == nil {
+			break
+		}
+
+		return e.complexity.GlobalBurndown.Entries(childComplexity), true
 
 	case "Query.Repo":
 		if e.complexity.Query.Repo == nil {
@@ -178,6 +209,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Repository.Owner(childComplexity), true
+
+	case "RepositoryAnalytics.Burndown":
+		if e.complexity.RepositoryAnalytics.Burndown == nil {
+			break
+		}
+
+		args, err := ec.field_RepositoryAnalytics_burndown_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.RepositoryAnalytics.Burndown(childComplexity, args["type"].(*models.BurndownType)), true
+
+	case "RepositoryAnalytics.Repository":
+		if e.complexity.RepositoryAnalytics.Repository == nil {
+			break
+		}
+
+		return e.complexity.RepositoryAnalytics.Repository(childComplexity), true
 
 	}
 	return 0, false
@@ -256,17 +306,12 @@ type Query {
     owner: String!,
     name: String!,
     host: RepositoryHost = GITHUB,
-  ): Repository
+  ): RepositoryAnalytics
 
   repos(
     owner: String!,
     host: RepositoryHost = GITHUB,
   ): [Repository!]
-
-  burndown(
-    repoID: Int!,
-    type: BurndownType = GLOBAL,
-  ): Burndown
 }
 
 # Repositories
@@ -275,7 +320,15 @@ type Repository {
   id: Int!
   owner: String!
   name: String!
-  description: String!,
+  description: String!
+}
+
+type RepositoryAnalytics {
+  repository: Repository!
+
+  burndown(
+    type: BurndownType = GLOBAL,
+  ): Burndown
 }
 
 enum RepositoryHost {
@@ -286,16 +339,33 @@ enum RepositoryHost {
 
 # Burndowns
 
-type Burndown {
-  type: BurndownType
-  entries: [BurndownEntry!]
-}
-
 enum BurndownType {
   GLOBAL
   FILE
   AUTHOR
 }
+
+type GlobalBurndown {
+  entries: [BurndownEntry!]
+}
+
+type AuthorBurndown {
+  author(
+    author: String!,
+  ): [BurndownEntry!]
+}
+
+type FileBurndown {
+  file(
+    filename: String!,
+  ): [BurndownEntry!]
+}
+
+type BurndownAlert {
+  alert: String!
+}
+
+union Burndown = GlobalBurndown | AuthorBurndown | FileBurndown | BurndownAlert
 
 type BurndownEntry {
   start: Time!
@@ -311,6 +381,34 @@ type BurndownEntry {
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_AuthorBurndown_author_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["author"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["author"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_FileBurndown_file_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["filename"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filename"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -322,28 +420,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_burndown_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["repoID"]; ok {
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["repoID"] = arg0
-	var arg1 *models.BurndownType
-	if tmp, ok := rawArgs["type"]; ok {
-		arg1, err = ec.unmarshalOBurndownType2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndownType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["type"] = arg1
 	return args, nil
 }
 
@@ -399,6 +475,20 @@ func (ec *executionContext) field_Query_repos_args(ctx context.Context, rawArgs 
 	return args, nil
 }
 
+func (ec *executionContext) field_RepositoryAnalytics_burndown_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *models.BurndownType
+	if tmp, ok := rawArgs["type"]; ok {
+		arg0, err = ec.unmarshalOBurndownType2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndownType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -431,44 +521,27 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Burndown_type(ctx context.Context, field graphql.CollectedField, obj *models.Burndown) graphql.Marshaler {
+func (ec *executionContext) _AuthorBurndown_author(ctx context.Context, field graphql.CollectedField, obj *models.AuthorBurndown) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
-		Object:   "Burndown",
+		Object:   "AuthorBurndown",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if resTmp == nil {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_AuthorBurndown_author_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
 		return graphql.Null
 	}
-	res := resTmp.(*models.BurndownType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOBurndownType2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndownType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Burndown_entries(ctx context.Context, field graphql.CollectedField, obj *models.Burndown) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object:   "Burndown",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
+	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Entries, nil
+		return obj.Author, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -477,6 +550,33 @@ func (ec *executionContext) _Burndown_entries(ctx context.Context, field graphql
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOBurndownEntry2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndownEntry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BurndownAlert_alert(ctx context.Context, field graphql.CollectedField, obj *models.BurndownAlert) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "BurndownAlert",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Alert, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BurndownEntry_start(ctx context.Context, field graphql.CollectedField, obj *models.BurndownEntry) graphql.Marshaler {
@@ -533,6 +633,61 @@ func (ec *executionContext) _BurndownEntry_bands(ctx context.Context, field grap
 	return ec.marshalNInt2ᚕint(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _FileBurndown_file(ctx context.Context, field graphql.CollectedField, obj *models.FileBurndown) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "FileBurndown",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_FileBurndown_file_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.File, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]models.BurndownEntry)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBurndownEntry2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndownEntry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GlobalBurndown_entries(ctx context.Context, field graphql.CollectedField, obj *models.GlobalBurndown) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "GlobalBurndown",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Entries, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]models.BurndownEntry)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBurndownEntry2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndownEntry(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_repo(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -558,10 +713,10 @@ func (ec *executionContext) _Query_repo(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.Repository)
+	res := resTmp.(*models.RepositoryAnalytics)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalORepository2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx, field.Selections, res)
+	return ec.marshalORepositoryAnalytics2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryAnalytics(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_repos(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -593,37 +748,6 @@ func (ec *executionContext) _Query_repos(ctx context.Context, field graphql.Coll
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalORepository2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_burndown(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_burndown_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Burndown(rctx, args["repoID"].(int), args["type"].(*models.BurndownType))
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.Burndown)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOBurndown2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndown(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -787,6 +911,64 @@ func (ec *executionContext) _Repository_description(ctx context.Context, field g
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RepositoryAnalytics_repository(ctx context.Context, field graphql.CollectedField, obj *models.RepositoryAnalytics) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "RepositoryAnalytics",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Repository, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Repository)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNRepository2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RepositoryAnalytics_burndown(ctx context.Context, field graphql.CollectedField, obj *models.RepositoryAnalytics) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "RepositoryAnalytics",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_RepositoryAnalytics_burndown_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.RepositoryAnalytics().Burndown(rctx, obj, args["type"].(*models.BurndownType))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(models.Burndown)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBurndown2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndown(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -1624,25 +1806,75 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Burndown(ctx context.Context, sel ast.SelectionSet, obj *models.Burndown) graphql.Marshaler {
+	switch obj := (*obj).(type) {
+	case nil:
+		return graphql.Null
+	case models.GlobalBurndown:
+		return ec._GlobalBurndown(ctx, sel, &obj)
+	case *models.GlobalBurndown:
+		return ec._GlobalBurndown(ctx, sel, obj)
+	case models.AuthorBurndown:
+		return ec._AuthorBurndown(ctx, sel, &obj)
+	case *models.AuthorBurndown:
+		return ec._AuthorBurndown(ctx, sel, obj)
+	case models.FileBurndown:
+		return ec._FileBurndown(ctx, sel, &obj)
+	case *models.FileBurndown:
+		return ec._FileBurndown(ctx, sel, obj)
+	case models.BurndownAlert:
+		return ec._BurndownAlert(ctx, sel, &obj)
+	case *models.BurndownAlert:
+		return ec._BurndownAlert(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
 
-var burndownImplementors = []string{"Burndown"}
+var authorBurndownImplementors = []string{"AuthorBurndown", "Burndown"}
 
-func (ec *executionContext) _Burndown(ctx context.Context, sel ast.SelectionSet, obj *models.Burndown) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, burndownImplementors)
+func (ec *executionContext) _AuthorBurndown(ctx context.Context, sel ast.SelectionSet, obj *models.AuthorBurndown) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, authorBurndownImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	invalid := false
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("Burndown")
-		case "type":
-			out.Values[i] = ec._Burndown_type(ctx, field, obj)
-		case "entries":
-			out.Values[i] = ec._Burndown_entries(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("AuthorBurndown")
+		case "author":
+			out.Values[i] = ec._AuthorBurndown_author(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var burndownAlertImplementors = []string{"BurndownAlert", "Burndown"}
+
+func (ec *executionContext) _BurndownAlert(ctx context.Context, sel ast.SelectionSet, obj *models.BurndownAlert) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, burndownAlertImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BurndownAlert")
+		case "alert":
+			out.Values[i] = ec._BurndownAlert_alert(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1675,6 +1907,54 @@ func (ec *executionContext) _BurndownEntry(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var fileBurndownImplementors = []string{"FileBurndown", "Burndown"}
+
+func (ec *executionContext) _FileBurndown(ctx context.Context, sel ast.SelectionSet, obj *models.FileBurndown) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, fileBurndownImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FileBurndown")
+		case "file":
+			out.Values[i] = ec._FileBurndown_file(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var globalBurndownImplementors = []string{"GlobalBurndown", "Burndown"}
+
+func (ec *executionContext) _GlobalBurndown(ctx context.Context, sel ast.SelectionSet, obj *models.GlobalBurndown) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, globalBurndownImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GlobalBurndown")
+		case "entries":
+			out.Values[i] = ec._GlobalBurndown_entries(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1723,17 +2003,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_repos(ctx, field)
 				return res
 			})
-		case "burndown":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_burndown(ctx, field)
-				return res
-			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -1780,6 +2049,44 @@ func (ec *executionContext) _Repository(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var repositoryAnalyticsImplementors = []string{"RepositoryAnalytics"}
+
+func (ec *executionContext) _RepositoryAnalytics(ctx context.Context, sel ast.SelectionSet, obj *models.RepositoryAnalytics) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, repositoryAnalyticsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RepositoryAnalytics")
+		case "repository":
+			out.Values[i] = ec._RepositoryAnalytics_repository(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "burndown":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RepositoryAnalytics_burndown(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2352,13 +2659,6 @@ func (ec *executionContext) marshalOBurndown2githubᚗcomᚋbobheadxiᚋtimeline
 	return ec._Burndown(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOBurndown2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndown(ctx context.Context, sel ast.SelectionSet, v *models.Burndown) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Burndown(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOBurndownEntry2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐBurndownEntry(ctx context.Context, sel ast.SelectionSet, v []models.BurndownEntry) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -2423,10 +2723,6 @@ func (ec *executionContext) marshalOBurndownType2ᚖgithubᚗcomᚋbobheadxiᚋt
 	return v
 }
 
-func (ec *executionContext) marshalORepository2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx context.Context, sel ast.SelectionSet, v models.Repository) graphql.Marshaler {
-	return ec._Repository(ctx, sel, &v)
-}
-
 func (ec *executionContext) marshalORepository2ᚕgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx context.Context, sel ast.SelectionSet, v []models.Repository) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -2467,11 +2763,15 @@ func (ec *executionContext) marshalORepository2ᚕgithubᚗcomᚋbobheadxiᚋtim
 	return ret
 }
 
-func (ec *executionContext) marshalORepository2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepository(ctx context.Context, sel ast.SelectionSet, v *models.Repository) graphql.Marshaler {
+func (ec *executionContext) marshalORepositoryAnalytics2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryAnalytics(ctx context.Context, sel ast.SelectionSet, v models.RepositoryAnalytics) graphql.Marshaler {
+	return ec._RepositoryAnalytics(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalORepositoryAnalytics2ᚖgithubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryAnalytics(ctx context.Context, sel ast.SelectionSet, v *models.RepositoryAnalytics) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._Repository(ctx, sel, v)
+	return ec._RepositoryAnalytics(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalORepositoryHost2githubᚗcomᚋbobheadxiᚋtimelinesᚋgraphqlᚋgoᚋtimelinesᚋmodelsᚐRepositoryHost(ctx context.Context, v interface{}) (models.RepositoryHost, error) {

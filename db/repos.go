@@ -87,7 +87,9 @@ func (r *ReposDatabase) NewRepository(
 }
 
 // GetRepository fetches a specific repository
-func (r *ReposDatabase) GetRepository(ctx context.Context, h host.Host, owner, name string) (*models.Repository, error) {
+func (r *ReposDatabase) GetRepository(
+	ctx context.Context, h host.Host, owner, name string,
+) (*models.Repository, error) {
 	row := r.db.pg.QueryRowEx(ctx, `
 		SELECT
 			id, owner, name, description

@@ -9,21 +9,49 @@ import (
 	"time"
 )
 
-type Burndown struct {
-	Type    *BurndownType   `json:"type"`
-	Entries []BurndownEntry `json:"entries"`
+type Burndown interface {
+	IsBurndown()
 }
+
+type AuthorBurndown struct {
+	Author []BurndownEntry `json:"author"`
+}
+
+func (AuthorBurndown) IsBurndown() {}
+
+type BurndownAlert struct {
+	Alert string `json:"alert"`
+}
+
+func (BurndownAlert) IsBurndown() {}
 
 type BurndownEntry struct {
 	Start time.Time `json:"start"`
 	Bands []int     `json:"bands"`
 }
 
+type FileBurndown struct {
+	File []BurndownEntry `json:"file"`
+}
+
+func (FileBurndown) IsBurndown() {}
+
+type GlobalBurndown struct {
+	Entries []BurndownEntry `json:"entries"`
+}
+
+func (GlobalBurndown) IsBurndown() {}
+
 type Repository struct {
 	ID          int    `json:"id"`
 	Owner       string `json:"owner"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+type RepositoryAnalytics struct {
+	Repository Repository `json:"repository"`
+	Burndown   Burndown   `json:"burndown"`
 }
 
 type BurndownType string
