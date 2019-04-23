@@ -14,8 +14,8 @@ clean:
 web:
 	cd web && npm run build
 
-.PHONY: scripts
-scripts:
+.PHONY: .scripts
+.scripts:
 	$(MAKE) -C .scripts install
 
 .PHONY: lint
@@ -39,6 +39,7 @@ devmonitoring:
 .PHONY: graphql
 graphql:
 	$(MAKE) -C graphql go
+	cd web && npm run graphql
 
 # PG utils
 
