@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -22,23 +22,27 @@ func newServerCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "server",
 		Short: "spin up the core Timelines server",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			meta := config.NewBuildMeta()
 			l, err := log.NewLogger(devMode, logpath)
 			if err != nil {
-				return err
+				println("logger: " + err.Error())
+				os.Exit(1)
 			}
 			l = l.Named(monitor.Service).With("build.version", meta.AnnotatedCommit(devMode))
+			l.Infof("preparing to start %s", monitor.Service)
 
 			if monitor.Profile {
 				if err := monitoring.StartProfiler(l, monitor.Service, meta, devMode); err != nil {
-					return fmt.Errorf("failed to start profiler: %v", err)
+					l.Fatalf("failed to start profiler: %v", err)
 				}
 			}
 			if monitor.Errors {
-				if l, err = monitoring.AttachErrorLogging(l.Desugar(), monitor.Service, meta, devMode); err != nil {
-					return fmt.Errorf("failed to attach error logger: %v", err)
+				errorLogger, err := monitoring.AttachErrorLogging(l.Desugar(), monitor.Service, meta, devMode)
+				if err != nil {
+					l.Fatalf("failed to attach error logger: %v", err)
 				}
+				l = errorLogger
 			}
 
 			storeCfg := config.NewStoreConfig()
@@ -49,7 +53,7 @@ func newServerCmd() *cobra.Command {
 			}
 
 			defer l.Sync()
-			return server.Run(
+			if err := server.Run(
 				l,
 				newStopper(),
 				server.RunOpts{
@@ -58,7 +62,10 @@ func newServerCmd() *cobra.Command {
 					Database: dbCfg,
 					Meta:     meta,
 					Dev:      devMode,
-				})
+				},
+			); err != nil {
+				l.Fatalf("server exited with error: %v", err)
+			}
 		},
 	}
 	flags := c.Flags()
