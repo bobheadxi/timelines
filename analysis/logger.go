@@ -1,4 +1,4 @@
-package log
+package analysis
 
 import (
 	"go.uber.org/zap"
@@ -9,8 +9,8 @@ type herculesLogger struct {
 	*zap.SugaredLogger
 }
 
-// NewHerculesLogger wrapps the given logger in hercules.Logger
-func NewHerculesLogger(l *zap.SugaredLogger) hercules.Logger {
+// newHerculesLogger wrapps the given logger in hercules.Logger
+func newHerculesLogger(l *zap.SugaredLogger) hercules.Logger {
 	return &herculesLogger{
 		// don't take stacktrace of wrapper class
 		l.Desugar().WithOptions(zap.AddCallerSkip(1)).Sugar(),

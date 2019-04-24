@@ -12,8 +12,8 @@ import (
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/dev"
-	"github.com/bobheadxi/timelines/log"
 	"github.com/bobheadxi/timelines/store"
+	"github.com/bobheadxi/zapx"
 )
 
 func newDevCommand() *cobra.Command {
@@ -41,13 +41,13 @@ func newPGCommand() *cobra.Command {
 			Use:   "seed",
 			Short: "seed postgres database with test data",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				logger, err := log.NewLogger(true, "")
+				logger, err := zapx.New("", true)
 				if err != nil {
 					return err
 				}
 
 				var (
-					l = logger.Named("dev.pg.seed")
+					l = logger.Sugar().Named("dev.pg.seed")
 					c *db.Database
 				)
 				if fromEnv {
@@ -100,13 +100,13 @@ func newRedisCommand() *cobra.Command {
 			Use:   "reset",
 			Short: "drop everything in store",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				logger, err := log.NewLogger(true, "")
+				logger, err := zapx.New("", true)
 				if err != nil {
 					return err
 				}
 
 				var (
-					l = logger.Named("dev.redis.reset")
+					l = logger.Sugar().Named("dev.redis.reset")
 					c *store.Client
 				)
 				if fromEnv {
@@ -131,13 +131,13 @@ func newRedisCommand() *cobra.Command {
 			Use:   "seed",
 			Short: "seed store with test data",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				logger, err := log.NewLogger(true, "")
+				logger, err := zapx.New("", true)
 				if err != nil {
 					return err
 				}
 
 				var (
-					l = logger.Named("dev.redis.seed")
+					l = logger.Sugar().Named("dev.redis.seed")
 					c *store.Client
 				)
 				if fromEnv {

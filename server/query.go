@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bobheadxi/zapx/httpctx"
+
 	"go.uber.org/zap"
 
+	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/graphql/go/timelines"
 	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
 	"github.com/bobheadxi/timelines/host"
-	"github.com/bobheadxi/timelines/log"
 )
 
 type queryResolver struct {
@@ -42,7 +44,7 @@ func (q *queryResolver) Repo(
 	ctx context.Context,
 	owner, name string, h *models.RepositoryHost,
 ) (*models.RepositoryAnalytics, error) {
-	var l = q.l.With(log.LogKeyRID, log.HTTPRequestID(ctx),
+	var l = q.l.With(config.LogKeyRID, httpctx.RequestID(ctx),
 		"owner", owner, "name", name)
 	hostService, err := modelToHost(h)
 	if err != nil {
@@ -66,7 +68,7 @@ func (q *queryResolver) Repos(
 	ctx context.Context,
 	owner string, h *models.RepositoryHost,
 ) ([]models.Repository, error) {
-	var l = q.l.With(log.LogKeyRID, log.HTTPRequestID(ctx),
+	var l = q.l.With(config.LogKeyRID, httpctx.RequestID(ctx),
 		"owner", owner)
 	hostService, err := modelToHost(h)
 	if err != nil {

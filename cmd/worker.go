@@ -5,11 +5,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/bobheadxi/timelines/cmd/monitoring"
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/dev"
-	"github.com/bobheadxi/timelines/log"
-	"github.com/bobheadxi/timelines/monitoring"
 	"github.com/bobheadxi/timelines/worker"
+	"github.com/bobheadxi/zapx"
+	"github.com/bobheadxi/zapx/gcp"
 )
 
 func newWorkerCmd() *cobra.Command {
@@ -25,12 +26,12 @@ func newWorkerCmd() *cobra.Command {
 		Short: "spin up a Timelines worker",
 		Run: func(cmd *cobra.Command, args []string) {
 			meta := config.NewBuildMeta()
-			l, err := log.NewLogger(devMode, logpath)
+			logger, err := zapx.New(logpath, devMode)
 			if err != nil {
 				println("logger: " + err.Error())
 				os.Exit(1)
 			}
-			l = l.Named(monitor.Service).With("build.version", meta.AnnotatedCommit(devMode))
+			l := logger.Sugar().Named(monitor.Service).With("build.version", meta.AnnotatedCommit(devMode))
 			l.Infof("preparing to start %s", monitor.Service)
 
 			if monitor.Profile {
@@ -39,11 +40,22 @@ func newWorkerCmd() *cobra.Command {
 				}
 			}
 			if monitor.Errors {
-				errorLogger, err := monitoring.AttachErrorLogging(l.Desugar(), monitor.Service, meta, devMode)
+				cloud := config.NewCloudConfig()
+				errorLogger, err := gcp.NewErrorReportingLogger(
+					l.Desugar(),
+					gcp.ServiceConfig{
+						ProjectID: cloud.GCP.ProjectID,
+						Name:      monitor.Service,
+						Version:   meta.AnnotatedCommit(devMode),
+					},
+					gcp.Fields{
+						UserKey: config.LogKeyRID,
+					},
+					devMode)
 				if err != nil {
 					l.Fatalf("failed to attach error logger: %v", err)
 				}
-				l = errorLogger
+				l = errorLogger.Sugar()
 			}
 
 			storeCfg := config.NewStoreConfig()

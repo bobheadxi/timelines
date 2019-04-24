@@ -11,8 +11,6 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	hercules "gopkg.in/src-d/hercules.v10"
 	"gopkg.in/src-d/hercules.v10/leaves"
-
-	"github.com/bobheadxi/timelines/log"
 )
 
 // GitRepoReport is a container around different analysis results
@@ -173,7 +171,7 @@ func (g *GitRepoAnalyser) exec() (map[hercules.LeafPipelineItem]interface{}, err
 		return nil, err
 	}
 	g.facts = map[string]interface{}{
-		hercules.ConfigLogger:      log.NewHerculesLogger(g.l.Named("hercules")),
+		hercules.ConfigLogger:      newHerculesLogger(g.l.Named("hercules")),
 		"TicksSinceStart.TickSize": g.tickSize,
 
 		// Tree config

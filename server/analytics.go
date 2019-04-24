@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/bobheadxi/zapx/httpctx"
+
 	"go.uber.org/zap"
 
+	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/graphql/go/timelines"
 	"github.com/bobheadxi/timelines/graphql/go/timelines/models"
-	"github.com/bobheadxi/timelines/log"
 	"github.com/bobheadxi/timelines/store"
 )
 
@@ -38,7 +40,7 @@ func (a *analyticsResolver) Burndown(
 		*t = models.BurndownTypeGlobal
 	}
 	id := repo.Repository.ID
-	l := a.l.With("repo", id, "type", *t, log.LogKeyRID, log.HTTPRequestID(ctx))
+	l := a.l.With("repo", id, "type", *t, config.LogKeyRID, httpctx.RequestID(ctx))
 
 	switch *t {
 	case models.BurndownTypeFile:

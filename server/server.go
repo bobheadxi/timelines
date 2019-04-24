@@ -14,8 +14,9 @@ import (
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/graphql/go/timelines"
-	"github.com/bobheadxi/timelines/log"
 	"github.com/bobheadxi/timelines/store"
+	"github.com/bobheadxi/zapx/gql"
+	zapx "github.com/bobheadxi/zapx/http"
 )
 
 // RunOpts denotes server options
@@ -71,21 +72,27 @@ func Run(
 				AllowedHeaders:   []string{"*"},
 				AllowCredentials: true,
 			}).Handler,
-			log.GraphCtxHandler)
+			gql.GraphCtxHandler)
 		r.Handle("/", handler.GraphQL(
 			timelines.NewExecutableSchema(timelines.Config{
 				Resolvers:  resolver,
 				Directives: timelines.DirectiveRoot{},
 			}),
-			handler.RequestMiddleware(log.NewGraphLogger(l.Desugar().Named("graph"))),
+			handler.RequestMiddleware(gql.NewMiddleware(l.Desugar().Named("graph"), gql.LogKeys{
+				RequestID: config.LogKeyRID,
+			})),
 		))
 	})
 	mux.Route("/webhooks", func(r chi.Router) {
-		r.Use(log.NewHTTPLogger(l.Named("webhooks")))
+		r.Use(zapx.NewMiddleware(l.Desugar().Named("webhooks"), zapx.LogKeys{
+			RequestID: config.LogKeyRID,
+		}))
 		r.HandleFunc("/github", webhook.handleGitHub)
 	})
 	mux.Route("/playground", func(r chi.Router) {
-		r.Use(log.NewHTTPLogger(l.Named("playground")))
+		r.Use(zapx.NewMiddleware(l.Desugar().Named("playground"), zapx.LogKeys{
+			RequestID: config.LogKeyRID,
+		}))
 		r.Handle("/", handler.Playground("timelines API Playground", "/query"))
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

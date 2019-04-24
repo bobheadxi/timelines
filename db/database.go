@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/config"
-	"github.com/bobheadxi/timelines/log"
+	zapx "github.com/bobheadxi/zapx/pgx"
 )
 
 // Database is a low-level wrapper around the database driver
@@ -46,7 +46,9 @@ func New(l *zap.SugaredLogger, name string, opts config.Database) (*Database, er
 			RuntimeParams: map[string]string{
 				"application_name": name,
 			},
-			Logger: log.NewDatabaseLogger(l.Named("pg")),
+			Logger: zapx.NewLogger(l.Desugar().Named("px"), zapx.Options{
+				LogInfoAsDebug: true,
+			}),
 		}
 	}
 	l.Infow("set up configuration",

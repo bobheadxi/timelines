@@ -28,6 +28,12 @@ github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/bobheadxi/res v0.1.0 h1:HvQyMPalXjwR9LN43i47E8jP3YaSwGbkjLemIyHt894=
 github.com/bobheadxi/res v0.1.0/go.mod h1:Ugi1RaQgosePjerNr8CoabVcvTVSXeXJ37JxytXZt3k=
+github.com/bobheadxi/zapx v0.0.0-20190424011952-261982912e3d h1:jucjC4AnZpR75DRJBbtwUEj4nJlyi/vG6ovhudipHRI=
+github.com/bobheadxi/zapx v0.0.0-20190424011952-261982912e3d/go.mod h1:0H6tYDuNu4bq3R+STIud0Im8b8Hr7rWVvvwwLIayEpg=
+github.com/bobheadxi/zapx v0.0.0-20190424013217-29870b901d2f h1:x/yHvebkIbp0TAoiu0eYdZMzGetwa2/hT0ic0mxQB4g=
+github.com/bobheadxi/zapx v0.0.0-20190424013217-29870b901d2f/go.mod h1:0H6tYDuNu4bq3R+STIud0Im8b8Hr7rWVvvwwLIayEpg=
+github.com/bobheadxi/zapx v0.0.0-20190424014022-fdcb4082c134 h1:Z/Z/1EyruANC+O7nHYS/VQXguuh/Dv9bcRIY+dHc0ok=
+github.com/bobheadxi/zapx v0.0.0-20190424014022-fdcb4082c134/go.mod h1:0H6tYDuNu4bq3R+STIud0Im8b8Hr7rWVvvwwLIayEpg=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cockroachdb/apd v1.1.0 h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=
 github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=
@@ -119,6 +125,7 @@ github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NH
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 h1:vr3AYkKovP8uR8AvSGGUK1IDqRa5lAAvEkZG1LKaCRc=
 github.com/jackc/fake v0.0.0-20150926172116-812a484cc733/go.mod h1:WrMFNQdiFJ80sQsxDoMokWK1W5TQtxBFNpzWTD84ibQ=
+github.com/jackc/pgx v3.3.0+incompatible/go.mod h1:0ZGrqGqkRlliWnWB4zKnWtjbSWbGkVEFm4TeybAXq+I=
 github.com/jackc/pgx v3.3.1-0.20190323172122-31500c15b3a8+incompatible h1:u5Ie7sziupK35bR3kzKqIPKsI38f8GfZhn6MQ06qxGY=
 github.com/jackc/pgx v3.3.1-0.20190323172122-31500c15b3a8+incompatible/go.mod h1:0ZGrqGqkRlliWnWB4zKnWtjbSWbGkVEFm4TeybAXq+I=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=

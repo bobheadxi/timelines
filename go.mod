@@ -9,14 +9,13 @@ require (
 	github.com/agnivade/levenshtein v1.0.2 // indirect
 	github.com/antchfx/xpath v0.0.0-20190319080838-ce1d48779e67 // indirect
 	github.com/bobheadxi/res v0.1.0
-	github.com/cockroachdb/apd v1.1.0 // indirect
+	github.com/bobheadxi/zapx v0.0.0-20190424014022-fdcb4082c134
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/gliderlabs/ssh v0.1.3 // indirect
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/go-chi/cors v1.0.0
-	github.com/go-chi/render v1.0.1
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
@@ -28,10 +27,8 @@ require (
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgx v3.3.1-0.20190323172122-31500c15b3a8+incompatible
 	github.com/joho/godotenv v1.3.0
-	github.com/lib/pq v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
@@ -41,8 +38,6 @@ require (
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
-	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/src-d/go-oniguruma v1.0.0 // indirect
@@ -51,8 +46,6 @@ require (
 	github.com/vektah/gqlparser v1.1.2
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	go.opencensus.io v0.20.2 // indirect
-	go.uber.org/atomic v1.3.2 // indirect
-	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1
 	golang.org/x/crypto v0.0.0-20190418165655-df01cb2cc480 // indirect
 	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3
