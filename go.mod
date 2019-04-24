@@ -41,6 +41,7 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/src-d/go-oniguruma v1.0.0 // indirect
 	github.com/stretchr/testify v1.3.0
+	github.com/tensorflow/tensorflow v1.13.1 // indirect
 	github.com/toqueteos/trie v1.0.0 // indirect
 	github.com/vektah/gqlparser v1.1.2
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
@@ -60,6 +61,7 @@ require (
 	gopkg.in/bblfsh/sdk.v1 v1.17.0 // indirect
 	gopkg.in/bblfsh/sdk.v2 v2.16.4 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
+	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 	gopkg.in/src-d/enry.v1 v1.7.3 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.0 // indirect
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
@@ -67,4 +69,5 @@ require (
 	gopkg.in/src-d/go-git.v4 v4.11.0
 	gopkg.in/src-d/hercules.v10 v10.0.4
 	gopkg.in/toqueteos/substring.v1 v1.0.2 // indirect
+	gopkg.in/vmarkovtsev/BiDiSentiment.v1 v1.0.0-20180316061023-3aa38b36bf9a // indirect
 )
