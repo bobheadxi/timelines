@@ -9,7 +9,7 @@ require (
 	github.com/agnivade/levenshtein v1.0.2 // indirect
 	github.com/antchfx/xpath v0.0.0-20190319080838-ce1d48779e67 // indirect
 	github.com/bobheadxi/res v0.1.0
-	github.com/bobheadxi/zapx v0.0.0-20190424014022-fdcb4082c134
+	github.com/bobheadxi/zapx v0.0.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect

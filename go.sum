@@ -34,6 +34,8 @@ github.com/bobheadxi/zapx v0.0.0-20190424013217-29870b901d2f h1:x/yHvebkIbp0TAoi
 github.com/bobheadxi/zapx v0.0.0-20190424013217-29870b901d2f/go.mod h1:0H6tYDuNu4bq3R+STIud0Im8b8Hr7rWVvvwwLIayEpg=
 github.com/bobheadxi/zapx v0.0.0-20190424014022-fdcb4082c134 h1:Z/Z/1EyruANC+O7nHYS/VQXguuh/Dv9bcRIY+dHc0ok=
 github.com/bobheadxi/zapx v0.0.0-20190424014022-fdcb4082c134/go.mod h1:0H6tYDuNu4bq3R+STIud0Im8b8Hr7rWVvvwwLIayEpg=
+github.com/bobheadxi/zapx v0.0.1 h1:aoPgMScs6RlUstXaUxCiVg71lrPE7R7E1B3zzxCUhR4=
+github.com/bobheadxi/zapx v0.0.1/go.mod h1:0H6tYDuNu4bq3R+STIud0Im8b8Hr7rWVvvwwLIayEpg=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cockroachdb/apd v1.1.0 h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=
 github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=
