@@ -50,7 +50,8 @@ func newServerCmd() *cobra.Command {
 					gcp.Fields{
 						UserKey: config.LogKeyRID,
 					},
-					devMode)
+					devMode,
+					config.NewGCPConnectionOptions()...)
 				if err != nil {
 					l.Fatalf("failed to attach error logger: %v", err)
 				}
