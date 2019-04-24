@@ -78,20 +78,20 @@ func Run(
 				Resolvers:  resolver,
 				Directives: timelines.DirectiveRoot{},
 			}),
-			handler.RequestMiddleware(gql.NewMiddleware(l.Desugar().Named("graph"), gql.LogKeys{
-				RequestID: config.LogKeyRID,
+			handler.RequestMiddleware(gql.NewMiddleware(l.Desugar().Named("graph"), gql.LogFields{
+				config.LogKeyRID: requestID,
 			})),
 		))
 	})
 	mux.Route("/webhooks", func(r chi.Router) {
-		r.Use(zapx.NewMiddleware(l.Desugar().Named("webhooks"), zapx.LogKeys{
-			RequestID: config.LogKeyRID,
+		r.Use(zapx.NewMiddleware(l.Desugar().Named("webhooks"), zapx.LogFields{
+			config.LogKeyRID: requestID,
 		}))
 		r.HandleFunc("/github", webhook.handleGitHub)
 	})
 	mux.Route("/playground", func(r chi.Router) {
-		r.Use(zapx.NewMiddleware(l.Desugar().Named("playground"), zapx.LogKeys{
-			RequestID: config.LogKeyRID,
+		r.Use(zapx.NewMiddleware(l.Desugar().Named("playground"), zapx.LogFields{
+			config.LogKeyRID: requestID,
 		}))
 		r.Handle("/", handler.Playground("timelines API Playground", "/query"))
 	})

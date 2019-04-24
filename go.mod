@@ -9,7 +9,7 @@ require (
 	github.com/agnivade/levenshtein v1.0.2 // indirect
 	github.com/antchfx/xpath v0.0.0-20190319080838-ce1d48779e67 // indirect
 	github.com/bobheadxi/res v0.1.0
-	github.com/bobheadxi/zapx v0.0.1
+	github.com/bobheadxi/zapx v0.1.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect
@@ -34,6 +34,7 @@ require (
 	github.com/mcuadros/go-lookup v0.0.0-20171110082742-5650f26be767 // indirect
 	github.com/minio/highwayhash v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/neurosnap/sentences v1.0.6 // indirect
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/bobheadxi/zapx/httpctx"
-
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/config"
@@ -40,7 +38,7 @@ func (a *analyticsResolver) Burndown(
 		*t = models.BurndownTypeGlobal
 	}
 	id := repo.Repository.ID
-	l := a.l.With("repo", id, "type", *t, config.LogKeyRID, httpctx.RequestID(ctx))
+	l := a.l.With("repo", id, "type", *t, config.LogKeyRID, requestID(ctx))
 
 	switch *t {
 	case models.BurndownTypeFile:
