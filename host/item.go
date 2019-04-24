@@ -3,7 +3,7 @@ package host
 import (
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v25/github"
 )
 
 // ItemType denotes supported host item types

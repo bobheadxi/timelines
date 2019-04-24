@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v25/github"
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/host"

@@ -6,7 +6,7 @@ import (
 
 	"github.com/bobheadxi/timelines/host"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v25/github"
 )
 
 type githubRepo struct {

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v25/github"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )

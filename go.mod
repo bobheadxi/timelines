@@ -19,8 +19,7 @@ require (
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
-	github.com/google/go-github v17.0.0+incompatible
-	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/go-github/v25 v25.0.1
 	github.com/google/pprof v0.0.0-20190404155422-f8f10df84213 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.0 // indirect

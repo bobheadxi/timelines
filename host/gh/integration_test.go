@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v25/github"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
