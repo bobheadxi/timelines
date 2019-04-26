@@ -1,7 +1,7 @@
 # Contributing
 
 [![Build Status](https://dev.azure.com/bobheadxi/bobheadxi/_apis/build/status/bobheadxi.timelines?branchName=master)](https://dev.azure.com/bobheadxi/bobheadxi/_build/latest?definitionId=5&branchName=master)
-[![codecov](https://codecov.io/gh/bobheadxi/timelines/branch/master/graph/badge.svg?token=8ZR61AFnLu)](https://codecov.io/gh/bobheadxi/timelines)
+[![codecov](https://codecov.io/gh/bobheadxi/timelines/branch/master/graph/badge.svg)](https://codecov.io/gh/bobheadxi/timelines)
 [![slack](https://img.shields.io/badge/slack-grey.svg?logo=slack)](https://join.slack.com/t/timelines-app/shared_invite/enQtNjEzMDE1NDk5NjAwLWZlN2ViZTE0NTNlNDZjZTNlOTNiNzZhZTZmNzgzZGVmNzcwZGE2NGJiN2QwNDQ0NzIyNmJlM2QzOTE4ZjQ3ZGE)
 
 * [Development](#development)
