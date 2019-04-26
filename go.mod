@@ -68,7 +68,7 @@ require (
 	gopkg.in/src-d/go-errors.v1 v1.0.0 // indirect
 	gopkg.in/src-d/go-git-fixtures.v3 v3.4.1 // indirect
 	gopkg.in/src-d/go-git.v4 v4.11.0
-	gopkg.in/src-d/hercules.v10 v10.0.4
+	gopkg.in/src-d/hercules.v10 v10.1.0
 	gopkg.in/toqueteos/substring.v1 v1.0.2 // indirect
 	gopkg.in/vmarkovtsev/BiDiSentiment.v1 v1.0.0-20180316061023-3aa38b36bf9a // indirect
 )
