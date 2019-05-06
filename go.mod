@@ -20,6 +20,7 @@ require (
 	github.com/google/go-github/v25 v25.0.2
 	github.com/google/pprof v0.0.0-20190502144155-8358a9778bd1 // indirect
 	github.com/google/uuid v1.1.1
+	github.com/gorilla/context v1.1.1 // indirect
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/pgx v3.4.0+incompatible
@@ -32,6 +33,8 @@ require (
 	github.com/minio/highwayhash v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/neurosnap/sentences v1.0.6 // indirect
+	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
+	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/src-d/go-oniguruma v1.0.0 // indirect
