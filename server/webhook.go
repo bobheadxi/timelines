@@ -10,11 +10,11 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"github.com/bobheadxi/res"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/host"
 	"github.com/bobheadxi/timelines/host/gh"
 	"github.com/bobheadxi/timelines/store"
+	"go.bobheadxi.dev/res"
 )
 
 type webhookHandler struct {

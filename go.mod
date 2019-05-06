@@ -7,8 +7,6 @@ require (
 	github.com/99designs/gqlgen v0.8.3
 	github.com/Jeffail/tunny v0.0.0-20181108205650-4921fff29480 // indirect
 	github.com/antchfx/xpath v0.0.0-20190319080838-ce1d48779e67 // indirect
-	github.com/bobheadxi/res v0.1.0
-	github.com/bobheadxi/zapx v0.3.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect
@@ -25,7 +23,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/pgx v3.4.0+incompatible
 	github.com/joho/godotenv v1.3.0
-	github.com/lib/pq v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
@@ -43,15 +40,13 @@ require (
 	github.com/toqueteos/trie v1.0.0 // indirect
 	github.com/vektah/gqlparser v1.1.2
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
-	go.uber.org/atomic v1.4.0 // indirect
+	go.bobheadxi.dev/res v0.2.0
+	go.bobheadxi.dev/zapx v0.4.0
 	go.uber.org/zap v1.10.0
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
-	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c // indirect
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
-	golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82 // indirect
 	golang.org/x/tools v0.0.0-20190503185657-3b6f9c0030f7 // indirect
 	google.golang.org/api v0.4.0
-	google.golang.org/genproto v0.0.0-20190502173448-54afdca5d873 // indirect
 	gopkg.in/bblfsh/client-go.v3 v3.2.1 // indirect
 	gopkg.in/bblfsh/sdk.v1 v1.17.0 // indirect
 	gopkg.in/bblfsh/sdk.v2 v2.16.4 // indirect

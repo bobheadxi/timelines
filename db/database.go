@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/bobheadxi/timelines/config"
-	"github.com/bobheadxi/zapx/zpgx"
+	"go.bobheadxi.dev/zapx/zpgx"
 )
 
 // Database is a low-level wrapper around the database driver

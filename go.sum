@@ -33,10 +33,6 @@ github.com/antchfx/xpath v0.0.0-20190319080838-ce1d48779e67/go.mod h1:Yee4kTMuNi
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
-github.com/bobheadxi/res v0.1.0 h1:HvQyMPalXjwR9LN43i47E8jP3YaSwGbkjLemIyHt894=
-github.com/bobheadxi/res v0.1.0/go.mod h1:Ugi1RaQgosePjerNr8CoabVcvTVSXeXJ37JxytXZt3k=
-github.com/bobheadxi/zapx v0.3.0 h1:urzDZedJ4isbbIqnRz+jrAv/sxBv4Kc/WdlB4+XHvWY=
-github.com/bobheadxi/zapx v0.3.0/go.mod h1:B9ihEiypOorFX3OZ555qB90X8EsIoWoONXNwvaSeCE8=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cockroachdb/apd v1.1.0 h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=
 github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=
@@ -123,6 +119,7 @@ github.com/gorilla/context v1.1.1/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51
 github.com/gorilla/mux v1.6.1/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/gorilla/mux v1.6.2/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/gorilla/mux v1.7.1/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
+github.com/gorilla/websocket v1.2.0 h1:VJtLvh6VQym50czpZzx07z/kw9EgAxI3x1ZB8taTMQQ=
 github.com/gorilla/websocket v1.2.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=
 github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
@@ -267,6 +264,14 @@ github.com/xanzy/ssh-agent v0.2.1 h1:TCbipTQL2JiiCprBWx9frJ2eJlCYT00NmctrHxVAr70
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c/go.mod h1:lB8K/P019DLNhemzwFU4jHLhdvlE6uDZjXFejJXr49I=
 github.com/xdg/stringprep v1.0.0/go.mod h1:Jhud4/sHMO4oL310DaZAKk9ZaJ08SJfe+sJh0HrGL1Y=
+go.bobheadxi.dev/res v0.1.0 h1:HvQyMPalXjwR9LN43i47E8jP3YaSwGbkjLemIyHt894=
+go.bobheadxi.dev/res v0.1.0/go.mod h1:Ugi1RaQgosePjerNr8CoabVcvTVSXeXJ37JxytXZt3k=
+go.bobheadxi.dev/res v0.2.0 h1:L94iZ4ASGjHgfbEhUqOwnXEKDo2Z/8kEIHVeZ5YdbME=
+go.bobheadxi.dev/res v0.2.0/go.mod h1:n1dTJzfVVNxpAmLB0BTgXIR5P9ka6J9DgdMVvz5r6kw=
+go.bobheadxi.dev/zapx v0.3.0 h1:urzDZedJ4isbbIqnRz+jrAv/sxBv4Kc/WdlB4+XHvWY=
+go.bobheadxi.dev/zapx v0.3.0/go.mod h1:B9ihEiypOorFX3OZ555qB90X8EsIoWoONXNwvaSeCE8=
+go.bobheadxi.dev/zapx v0.4.0 h1:dde/gB5FuHqgK49mZ7WdfwkvZ+Bo6X17XhPh9nM1azE=
+go.bobheadxi.dev/zapx v0.4.0/go.mod h1:uyJ7bRvo0X2TPHTLy+WThOQt3TJZVnZcAQKkFpsQJNc=
 go.opencensus.io v0.20.1 h1:pMEjRZ1M4ebWGikflH7nQpV6+Zr88KBMA2XJD3sbijw=
 go.opencensus.io v0.20.1/go.mod h1:6WKK9ahsWS3RSO+PY9ZHZUfv2irvY6gN279GOPZjmmk=
 go.opencensus.io v0.21.0 h1:mU6zScU4U1YAFPHEHYk+3JC4SY7JxgkqS10ZOSyksNg=
@@ -345,6 +350,8 @@ golang.org/x/sys v0.0.0-20190425145619-16072639606e/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20190429190828-d89cdac9e872/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82 h1:vsphBvatvfbhlb4PO1BYSr9dzugGxJ/SQHoNufZJq1w=
 golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20190506115046-ca7f33d4116e h1:bq5BY1tGuaK8HxuwN6pT6kWgTVLeJ5KwuyBpsl1CZL4=
+golang.org/x/sys v0.0.0-20190506115046-ca7f33d4116e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2 h1:z99zHgr7hKfrUcX/KsoJk5FJfjTceCKIp96+biqP4To=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=

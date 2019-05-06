@@ -13,7 +13,7 @@ import (
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/dev"
 	"github.com/bobheadxi/timelines/store"
-	"github.com/bobheadxi/zapx"
+	"go.bobheadxi.dev/zapx"
 )
 
 func newDevCommand() *cobra.Command {

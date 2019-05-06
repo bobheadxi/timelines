@@ -10,13 +10,13 @@ import (
 	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
-	"github.com/bobheadxi/res"
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/db"
 	"github.com/bobheadxi/timelines/graphql/go/timelines"
 	"github.com/bobheadxi/timelines/store"
-	"github.com/bobheadxi/zapx/zgql"
-	"github.com/bobheadxi/zapx/zhttp"
+	"go.bobheadxi.dev/res"
+	"go.bobheadxi.dev/zapx/zgql"
+	"go.bobheadxi.dev/zapx/zhttp"
 )
 
 // RunOpts denotes server options

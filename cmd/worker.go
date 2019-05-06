@@ -9,8 +9,8 @@ import (
 	"github.com/bobheadxi/timelines/config"
 	"github.com/bobheadxi/timelines/dev"
 	"github.com/bobheadxi/timelines/worker"
-	"github.com/bobheadxi/zapx"
-	"github.com/bobheadxi/zapx/zgcp"
+	"go.bobheadxi.dev/zapx"
+	"go.bobheadxi.dev/zapx/zgcp"
 )
 
 func newWorkerCmd() *cobra.Command {
