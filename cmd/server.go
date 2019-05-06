@@ -10,7 +10,7 @@ import (
 	"github.com/bobheadxi/timelines/dev"
 	"github.com/bobheadxi/timelines/server"
 	"github.com/bobheadxi/zapx"
-	"github.com/bobheadxi/zapx/gcp"
+	"github.com/bobheadxi/zapx/zgcp"
 )
 
 func newServerCmd() *cobra.Command {
@@ -40,14 +40,14 @@ func newServerCmd() *cobra.Command {
 			}
 			if monitor.Errors {
 				cloud := config.NewCloudConfig()
-				errorLogger, err := gcp.NewErrorReportingLogger(
+				errorLogger, err := zgcp.NewErrorReportingLogger(
 					l.Desugar(),
-					gcp.ServiceConfig{
+					zgcp.ServiceConfig{
 						ProjectID: cloud.GCP.ProjectID,
 						Name:      monitor.Service,
 						Version:   meta.AnnotatedCommit(devMode),
 					},
-					gcp.Fields{
+					zgcp.Fields{
 						UserKey: config.LogKeyRID,
 					},
 					devMode,
