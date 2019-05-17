@@ -14,7 +14,7 @@ type Burndown interface {
 }
 
 type AuthorBurndown struct {
-	Author []BurndownEntry `json:"author"`
+	Author []*BurndownEntry `json:"author"`
 }
 
 func (AuthorBurndown) IsBurndown() {}
@@ -31,13 +31,13 @@ type BurndownEntry struct {
 }
 
 type FileBurndown struct {
-	File []BurndownEntry `json:"file"`
+	File []*BurndownEntry `json:"file"`
 }
 
 func (FileBurndown) IsBurndown() {}
 
 type GlobalBurndown struct {
-	Entries []BurndownEntry `json:"entries"`
+	Entries []*BurndownEntry `json:"entries"`
 }
 
 func (GlobalBurndown) IsBurndown() {}
@@ -50,8 +50,8 @@ type Repository struct {
 }
 
 type RepositoryAnalytics struct {
-	Repository Repository `json:"repository"`
-	Burndown   Burndown   `json:"burndown"`
+	Repository *Repository `json:"repository"`
+	Burndown   Burndown    `json:"burndown"`
 }
 
 type ServiceStatus struct {

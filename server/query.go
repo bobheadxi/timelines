@@ -58,14 +58,14 @@ func (q *queryResolver) Repo(
 	}
 
 	return &models.RepositoryAnalytics{
-		Repository: *repo,
+		Repository: repo,
 	}, nil
 }
 
 func (q *queryResolver) Repos(
 	ctx context.Context,
 	owner string, h *models.RepositoryHost,
-) ([]models.Repository, error) {
+) ([]*models.Repository, error) {
 	var l = q.l.With(config.LogKeyRID, requestID(ctx),
 		"owner", owner)
 	hostService, err := modelToHost(h)

@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.38.0
-	github.com/99designs/gqlgen v0.8.3
+	github.com/99designs/gqlgen v0.9.0
 	github.com/Jeffail/tunny v0.0.0-20181108205650-4921fff29480 // indirect
 	github.com/antchfx/xpath v0.0.0-20190319080838-ce1d48779e67 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -14,11 +14,11 @@ require (
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/go-chi/cors v1.0.0
 	github.com/go-redis/redis v6.15.2+incompatible
+	github.com/gogo/protobuf v1.1.1 // indirect
 	github.com/golang/mock v1.3.0 // indirect
 	github.com/google/go-github/v25 v25.0.2
 	github.com/google/pprof v0.0.0-20190502144155-8358a9778bd1 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/context v1.1.1 // indirect
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/pgx v3.4.0+incompatible
@@ -30,8 +30,8 @@ require (
 	github.com/minio/highwayhash v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/neurosnap/sentences v1.0.6 // indirect
-	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
-	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829 // indirect
+	github.com/onsi/ginkgo v1.8.0 // indirect
+	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/src-d/go-oniguruma v1.0.0 // indirect
@@ -45,7 +45,6 @@ require (
 	go.uber.org/zap v1.10.0
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
-	golang.org/x/tools v0.0.0-20190503185657-3b6f9c0030f7 // indirect
 	google.golang.org/api v0.4.0
 	gopkg.in/bblfsh/client-go.v3 v3.2.1 // indirect
 	gopkg.in/bblfsh/sdk.v1 v1.17.0 // indirect

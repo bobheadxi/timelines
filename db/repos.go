@@ -110,7 +110,7 @@ func (r *ReposDatabase) GetRepository(
 }
 
 // GetRepositories fetches all repositories associated with the given owner
-func (r *ReposDatabase) GetRepositories(ctx context.Context, h host.Host, owner string) ([]models.Repository, error) {
+func (r *ReposDatabase) GetRepositories(ctx context.Context, h host.Host, owner string) ([]*models.Repository, error) {
 	rows, err := r.db.pg.QueryEx(ctx, `
 		SELECT
 			id, owner, name, description
@@ -127,13 +127,13 @@ func (r *ReposDatabase) GetRepositories(ctx context.Context, h host.Host, owner 
 		return nil, err
 	}
 
-	var repos = make([]models.Repository, 0)
+	var repos = make([]*models.Repository, 0)
 	for rows.Next() {
 		var repo models.Repository
 		if err := rows.Scan(&repo.ID, &repo.Owner, &repo.Name, &repo.Description); err != nil {
 			return nil, err
 		}
-		repos = append(repos, repo)
+		repos = append(repos, &repo)
 	}
 
 	if len(repos) == 0 {
@@ -372,7 +372,7 @@ func (r *ReposDatabase) InsertHostItems(
 func (r *ReposDatabase) GetGlobalBurndown(
 	ctx context.Context,
 	repoID int,
-) ([]models.BurndownEntry, error) {
+) ([]*models.BurndownEntry, error) {
 	rows, err := r.db.pg.Query(fmt.Sprintf(`
 	SELECT
 		interval, delta_bands
@@ -386,7 +386,7 @@ func (r *ReposDatabase) GetGlobalBurndown(
 	}
 	defer rows.Close()
 
-	entries := make([]models.BurndownEntry, 0)
+	entries := make([]*models.BurndownEntry, 0)
 	for rows.Next() {
 		var (
 			interval   pgtype.Tsrange
@@ -400,7 +400,7 @@ func (r *ReposDatabase) GetGlobalBurndown(
 		for i, v := range deltaBands {
 			intBands[i] = int(v)
 		}
-		entries = append(entries, models.BurndownEntry{
+		entries = append(entries, &models.BurndownEntry{
 			Start: interval.Lower.Time,
 			Bands: intBands,
 		})
