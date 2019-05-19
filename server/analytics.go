@@ -14,6 +14,8 @@ import (
 	"github.com/bobheadxi/timelines/store"
 )
 
+func burndownType(t models.BurndownType) *models.BurndownType { return &t }
+
 type analyticsResolver struct {
 	db *db.Database
 	s  *store.Client
@@ -54,6 +56,7 @@ func (a *analyticsResolver) Burndown(
 			return nil, fmt.Errorf("could not find '%s' burndowns for repo '%d'", t, id)
 		}
 		return &models.GlobalBurndown{
+			Type:    burndownType(models.BurndownTypeGlobal),
 			Entries: deltas,
 		}, nil
 	default:

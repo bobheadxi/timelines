@@ -71,22 +71,26 @@ enum BurndownType {
 }
 
 type GlobalBurndown {
+  type: BurndownType
   entries: [BurndownEntry!]
 }
 
 type AuthorBurndown {
+  type: BurndownType
   author(
     author: String!,
   ): [BurndownEntry!]
 }
 
 type FileBurndown {
+  type: BurndownType
   file(
     filename: String!,
   ): [BurndownEntry!]
 }
 
 type BurndownAlert {
+  type: BurndownType
   alert: String!
 }
 

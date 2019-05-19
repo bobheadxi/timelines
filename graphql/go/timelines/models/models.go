@@ -14,13 +14,15 @@ type Burndown interface {
 }
 
 type AuthorBurndown struct {
+	Type   *BurndownType    `json:"type"`
 	Author []*BurndownEntry `json:"author"`
 }
 
 func (AuthorBurndown) IsBurndown() {}
 
 type BurndownAlert struct {
-	Alert string `json:"alert"`
+	Type  *BurndownType `json:"type"`
+	Alert string        `json:"alert"`
 }
 
 func (BurndownAlert) IsBurndown() {}
@@ -31,12 +33,14 @@ type BurndownEntry struct {
 }
 
 type FileBurndown struct {
+	Type *BurndownType    `json:"type"`
 	File []*BurndownEntry `json:"file"`
 }
 
 func (FileBurndown) IsBurndown() {}
 
 type GlobalBurndown struct {
+	Type    *BurndownType    `json:"type"`
 	Entries []*BurndownEntry `json:"entries"`
 }
 
