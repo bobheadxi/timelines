@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { RepositoryHost } from "./global";
+import { RepositoryHost, BurndownType } from "./global";
 
 // ====================================================
 // GraphQL query operation: Repo
@@ -14,10 +14,6 @@ export interface Repo_repo_repository {
   description: string;
 }
 
-export interface Repo_repo_burndown_AuthorBurndown {
-  __typename: "AuthorBurndown" | "FileBurndown";
-}
-
 export interface Repo_repo_burndown_GlobalBurndown_entries {
   __typename: "BurndownEntry";
   start: any;
@@ -26,15 +22,27 @@ export interface Repo_repo_burndown_GlobalBurndown_entries {
 
 export interface Repo_repo_burndown_GlobalBurndown {
   __typename: "GlobalBurndown";
+  type: BurndownType;
   entries: Repo_repo_burndown_GlobalBurndown_entries[] | null;
+}
+
+export interface Repo_repo_burndown_FileBurndown {
+  __typename: "FileBurndown";
+  type: BurndownType;
+}
+
+export interface Repo_repo_burndown_AuthorBurndown {
+  __typename: "AuthorBurndown";
+  type: BurndownType;
 }
 
 export interface Repo_repo_burndown_BurndownAlert {
   __typename: "BurndownAlert";
+  type: BurndownType;
   alert: string;
 }
 
-export type Repo_repo_burndown = Repo_repo_burndown_AuthorBurndown | Repo_repo_burndown_GlobalBurndown | Repo_repo_burndown_BurndownAlert;
+export type Repo_repo_burndown = Repo_repo_burndown_GlobalBurndown | Repo_repo_burndown_FileBurndown | Repo_repo_burndown_AuthorBurndown | Repo_repo_burndown_BurndownAlert;
 
 export interface Repo_repo {
   __typename: "RepositoryAnalytics";

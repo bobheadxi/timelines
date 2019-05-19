@@ -18,7 +18,6 @@ class Owner extends Component<{
 }> {
   public render(): ReactElement {
     const { match: { params: { host, owner } } } = this.props;
-    const hostArg = getHostTypeFromHost(host);
 
     return (
       <div>
@@ -27,12 +26,12 @@ class Owner extends Component<{
             <span>{`${host}/${owner}`}</span>
           </h1>
 
-          <ReposQuery query={REPOS_QUERY} variables={{ owner, host: hostArg }}>
+          <ReposQuery query={REPOS_QUERY} variables={{ owner, host: getHostTypeFromHost(host) }}>
             {({ loading, error, data }): ReactElement => {
               if (loading) return <Loading />;
               if (error) return <Error message={`Error :( ${error.message}`} />;
 
-              if (!data || !data.repos) return <p>No data found</p>;
+              if (!data || !data.repos) return <Error message="no data found" />;
               const { repos } = data;
 
               return (

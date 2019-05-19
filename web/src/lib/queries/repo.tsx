@@ -12,12 +12,20 @@ query Repo($owner: String!, $name: String!, $host: RepositoryHost) {
     }
     burndown(type: GLOBAL) {
       ... on GlobalBurndown {
+        type
         entries {
           start
           bands
         }
       }
+      ... on FileBurndown {
+        type
+      }
+      ... on AuthorBurndown {
+        type
+      }
       ... on BurndownAlert {
+        type
         alert
       }
     }

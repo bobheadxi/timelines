@@ -6,6 +6,13 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum BurndownType {
+  ALERT = "ALERT",
+  AUTHOR = "AUTHOR",
+  FILE = "FILE",
+  GLOBAL = "GLOBAL",
+}
+
 export enum RepositoryHost {
   BITBUCKET = "BITBUCKET",
   GITHUB = "GITHUB",
