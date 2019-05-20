@@ -4,7 +4,9 @@ import React, {
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import ApolloClient from 'apollo-boost';
 import { ApolloProvider } from 'react-apollo';
+import { InMemoryCache } from 'apollo-cache-inmemory';
 
+import { fragmentMatcher } from '../lib/queries/introspection';
 import Loading from '../components/Loading/Loading';
 import Nav from '../components/Nav/Nav';
 
@@ -19,6 +21,7 @@ const NotFound = lazy(() => import('../pages/NotFound/NotFound'));
 
 const api = process.env.API_URL || 'https://timelines-api.herokuapp.com/query';
 const client = new ApolloClient({
+  cache: new InMemoryCache({ fragmentMatcher }),
   uri: api,
 });
 

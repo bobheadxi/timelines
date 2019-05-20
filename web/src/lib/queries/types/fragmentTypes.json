@@ -1,0 +1,24 @@
+{
+  "__schema": {
+    "types": [
+      {
+        "kind": "UNION",
+        "name": "Burndown",
+        "possibleTypes": [
+          {
+            "name": "GlobalBurndown"
+          },
+          {
+            "name": "AuthorBurndown"
+          },
+          {
+            "name": "FileBurndown"
+          },
+          {
+            "name": "BurndownAlert"
+          }
+        ]
+      }
+    ]
+  }
+}
