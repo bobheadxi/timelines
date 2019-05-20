@@ -19,6 +19,10 @@ import (
 	"go.bobheadxi.dev/zapx/zhttp"
 )
 
+var defaultLogFields = zhttp.LogFields{
+	func(ctx context.Context) zap.Field { return zap.String(config.LogKeyRID, requestID(ctx)) },
+}
+
 // RunOpts denotes server options
 type RunOpts struct {
 	Port     string
@@ -84,15 +88,11 @@ func Run(
 		))
 	})
 	mux.Route("/webhooks", func(r chi.Router) {
-		r.Use(zhttp.NewMiddleware(l.Desugar().Named("webhooks"), zhttp.LogFields{
-			func(ctx context.Context) zap.Field { return zap.String(config.LogKeyRID, requestID(ctx)) },
-		}).Logger)
+		r.Use(zhttp.NewMiddleware(l.Desugar().Named("webhooks"), defaultLogFields).Logger)
 		r.HandleFunc("/github", webhook.handleGitHub)
 	})
 	mux.Route("/playground", func(r chi.Router) {
-		r.Use(zhttp.NewMiddleware(l.Desugar().Named("playground"), zhttp.LogFields{
-			func(ctx context.Context) zap.Field { return zap.String(config.LogKeyRID, requestID(ctx)) },
-		}).Logger)
+		r.Use(zhttp.NewMiddleware(l.Desugar().Named("playground"), defaultLogFields).Logger)
 		r.Handle("/", handler.Playground("timelines API Playground", "/query"))
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
