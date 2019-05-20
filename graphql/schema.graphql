@@ -72,11 +72,13 @@ enum BurndownType {
 }
 
 type GlobalBurndown {
+  repoID: Int!
   type: BurndownType!
   entries: [BurndownEntry!]
 }
 
 type AuthorBurndown {
+  repoID: Int!
   type: BurndownType!
   author(
     author: String!,
@@ -84,13 +86,17 @@ type AuthorBurndown {
 }
 
 type FileBurndown {
+  repoID: Int!
   type: BurndownType!
   file(
-    filename: String!,
-  ): [BurndownEntry!]
+    # if filename is provided, return burndown for single file, otherwise return
+    # per file
+    filename: String,
+  ): [FileBurndownEntry!]
 }
 
 type BurndownAlert {
+  repoID: Int!
   type: BurndownType!
   alert: String!
 }
@@ -103,4 +109,9 @@ type BurndownEntry {
   # TODO: add Long type? tbh not sure if int64 is really justified at all here
   # https://gqlgen.com/reference/scalars/#custom-scalars-for-types-you-don-t-control
   bands: [Int!]!
+}
+
+type FileBurndownEntry {
+  file: String!
+  entry: BurndownEntry!
 }

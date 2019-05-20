@@ -13,3 +13,7 @@ models:
     fields:
       burndown:
         resolver: true
+  FileBurndown:
+    fields:
+      file:
+        resolver: true

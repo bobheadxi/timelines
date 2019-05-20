@@ -408,3 +408,62 @@ func (r *ReposDatabase) GetGlobalBurndown(
 
 	return entries, nil
 }
+
+// GetFilesBurndown returns files
+func (r *ReposDatabase) GetFilesBurndown(
+	ctx context.Context,
+	repoID int,
+	filename string,
+) ([]*models.FileBurndownEntry, error) {
+	var rows *pgx.Rows
+	var err error
+	if filename != "" {
+		rows, err = r.db.pg.Query(fmt.Sprintf(`
+		SELECT
+			interval, delta_bands
+		FROM
+			%s
+		WHERE
+			fk_repo_id = $1
+			AND filename = $2
+		`, tableGitBurndownFiles), repoID, filename)
+	} else {
+		rows, err = r.db.pg.Query(fmt.Sprintf(`
+		SELECT
+			interval, delta_bands
+		FROM
+			%s
+		WHERE
+			fk_repo_id = $1
+		`, tableGitBurndownFiles), repoID)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	entries := make([]*models.FileBurndownEntry, 0)
+	for rows.Next() {
+		var (
+			interval   pgtype.Tsrange
+			deltaBands []int64
+		)
+		if err = rows.Scan(&interval, &deltaBands); err != nil {
+			return nil, err
+		}
+
+		// for now, we need to cast manually into a int[]
+		intBands := make([]int, len(deltaBands))
+		for i, v := range deltaBands {
+			intBands[i] = int(v)
+		}
+		entries = append(entries, &models.FileBurndownEntry{
+			File: filename,
+			Entry: &models.BurndownEntry{
+				Start: interval.Lower.Time,
+				Bands: intBands,
+			},
+		})
+	}
+	return entries, nil
+}

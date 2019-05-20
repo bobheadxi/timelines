@@ -14,15 +14,17 @@ type Burndown interface {
 }
 
 type AuthorBurndown struct {
-	Type   *BurndownType    `json:"type"`
+	RepoID int              `json:"repoID"`
+	Type   BurndownType     `json:"type"`
 	Author []*BurndownEntry `json:"author"`
 }
 
 func (AuthorBurndown) IsBurndown() {}
 
 type BurndownAlert struct {
-	Type  *BurndownType `json:"type"`
-	Alert string        `json:"alert"`
+	RepoID int          `json:"repoID"`
+	Type   BurndownType `json:"type"`
+	Alert  string       `json:"alert"`
 }
 
 func (BurndownAlert) IsBurndown() {}
@@ -33,14 +35,21 @@ type BurndownEntry struct {
 }
 
 type FileBurndown struct {
-	Type *BurndownType    `json:"type"`
-	File []*BurndownEntry `json:"file"`
+	RepoID int                  `json:"repoID"`
+	Type   BurndownType         `json:"type"`
+	File   []*FileBurndownEntry `json:"file"`
 }
 
 func (FileBurndown) IsBurndown() {}
 
+type FileBurndownEntry struct {
+	File  string         `json:"file"`
+	Entry *BurndownEntry `json:"entry"`
+}
+
 type GlobalBurndown struct {
-	Type    *BurndownType    `json:"type"`
+	RepoID  int              `json:"repoID"`
+	Type    BurndownType     `json:"type"`
 	Entries []*BurndownEntry `json:"entries"`
 }
 
@@ -69,17 +78,19 @@ const (
 	BurndownTypeGlobal BurndownType = "GLOBAL"
 	BurndownTypeFile   BurndownType = "FILE"
 	BurndownTypeAuthor BurndownType = "AUTHOR"
+	BurndownTypeAlert  BurndownType = "ALERT"
 )
 
 var AllBurndownType = []BurndownType{
 	BurndownTypeGlobal,
 	BurndownTypeFile,
 	BurndownTypeAuthor,
+	BurndownTypeAlert,
 }
 
 func (e BurndownType) IsValid() bool {
 	switch e {
-	case BurndownTypeGlobal, BurndownTypeFile, BurndownTypeAuthor:
+	case BurndownTypeGlobal, BurndownTypeFile, BurndownTypeAuthor, BurndownTypeAlert:
 		return true
 	}
 	return false

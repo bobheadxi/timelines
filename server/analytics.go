@@ -14,7 +14,10 @@ import (
 	"github.com/bobheadxi/timelines/store"
 )
 
-func burndownType(t models.BurndownType) *models.BurndownType { return &t }
+type combinedAnalyticsResolver interface {
+	timelines.FileBurndownResolver
+	timelines.RepositoryAnalyticsResolver
+}
 
 type analyticsResolver struct {
 	db *db.Database
@@ -27,7 +30,7 @@ func newAnalyticsResolver(
 	l *zap.SugaredLogger,
 	database *db.Database,
 	s *store.Client,
-) timelines.RepositoryAnalyticsResolver {
+) combinedAnalyticsResolver {
 	return &analyticsResolver{database, s, l.Named("analytics")}
 }
 
@@ -44,7 +47,11 @@ func (a *analyticsResolver) Burndown(
 
 	switch *t {
 	case models.BurndownTypeFile:
-		return nil, errors.New("unimplemented")
+		return &models.GlobalBurndown{
+			RepoID: id,
+			Type:   models.BurndownTypeGlobal,
+			// Entries to be populated by FileResolver
+		}, nil
 	case models.BurndownTypeAuthor:
 		return nil, errors.New("unimplemented")
 	case models.BurndownTypeGlobal:
@@ -56,10 +63,32 @@ func (a *analyticsResolver) Burndown(
 			return nil, fmt.Errorf("could not find '%s' burndowns for repo '%d'", t, id)
 		}
 		return &models.GlobalBurndown{
-			Type:    burndownType(models.BurndownTypeGlobal),
+			RepoID:  id,
+			Type:    models.BurndownTypeGlobal,
 			Entries: deltas,
 		}, nil
 	default:
 		return nil, fmt.Errorf("invalid burndown type '%v'", t)
 	}
+}
+
+func (a *analyticsResolver) File(
+	ctx context.Context,
+	bd *models.FileBurndown,
+	filename *string,
+) ([]*models.FileBurndownEntry, error) {
+	var deltas []*models.FileBurndownEntry
+	var err error
+	if filename == nil {
+		deltas, err = a.db.Repos().GetFilesBurndown(ctx, bd.RepoID, "")
+		if err != nil {
+			return nil, fmt.Errorf("could not find burndowns repo '%d': %v", bd.RepoID, err)
+		}
+	} else {
+		deltas, err = a.db.Repos().GetFilesBurndown(ctx, bd.RepoID, *filename)
+		if err != nil {
+			return nil, fmt.Errorf("could not find burndowns for file '%s' in repo '%d': %v", *filename, bd.RepoID, err)
+		}
+	}
+	return deltas, nil
 }

@@ -119,7 +119,7 @@ type rootResolver struct {
 	l *zap.SugaredLogger
 
 	q timelines.QueryResolver
-	a timelines.RepositoryAnalyticsResolver
+	a combinedAnalyticsResolver
 }
 
 func newRootResolver(
@@ -139,3 +139,4 @@ func newRootResolver(
 
 func (r *rootResolver) Query() timelines.QueryResolver                             { return r.q }
 func (r *rootResolver) RepositoryAnalytics() timelines.RepositoryAnalyticsResolver { return r.a }
+func (r *rootResolver) FileBurndown() timelines.FileBurndownResolver               { return r.a }
