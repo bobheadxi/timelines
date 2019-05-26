@@ -1,7 +1,7 @@
 import React, { Component, ReactElement } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 
-import surfer from '../../assets/surfer@500.png';
+import surfer from 'assets/surfer@500.png';
 
 class About extends Component<{
   api: string;

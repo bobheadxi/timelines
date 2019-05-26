@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react';
 import DeckGL, { HexagonLayer } from 'deck.gl';
 
-import { GlobalBurndown } from '../../../lib';
+import { GlobalBurndown } from 'lib';
 
 const viewState = {
   longitude: -122.4,

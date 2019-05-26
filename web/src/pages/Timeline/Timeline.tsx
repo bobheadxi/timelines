@@ -1,13 +1,13 @@
 import React, { Component, ReactElement } from 'react';
 import { match } from 'react-router-dom';
 
-import Loading from '../../components/Loading/Loading';
-import { Error } from '../../components/alerts';
-import { Burndown } from '../../components/vis';
+import Loading from 'components/Loading/Loading';
+import { Error } from 'components/alerts';
+import { Burndown } from 'components/vis';
 
-import { getHostTypeFromHost } from '../../lib';
-import { RepoQuery, REPO_QUERY } from '../../lib/queries/repo';
-import { BurndownType } from '../../lib/queries/types/global';
+import { getHostTypeFromHost } from 'lib';
+import { RepoQuery, REPO_QUERY } from 'lib/queries/repo';
+import { BurndownType } from 'lib/queries/types/global';
 
 interface TimelineQuery {
   host: string;

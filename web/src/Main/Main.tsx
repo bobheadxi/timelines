@@ -6,17 +6,17 @@ import ApolloClient from 'apollo-boost';
 import { ApolloProvider } from 'react-apollo';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 
-import { fragmentMatcher } from '../lib/queries/introspection';
-import Loading from '../components/Loading/Loading';
-import Nav from '../components/Nav/Nav';
+import { fragmentMatcher } from 'lib/queries/introspection';
+import Loading from 'components/Loading/Loading';
+import Nav from 'components/Nav/Nav';
 
 /* eslint-disable */
-const Home = lazy(() => import('../pages/Home/Home'));
-const About = lazy(() => import('../pages/About/About'));
-const Host = lazy(() => import('../pages/Host/Host'));
-const Owner = lazy(() => import('../pages/Owner/Owner'));
-const Timeline = lazy(() => import('../pages/Timeline/Timeline'));
-const NotFound = lazy(() => import('../pages/NotFound/NotFound'));
+const Home = lazy(() => import('pages/Home/Home'));
+const About = lazy(() => import('pages/About/About'));
+const Host = lazy(() => import('pages/Host/Host'));
+const Owner = lazy(() => import('pages/Owner/Owner'));
+const Timeline = lazy(() => import('pages/Timeline/Timeline'));
+const NotFound = lazy(() => import('pages/NotFound/NotFound'));
 /* eslint-enable */
 
 const api = process.env.API_URL || 'https://timelines-api.herokuapp.com/query';

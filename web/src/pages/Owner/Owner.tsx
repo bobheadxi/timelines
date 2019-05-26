@@ -1,12 +1,12 @@
 import React, { Component, ReactElement } from 'react';
 import { match } from 'react-router-dom';
 
-import Loading from '../../components/Loading/Loading';
-import CardSet, { Card } from '../../components/CardSet/CardSet';
-import { Error } from '../../components/alerts';
+import Loading from 'components/Loading/Loading';
+import CardSet, { Card } from 'components/CardSet/CardSet';
+import { Error } from 'components/alerts';
 
-import { getHostTypeFromHost } from '../../lib';
-import { ReposQuery, REPOS_QUERY } from '../../lib/queries/repos';
+import { getHostTypeFromHost } from 'lib';
+import { ReposQuery, REPOS_QUERY } from 'lib/queries/repos';
 
 interface OwnerQuery {
   host: string;

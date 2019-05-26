@@ -4,8 +4,8 @@ import {
   BurndownType,
   RepoBurndown,
   GlobalBurndown,
-} from '../../../lib';
-import { Error } from '../../alerts';
+} from 'lib';
+import { Error } from 'components/alerts';
 
 import { globalBurndownElement } from './global';
 
