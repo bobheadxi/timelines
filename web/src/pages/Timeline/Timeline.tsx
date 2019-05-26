@@ -7,6 +7,7 @@ import { Burndown } from '../../components/vis';
 
 import { getHostTypeFromHost } from '../../lib';
 import { RepoQuery, REPO_QUERY } from '../../lib/queries/repo';
+import { BurndownType } from '../../lib/queries/types/global';
 
 interface TimelineQuery {
   host: string;
@@ -24,13 +25,21 @@ class Timeline extends Component<{
 
     return (
       <div>
-        <RepoQuery query={REPO_QUERY} variables={{ owner, name, host: getHostTypeFromHost(host) }}>
+        <RepoQuery
+          query={REPO_QUERY}
+          variables={{
+            owner, name, host: getHostTypeFromHost(host), type: BurndownType.FILE,
+          }}
+        >
           {({ loading, error, data }): ReactElement => {
+            // deal with random edge cases
             if (loading) return <Loading />;
             if (error) return <Error message={`Error :( ${error.message}`} />;
             if (!data || !data.repo) return <Error message="no data found" />;
             const { repo: { repository, burndown } } = data;
             if (!burndown) return <Error message="no data found" />;
+
+            // render visualisation
             return (
               <div>
                 <div className="margin-sides-48">

@@ -26,9 +26,22 @@ export interface Repo_repo_burndown_GlobalBurndown {
   entries: Repo_repo_burndown_GlobalBurndown_entries[] | null;
 }
 
+export interface Repo_repo_burndown_FileBurndown_file_entry {
+  __typename: "BurndownEntry";
+  start: any;
+  bands: number[];
+}
+
+export interface Repo_repo_burndown_FileBurndown_file {
+  __typename: "FileBurndownEntry";
+  file: string;
+  entry: Repo_repo_burndown_FileBurndown_file_entry;
+}
+
 export interface Repo_repo_burndown_FileBurndown {
   __typename: "FileBurndown";
   type: BurndownType;
+  file: Repo_repo_burndown_FileBurndown_file[] | null;
 }
 
 export interface Repo_repo_burndown_AuthorBurndown {
@@ -58,4 +71,5 @@ export interface RepoVariables {
   owner: string;
   name: string;
   host?: RepositoryHost | null;
+  type?: BurndownType | null;
 }

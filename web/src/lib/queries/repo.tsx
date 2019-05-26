@@ -4,13 +4,13 @@ import { Query } from 'react-apollo';
 import { Repo, RepoVariables } from './types/Repo';
 
 export const REPO_QUERY = gql`
-query Repo($owner: String!, $name: String!, $host: RepositoryHost) {
+query Repo($owner: String!, $name: String!, $host: RepositoryHost, $type: BurndownType) {
   repo(host: $host, owner: $owner, name: $name) {
     repository {
       id
       description
     }
-    burndown(type: GLOBAL) {
+    burndown(type: $type) {
       ... on GlobalBurndown {
         type
         entries {
@@ -20,6 +20,13 @@ query Repo($owner: String!, $name: String!, $host: RepositoryHost) {
       }
       ... on FileBurndown {
         type
+        file {
+          file
+          entry {
+            start
+            bands
+          }
+        }
       }
       ... on AuthorBurndown {
         type
