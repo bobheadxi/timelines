@@ -430,7 +430,7 @@ func (r *ReposDatabase) GetFilesBurndown(
 	} else {
 		rows, err = r.db.pg.Query(fmt.Sprintf(`
 		SELECT
-			interval, delta_bands
+			filename, interval, delta_bands
 		FROM
 			%s
 		WHERE
@@ -445,10 +445,18 @@ func (r *ReposDatabase) GetFilesBurndown(
 	entries := make([]*models.FileBurndownEntry, 0)
 	for rows.Next() {
 		var (
+			readFile   string
 			interval   pgtype.Tsrange
 			deltaBands []int64
+			err        error
 		)
-		if err = rows.Scan(&interval, &deltaBands); err != nil {
+		if filename != "" {
+			readFile = filename
+			err = rows.Scan(&interval, &deltaBands)
+		} else {
+			err = rows.Scan(&readFile, &interval, &deltaBands)
+		}
+		if err != nil {
 			return nil, err
 		}
 
@@ -458,7 +466,7 @@ func (r *ReposDatabase) GetFilesBurndown(
 			intBands[i] = int(v)
 		}
 		entries = append(entries, &models.FileBurndownEntry{
-			File: filename,
+			File: readFile,
 			Entry: &models.BurndownEntry{
 				Start: interval.Lower.Time,
 				Bands: intBands,
