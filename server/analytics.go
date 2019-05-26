@@ -47,9 +47,9 @@ func (a *analyticsResolver) Burndown(
 
 	switch *t {
 	case models.BurndownTypeFile:
-		return &models.GlobalBurndown{
+		return &models.FileBurndown{
 			RepoID: id,
-			Type:   models.BurndownTypeGlobal,
+			Type:   models.BurndownTypeFile,
 			// Entries to be populated by FileResolver
 		}, nil
 	case models.BurndownTypeAuthor:
