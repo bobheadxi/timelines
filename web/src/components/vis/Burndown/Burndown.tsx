@@ -7,7 +7,7 @@ import {
 } from 'lib';
 import { Error } from 'components/alerts';
 
-import { globalBurndownElement } from './global';
+import { Global } from './Global/Global';
 
 interface BurndownProps {
   data: RepoBurndown;
@@ -17,7 +17,7 @@ class Burndown extends Component<BurndownProps> {
   public render(): ReactElement {
     const { data } = this.props;
     switch (data.type) {
-      case BurndownType.GLOBAL: return globalBurndownElement(data as GlobalBurndown);
+      case BurndownType.GLOBAL: return <GlobalBurndownVis data={data as GlobalBurndown} />;
       case BurndownType.FILE: return <Error message="unimplemented" />;
       case BurndownType.AUTHOR: return <Error message="unimplemented" />;
       case BurndownType.ALERT: return <Error message={`error: ${data}`} />;
